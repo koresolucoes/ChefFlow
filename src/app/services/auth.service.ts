@@ -1,4 +1,5 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 
 export interface User {
@@ -11,16 +12,19 @@ export interface User {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
   
   currentUser = signal<User | null>(null);
 
   constructor() {
-    const stored = localStorage.getItem('kitchen_user');
-    if (stored) {
-      try {
-        this.currentUser.set(JSON.parse(stored));
-      } catch {
-        localStorage.removeItem('kitchen_user');
+    if (isPlatformBrowser(this.platformId)) {
+      const stored = localStorage.getItem('kitchen_user');
+      if (stored) {
+        try {
+          this.currentUser.set(JSON.parse(stored));
+        } catch {
+          localStorage.removeItem('kitchen_user');
+        }
       }
     }
   }
@@ -36,7 +40,9 @@ export class AuthService {
             role: 'chef'
           };
           this.currentUser.set(mockUser);
-          localStorage.setItem('kitchen_user', JSON.stringify(mockUser));
+          if (isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('kitchen_user', JSON.stringify(mockUser));
+          }
           this.router.navigate(['/']);
           resolve(true);
         } else {
@@ -48,7 +54,9 @@ export class AuthService {
 
   logout() {
     this.currentUser.set(null);
-    localStorage.removeItem('kitchen_user');
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('kitchen_user');
+    }
     this.router.navigate(['/login']);
   }
 }
