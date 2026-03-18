@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import bcrypt from 'bcryptjs';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -16,82 +15,57 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
-  if (req.method !== 'POST' && req.method !== 'GET') {
-    return res.status(405).json({ message: 'Method Not Allowed. Use GET or POST.' });
-  }
-
   try {
     const supabaseUrl = process.env['SUPABASE_URL'];
-    const supabaseKey = process.env['SUPABASE_ANON_KEY'] || process.env['SUPABASE_SERVICE_ROLE_KEY'];
+    // Para gerenciar usuários no Auth, PRECISAMOS da service_role key
+    const supabaseKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
 
     if (!supabaseUrl || !supabaseKey) {
-      return res.status(500).json({ error: 'SUPABASE_URL ou SUPABASE_ANON_KEY não configuradas no ambiente.' });
+      return res.status(500).json({ error: 'SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY não configuradas no ambiente.' });
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Se o usuário passar ?fix=true na URL, vamos corrigir as senhas em texto puro
-    if (req.query.fix === 'true') {
-      const { data: allUsers, error: fetchError } = await supabase.from('users').select('*');
-      
-      if (fetchError) {
-        return res.status(500).json({ error: 'Erro ao buscar usuários', details: fetchError.message });
-      }
-
-      let fixedCount = 0;
-      for (const user of allUsers || []) {
-        // Se a senha não começar com $2a$ ou $2b$ (padrão do bcrypt), significa que está em texto puro
-        if (!user.password_hash.startsWith('$2a$') && !user.password_hash.startsWith('$2b$')) {
-          const newHash = await bcrypt.hash(user.password_hash, 10);
-          await supabase.from('users').update({ password_hash: newHash }).eq('id', user.id);
-          fixedCount++;
-        }
-      }
-
-      return res.status(200).json({ 
-        message: `Senhas corrigidas com sucesso! ${fixedCount} usuário(s) atualizado(s) para usar criptografia bcrypt.`,
-        fixed_count: fixedCount
-      });
-    }
-
-    // Verifica se o admin padrão já existe
-    const { data: existingAdmin, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', 'admin@chefflow.com');
-      
-    if (error) {
-      // Se der erro, provavelmente a tabela não existe
-      return res.status(200).json({ 
-        message: 'Por favor, execute o script SQL no painel do Supabase para criar as tabelas.',
-        sql_required: true,
-        error: error.message
-      });
-    }
+    // Verifica se o admin já existe no Supabase Auth
+    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
     
-    if (existingAdmin && existingAdmin.length === 0) {
-      // Vamos criar o admin automaticamente se a tabela existir mas ele não
-      const hash = await bcrypt.hash('admin123', 10);
-      const { error: insertError } = await supabase.from('users').insert({
-        name: 'Chef Admin',
+    if (authError) {
+      return res.status(500).json({ error: 'Erro ao conectar com Supabase Auth', details: authError.message });
+    }
+
+    const adminExists = authUsers.users.some(u => u.email === 'admin@chefflow.com');
+
+    if (!adminExists) {
+      // 1. Cria o usuário no Supabase Auth
+      const { data: newAuthUser, error: createError } = await supabase.auth.admin.createUser({
         email: 'admin@chefflow.com',
-        password_hash: hash,
-        role: 'admin'
+        password: 'admin123',
+        email_confirm: true
       });
 
-      if (insertError) {
-        return res.status(500).json({ error: 'Erro ao criar admin', details: insertError.message });
+      if (createError) {
+        return res.status(500).json({ error: 'Erro ao criar admin no Auth', details: createError.message });
+      }
+
+      // 2. Cria o perfil na tabela public.users
+      if (newAuthUser.user) {
+        await supabase.from('users').insert({
+          id: newAuthUser.user.id, // Usa o mesmo ID do Auth
+          name: 'Chef Admin',
+          email: 'admin@chefflow.com',
+          role: 'admin'
+        });
       }
 
       return res.status(200).json({ 
-        message: 'Admin criado com sucesso! Use admin@chefflow.com e admin123',
+        message: 'Admin criado com sucesso no Supabase Auth! Use admin@chefflow.com e admin123',
         admin_created: true
       });
     }
 
     return res.status(200).json({ 
-      message: 'Banco de dados Supabase configurado e conectado com sucesso!',
-      admin_created: true
+      message: 'Banco de dados Supabase configurado e Admin já existe no Auth!',
+      admin_created: false
     });
   } catch (error) {
     console.error('Erro no setup do banco:', error);
