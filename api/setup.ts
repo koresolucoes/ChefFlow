@@ -21,11 +21,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    if (!process.env.DATABASE_URL) {
+    if (!process.env['DATABASE_URL']) {
       return res.status(500).json({ error: 'DATABASE_URL não configurada no ambiente.' });
     }
 
-    const sql = neon(process.env.DATABASE_URL);
+    const sql = neon(process.env['DATABASE_URL']);
 
     // 1. Cria a tabela de usuários se não existir
     await sql`

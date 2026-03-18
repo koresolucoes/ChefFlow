@@ -10,7 +10,7 @@ function verifyToken(req: VercelRequest): any {
     throw new Error('Unauthorized');
   }
   const token = authHeader.split(' ')[1];
-  const secret = process.env.JWT_SECRET || 'fallback_secret_key_change_me';
+  const secret = process.env['JWT_SECRET'] || 'fallback_secret_key_change_me';
   return jwt.verify(token, secret);
 }
 
@@ -31,15 +31,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const userPayload = verifyToken(req);
     // Apenas admins e chefs podem gerenciar a equipe
-    if (userPayload.role !== 'admin' && userPayload.role !== 'chef') {
+    if (userPayload['role'] !== 'admin' && userPayload['role'] !== 'chef') {
        return res.status(403).json({ message: 'Acesso negado' });
     }
 
-    if (!process.env.DATABASE_URL) {
+    if (!process.env['DATABASE_URL']) {
       return res.status(500).json({ message: 'DATABASE_URL não configurada' });
     }
 
-    const sql = neon(process.env.DATABASE_URL);
+    const sql = neon(process.env['DATABASE_URL']);
 
     // LISTAR USUÁRIOS
     if (req.method === 'GET') {
@@ -71,7 +71,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { id } = req.query;
       
       // Não permite deletar a si mesmo
-      if (id === userPayload.id) {
+      if (id === userPayload['id']) {
         return res.status(400).json({ message: 'Não é possível deletar seu próprio usuário' });
       }
 

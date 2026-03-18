@@ -28,12 +28,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    if (!process.env.DATABASE_URL) {
+    if (!process.env['DATABASE_URL']) {
       throw new Error('DATABASE_URL não está configurada');
     }
 
     // Inicializa a conexão com o Neon
-    const sql = neon(process.env.DATABASE_URL);
+    const sql = neon(process.env['DATABASE_URL']);
 
     // Busca o usuário pelo e-mail
     const users = await sql`SELECT * FROM users WHERE email = ${email}`;
@@ -44,16 +44,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Verifica a senha com bcrypt
-    const isValid = await bcrypt.compare(password, user.password_hash);
+    const isValid = await bcrypt.compare(password, user['password_hash']);
 
     if (!isValid) {
       return res.status(401).json({ message: 'Credenciais inválidas' });
     }
 
     // Gera o Token JWT
-    const jwtSecret = process.env.JWT_SECRET || 'fallback_secret_key_change_me';
+    const jwtSecret = process.env['JWT_SECRET'] || 'fallback_secret_key_change_me';
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user['id'], email: user['email'], role: user['role'] },
       jwtSecret,
       { expiresIn: '8h' }
     );
@@ -61,10 +61,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Retorna os dados do usuário (sem a senha) e o token
     return res.status(200).json({
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role
+        id: user['id'],
+        name: user['name'],
+        email: user['email'],
+        role: user['role']
       },
       token
     });
