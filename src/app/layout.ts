@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-layout',
@@ -47,14 +48,19 @@ import { MatIconModule } from '@angular/material/icon';
         </nav>
         
         <div class="p-4 border-t border-stone-800">
-          <div class="flex items-center gap-3 px-3 py-2">
-            <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
-              C
+          <div class="flex items-center justify-between px-3 py-2">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                {{ authService.currentUser()?.name?.charAt(0) || 'U' }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-white truncate">{{ authService.currentUser()?.name || 'Usuário' }}</p>
+                <p class="text-xs text-stone-500 truncate capitalize">{{ authService.currentUser()?.role || 'Admin' }}</p>
+              </div>
             </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-white truncate">Chef Executivo</p>
-              <p class="text-xs text-stone-500 truncate">Admin</p>
-            </div>
+            <button (click)="logout()" class="p-1.5 text-stone-400 hover:text-white hover:bg-stone-800 rounded-lg transition-colors" title="Sair">
+              <mat-icon class="text-[20px] w-5 h-5">logout</mat-icon>
+            </button>
           </div>
         </div>
       </aside>
@@ -86,9 +92,14 @@ import { MatIconModule } from '@angular/material/icon';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LayoutComponent {
+  authService = inject(AuthService);
   isSidebarOpen = signal(false);
 
   toggleSidebar() {
     this.isSidebarOpen.update(v => !v);
+  }
+
+  logout() {
+    this.authService.logout();
   }
 }
