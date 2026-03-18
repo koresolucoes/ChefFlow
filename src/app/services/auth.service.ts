@@ -33,8 +33,7 @@ export class AuthService {
     }
   }
 
-  // Exemplo de como será a chamada REAL para a sua API na Vercel
-  async loginReal(email: string, password: string): Promise<boolean> {
+  async login(email: string, password: string): Promise<boolean> {
     try {
       // Faz o POST para a sua API na Vercel (que conecta no Neon)
       const response = await firstValueFrom(
@@ -57,30 +56,6 @@ export class AuthService {
       console.error('Erro no login:', error);
       return false;
     }
-  }
-
-  // Mantendo o mock temporário para o preview funcionar
-  login(email: string, password: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (email && password) {
-          const mockUser: User = {
-            id: '123e4567-e89b-12d3-a456-426614174000',
-            name: 'Chef Executivo',
-            email: email,
-            role: 'chef'
-          };
-          this.currentUser.set(mockUser);
-          if (isPlatformBrowser(this.platformId)) {
-            localStorage.setItem('kitchen_user', JSON.stringify(mockUser));
-          }
-          this.router.navigate(['/']);
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      }, 800);
-    });
   }
 
   logout() {

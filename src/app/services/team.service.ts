@@ -20,14 +20,7 @@ export class TeamService {
       this.teamMembers.set(members);
     } catch (error) {
       console.error('Erro ao carregar equipe:', error);
-      // Fallback mock para o preview caso a API não esteja rodando
-      if (this.teamMembers().length === 0) {
-        this.teamMembers.set([
-          { id: '1', name: 'Chef Executivo', email: 'admin@chefflow.com', role: 'admin' },
-          { id: '2', name: 'João Cozinheiro', email: 'joao@chefflow.com', role: 'cook' },
-          { id: '3', name: 'Maria Auxiliar', email: 'maria@chefflow.com', role: 'cook' }
-        ]);
-      }
+      this.teamMembers.set([]);
     } finally {
       this.isLoading.set(false);
     }
@@ -42,10 +35,7 @@ export class TeamService {
       return true;
     } catch (error) {
       console.error('Erro ao adicionar membro:', error);
-      // Mock fallback
-      const mockMember = { ...member, id: Math.random().toString() } as User;
-      this.teamMembers.update(members => [mockMember, ...members]);
-      return true;
+      return false;
     }
   }
 
@@ -58,9 +48,7 @@ export class TeamService {
       return true;
     } catch (error) {
       console.error('Erro ao remover membro:', error);
-      // Mock fallback
-      this.teamMembers.update(members => members.filter(m => m.id !== id));
-      return true;
+      return false;
     }
   }
 }

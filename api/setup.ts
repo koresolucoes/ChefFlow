@@ -39,7 +39,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
     `;
 
-    // 2. Verifica se o admin padrão já existe
+    // 2. Cria a tabela de escalas (schedules)
+    await sql`
+      CREATE TABLE IF NOT EXISTS schedules (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        date DATE NOT NULL,
+        shift_start TIME,
+        shift_end TIME,
+        type VARCHAR(50) NOT NULL DEFAULT 'regular', -- regular, folga, extra
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    // 3. Verifica se o admin padrão já existe
     const existingAdmin = await sql`SELECT * FROM users WHERE email = 'admin@chefflow.com'`;
     
     if (existingAdmin.length === 0) {
