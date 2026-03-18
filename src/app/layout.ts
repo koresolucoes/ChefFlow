@@ -41,6 +41,11 @@ import { AuthService } from './services/auth.service';
             <span class="font-medium">Produção (Prep)</span>
           </a>
           
+          <a routerLink="/estoque" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+            <mat-icon>inventory_2</mat-icon>
+            <span class="font-medium">Estoque</span>
+          </a>
+          
           <a routerLink="/limpeza" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
             <mat-icon>cleaning_services</mat-icon>
             <span class="font-medium">Higiene & Limpeza</span>

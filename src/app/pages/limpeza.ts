@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, inject, OnInit, computed } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CleaningService, CleaningTask } from '../services/cleaning.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-limpeza',
@@ -15,22 +17,31 @@ import { FormsModule } from '@angular/forms';
           <p class="text-stone-500 mt-1">Checklists sanitários e termometria.</p>
         </div>
         <div class="flex gap-3">
-          <button class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
-            <mat-icon>add</mat-icon>
-            Novo Registro
-          </button>
+          @if (canManageTasks()) {
+            <button (click)="showNewTaskForm.set(true)" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
+              <mat-icon>add</mat-icon>
+              Novo Registro
+            </button>
+          }
         </div>
       </header>
+
+      @if (cleaningService.error()) {
+        <div class="bg-rose-50 text-rose-600 p-4 rounded-xl flex items-center gap-3">
+          <mat-icon>error_outline</mat-icon>
+          <p>{{ cleaningService.error() }}</p>
+        </div>
+      }
 
       <!-- Tabs -->
       <div class="border-b border-stone-200">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
           <button 
-            (click)="activeTab.set('checklists')"
-            [class.border-stone-900]="activeTab() === 'checklists'"
-            [class.text-stone-900]="activeTab() === 'checklists'"
-            [class.border-transparent]="activeTab() !== 'checklists'"
-            [class.text-stone-500]="activeTab() !== 'checklists'"
+            (click)="activeTab.set('checklist')"
+            [class.border-stone-900]="activeTab() === 'checklist'"
+            [class.text-stone-900]="activeTab() === 'checklist'"
+            [class.border-transparent]="activeTab() !== 'checklist'"
+            [class.text-stone-500]="activeTab() !== 'checklist'"
             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
             Checklists de Fechamento
           </button>
@@ -55,213 +66,353 @@ import { FormsModule } from '@angular/forms';
         </nav>
       </div>
 
-      <!-- Tab Content -->
-      <div class="mt-6">
-        @if (activeTab() === 'checklists') {
-          <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-            <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
-              <h2 class="font-bold text-stone-900">Fechamento da Cozinha - 18 Mar</h2>
-              <div class="text-sm font-medium text-stone-500">0/8 Concluído</div>
+      <!-- New Task Form -->
+      @if (showNewTaskForm()) {
+        <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-stone-900">Novo Registro</h2>
+            <button (click)="showNewTaskForm.set(false)" class="text-stone-400 hover:text-stone-600">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          
+          <form (ngSubmit)="onSubmit()" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-stone-700 mb-1">Título</label>
+                <input type="text" [(ngModel)]="newTask.title" name="title" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-stone-700 mb-1">Categoria</label>
+                <select [(ngModel)]="newTask.category" name="category" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
+                  <option value="checklist">Checklist</option>
+                  <option value="termometria">Termometria</option>
+                  <option value="fechamento">Fechamento</option>
+                </select>
+              </div>
+              
+              @if (newTask.category === 'termometria') {
+                <div>
+                  <label class="block text-sm font-medium text-stone-700 mb-1">Meta (Ex: 0°C a 4°C)</label>
+                  <input type="text" [(ngModel)]="newTask.target_value" name="target_value" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
+                </div>
+              }
             </div>
             
-            <div class="divide-y divide-stone-100">
-              <!-- Tarefa 1 -->
-              <div class="p-4 flex items-start gap-4 hover:bg-stone-50 transition-colors">
-                <button class="mt-1 w-6 h-6 rounded-full border-2 border-stone-300 shrink-0" aria-label="Marcar como concluído"></button>
-                <div class="flex-1 min-w-0">
-                  <h3 class="text-base font-bold text-stone-900">Limpeza da Chapa e Grelha</h3>
-                  <p class="text-sm text-stone-500 mt-1">Desengordurar, raspar e aplicar óleo protetor.</p>
-                </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <span class="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded flex items-center gap-1">
-                    <mat-icon class="text-[14px] w-3.5 h-3.5">photo_camera</mat-icon>
-                    Foto Obrigatória
-                  </span>
-                </div>
-              </div>
-
-              <!-- Tarefa 2 -->
-              <div class="p-4 flex items-start gap-4 hover:bg-stone-50 transition-colors">
-                <button class="mt-1 w-6 h-6 rounded-full border-2 border-stone-300 shrink-0" aria-label="Marcar como concluído"></button>
-                <div class="flex-1 min-w-0">
-                  <h3 class="text-base font-bold text-stone-900">Higienização das Bancadas (Inox)</h3>
-                  <p class="text-sm text-stone-500 mt-1">Lavar com detergente e sanitizar com álcool 70%.</p>
-                </div>
-              </div>
-
-              <!-- Tarefa 3 -->
-              <div class="p-4 flex items-start gap-4 hover:bg-stone-50 transition-colors">
-                <button class="mt-1 w-6 h-6 rounded-full border-2 border-stone-300 shrink-0" aria-label="Marcar como concluído"></button>
-                <div class="flex-1 min-w-0">
-                  <h3 class="text-base font-bold text-stone-900">Limpeza do Chão (Lavagem)</h3>
-                  <p class="text-sm text-stone-500 mt-1">Varrer, esfregar com desengordurante e secar.</p>
-                </div>
-              </div>
+            <div>
+              <label class="block text-sm font-medium text-stone-700 mb-1">Descrição (Opcional)</label>
+              <textarea [(ngModel)]="newTask.description" name="description" rows="2" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900"></textarea>
             </div>
+            
+            <div class="flex justify-end gap-3 pt-4">
+              <button type="button" (click)="showNewTaskForm.set(false)" class="px-4 py-2 text-stone-600 font-medium hover:bg-stone-100 rounded-lg transition-colors">
+                Cancelar
+              </button>
+              <button type="submit" [disabled]="cleaningService.loading() || !newTask.title" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors disabled:opacity-50 flex items-center gap-2">
+                @if (cleaningService.loading()) {
+                  <mat-icon class="animate-spin">autorenew</mat-icon>
+                  Salvando...
+                } @else {
+                  <mat-icon>save</mat-icon>
+                  Salvar Registro
+                }
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+
+      <!-- Tab Content -->
+      <div class="mt-6">
+        @if (cleaningService.loading() && !showNewTaskForm()) {
+          <div class="flex justify-center p-12">
+            <mat-icon class="animate-spin text-stone-400 text-4xl">autorenew</mat-icon>
           </div>
-        }
-
-        @if (activeTab() === 'termometria') {
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Equipamento 1 -->
-            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-              <div class="flex justify-between items-start mb-4">
-                <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                  <mat-icon>ac_unit</mat-icon>
+        } @else {
+          @if (activeTab() === 'checklist') {
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+              <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+                <h2 class="font-bold text-stone-900">Checklists</h2>
+                <div class="text-sm font-medium text-stone-500">
+                  {{ completedChecklists() }}/{{ checklists().length }} Concluído
                 </div>
-                <span class="text-2xl font-bold text-stone-900">3°C</span>
-              </div>
-              <h3 class="text-lg font-bold text-stone-900">Câmara Fria Principal</h3>
-              <p class="text-sm text-stone-500 mt-1">Meta: 0°C a 4°C</p>
-              <div class="mt-4 pt-4 border-t border-stone-100 flex justify-between items-center">
-                <span class="text-xs text-stone-500">Última leitura: 10:00</span>
-                <span class="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded uppercase tracking-wide">Normal</span>
-              </div>
-            </div>
-
-            <!-- Equipamento 2 -->
-            <div class="bg-white rounded-2xl shadow-sm border border-rose-200 p-6 relative overflow-hidden">
-              <div class="absolute top-0 right-0 w-2 h-full bg-rose-500"></div>
-              <div class="flex justify-between items-start mb-4">
-                <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                  <mat-icon>kitchen</mat-icon>
-                </div>
-                <span class="text-2xl font-bold text-rose-600">8°C</span>
-              </div>
-              <h3 class="text-lg font-bold text-stone-900">Geladeira de Carnes</h3>
-              <p class="text-sm text-stone-500 mt-1">Meta: 0°C a 4°C</p>
-              <div class="mt-4 pt-4 border-t border-stone-100 flex justify-between items-center">
-                <span class="text-xs text-stone-500">Última leitura: 10:00</span>
-                <span class="px-2 py-1 bg-rose-100 text-rose-800 text-xs font-bold rounded uppercase tracking-wide flex items-center gap-1">
-                  <mat-icon class="text-[14px] w-3.5 h-3.5">warning</mat-icon>
-                  Alerta
-                </span>
-              </div>
-            </div>
-
-            <!-- Equipamento 3 -->
-            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-              <div class="flex justify-between items-start mb-4">
-                <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                  <mat-icon>ac_unit</mat-icon>
-                </div>
-                <span class="text-2xl font-bold text-stone-900">-18°C</span>
-              </div>
-              <h3 class="text-lg font-bold text-stone-900">Freezer Vertical</h3>
-              <p class="text-sm text-stone-500 mt-1">Meta: -18°C ou menos</p>
-              <div class="mt-4 pt-4 border-t border-stone-100 flex justify-between items-center">
-                <span class="text-xs text-stone-500">Última leitura: 10:00</span>
-                <span class="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded uppercase tracking-wide">Normal</span>
-              </div>
-            </div>
-          </div>
-        }
-
-        @if (activeTab() === 'fechamento') {
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Checklist de Auditoria -->
-            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-              <div class="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
-                <div>
-                  <h2 class="font-bold text-stone-900">Auditoria de Fechamento</h2>
-                  <p class="text-sm text-stone-500">Verificação final detalhada do Chef de Turno</p>
-                </div>
-                <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full uppercase tracking-wide">Em Andamento</span>
               </div>
               
               <div class="divide-y divide-stone-100">
-                @for (task of fechamentoTasks(); track task.id) {
-                  <div class="p-4 hover:bg-stone-50 transition-colors">
-                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                      <div class="flex-1 min-w-0">
-                        <h3 class="text-base font-bold text-stone-900">{{ task.title }}</h3>
+                @if (checklists().length === 0) {
+                  <div class="p-8 text-center text-stone-500">
+                    Nenhum checklist cadastrado.
+                  </div>
+                }
+                @for (task of checklists(); track task.id) {
+                  <div class="p-4 flex items-start gap-4 hover:bg-stone-50 transition-colors group">
+                    <button 
+                      (click)="toggleTaskStatus(task)"
+                      [class.bg-emerald-500]="task.status === 'completed'"
+                      [class.border-emerald-500]="task.status === 'completed'"
+                      [class.border-stone-300]="task.status !== 'completed'"
+                      class="mt-1 w-6 h-6 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors" 
+                      aria-label="Marcar como concluído">
+                      @if (task.status === 'completed') {
+                        <mat-icon class="text-white text-[16px] w-4 h-4">check</mat-icon>
+                      }
+                    </button>
+                    <div class="flex-1 min-w-0">
+                      <h3 class="text-base font-bold text-stone-900" [class.line-through]="task.status === 'completed'" [class.text-stone-400]="task.status === 'completed'">{{ task.title }}</h3>
+                      @if (task.description) {
                         <p class="text-sm text-stone-500 mt-1">{{ task.description }}</p>
-                      </div>
-                      <div class="flex items-center gap-2 shrink-0">
-                        <button 
-                          (click)="setStatus(task.id, 'conforme')"
-                          [class.bg-emerald-100]="task.status === 'conforme'"
-                          [class.text-emerald-800]="task.status === 'conforme'"
-                          [class.border-emerald-200]="task.status === 'conforme'"
-                          [class.bg-white]="task.status !== 'conforme'"
-                          [class.text-stone-500]="task.status !== 'conforme'"
-                          [class.border-stone-200]="task.status !== 'conforme'"
-                          class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-emerald-50 hover:text-emerald-700">
-                          <mat-icon class="text-[18px] w-4.5 h-4.5">check_circle</mat-icon>
-                          Conforme
-                        </button>
-                        <button 
-                          (click)="setStatus(task.id, 'nao_conforme')"
-                          [class.bg-rose-100]="task.status === 'nao_conforme'"
-                          [class.text-rose-800]="task.status === 'nao_conforme'"
-                          [class.border-rose-200]="task.status === 'nao_conforme'"
-                          [class.bg-white]="task.status !== 'nao_conforme'"
-                          [class.text-stone-500]="task.status !== 'nao_conforme'"
-                          [class.border-stone-200]="task.status !== 'nao_conforme'"
-                          class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-rose-50 hover:text-rose-700">
-                          <mat-icon class="text-[18px] w-4.5 h-4.5">cancel</mat-icon>
-                          Não Conforme
-                        </button>
-                      </div>
+                      }
                     </div>
-                    
-                    @if (task.status === 'nao_conforme') {
-                      <div class="mt-3 pl-0 sm:pl-4 border-l-2 border-rose-200">
-                        <label [for]="'reason-' + task.id" class="block text-xs font-bold text-stone-700 mb-1 uppercase tracking-wider">Motivo da Não Conformidade</label>
-                        <textarea 
-                          [id]="'reason-' + task.id"
-                          [ngModel]="task.reason"
-                          (ngModelChange)="updateReason(task.id, $event)"
-                          class="w-full p-2.5 border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none" 
-                          rows="2" 
-                          placeholder="Ex: Faltou produto de limpeza, equipamento quebrado, equipe saiu mais cedo..."></textarea>
-                      </div>
+                    @if (canManageTasks()) {
+                      <button (click)="deleteTask(task.id)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <mat-icon>delete</mat-icon>
+                      </button>
                     }
                   </div>
                 }
               </div>
             </div>
+          }
 
-            <!-- Análise e Assinatura -->
-            <div class="space-y-6">
-              <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-                <h3 class="text-lg font-bold text-stone-900 mb-4">Análise Geral do Plantão</h3>
-                <textarea class="w-full h-32 p-3 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none" placeholder="Registre ocorrências gerais, quebras de equipamento, faltas ou observações sobre o serviço de hoje..." aria-label="Análise do plantão"></textarea>
+          @if (activeTab() === 'termometria') {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              @if (termometria().length === 0) {
+                <div class="col-span-full p-8 text-center text-stone-500 bg-white rounded-2xl border border-stone-200">
+                  Nenhum equipamento cadastrado.
+                </div>
+              }
+              @for (task of termometria(); track task.id) {
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 relative overflow-hidden group">
+                  @if (task.status === 'nao_conforme') {
+                    <div class="absolute top-0 right-0 w-2 h-full bg-rose-500"></div>
+                  }
+                  <div class="flex justify-between items-start mb-4">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                      <mat-icon>ac_unit</mat-icon>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      @if (canManageTasks()) {
+                        <button (click)="deleteTask(task.id)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      }
+                      <div class="flex items-center border border-stone-200 rounded-lg overflow-hidden">
+                        <input 
+                          type="text" 
+                          [ngModel]="task.value" 
+                          (blur)="updateValue(task, $any($event.target).value)"
+                          (keyup.enter)="updateValue(task, $any($event.target).value)"
+                          class="w-16 px-2 py-1 text-right font-bold text-stone-900 focus:outline-none" 
+                          placeholder="--">
+                        <span class="px-2 py-1 bg-stone-50 text-stone-500 font-medium border-l border-stone-200">°C</span>
+                      </div>
+                    </div>
+                  </div>
+                  <h3 class="text-lg font-bold text-stone-900">{{ task.title }}</h3>
+                  @if (task.target_value) {
+                    <p class="text-sm text-stone-500 mt-1">Meta: {{ task.target_value }}</p>
+                  }
+                  <div class="mt-4 pt-4 border-t border-stone-100 flex justify-between items-center">
+                    <span class="text-xs text-stone-500">
+                      {{ task.updated_at ? ('Última leitura: ' + (task.updated_at | date:'HH:mm')) : 'Sem leitura' }}
+                    </span>
+                    @if (task.value) {
+                      <span 
+                        [class.bg-emerald-100]="task.status !== 'nao_conforme'"
+                        [class.text-emerald-800]="task.status !== 'nao_conforme'"
+                        [class.bg-rose-100]="task.status === 'nao_conforme'"
+                        [class.text-rose-800]="task.status === 'nao_conforme'"
+                        class="px-2 py-1 text-xs font-bold rounded uppercase tracking-wide flex items-center gap-1 cursor-pointer"
+                        (click)="toggleConformity(task)">
+                        @if (task.status === 'nao_conforme') {
+                          <mat-icon class="text-[14px] w-3.5 h-3.5">warning</mat-icon>
+                          Alerta
+                        } @else {
+                          Normal
+                        }
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (activeTab() === 'fechamento') {
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <!-- Checklist de Auditoria -->
+              <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                <div class="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+                  <div>
+                    <h2 class="font-bold text-stone-900">Auditoria de Fechamento</h2>
+                    <p class="text-sm text-stone-500">Verificação final detalhada do Chef de Turno</p>
+                  </div>
+                  <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full uppercase tracking-wide">Em Andamento</span>
+                </div>
                 
-                <div class="mt-6 pt-6 border-t border-stone-100">
-                  <button class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
-                    <mat-icon>verified</mat-icon>
-                    Assinar e Encerrar Plantão
-                  </button>
+                <div class="divide-y divide-stone-100">
+                  @if (fechamento().length === 0) {
+                    <div class="p-8 text-center text-stone-500">
+                      Nenhuma tarefa de fechamento cadastrada.
+                    </div>
+                  }
+                  @for (task of fechamento(); track task.id) {
+                    <div class="p-4 hover:bg-stone-50 transition-colors group">
+                      <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                        <div class="flex-1 min-w-0">
+                          <div class="flex items-center gap-2">
+                            <h3 class="text-base font-bold text-stone-900">{{ task.title }}</h3>
+                            @if (canManageTasks()) {
+                              <button (click)="deleteTask(task.id)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <mat-icon class="text-[18px] w-4.5 h-4.5">delete</mat-icon>
+                              </button>
+                            }
+                          </div>
+                          @if (task.description) {
+                            <p class="text-sm text-stone-500 mt-1">{{ task.description }}</p>
+                          }
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                          <button 
+                            (click)="setStatus(task.id, 'conforme')"
+                            [class.bg-emerald-100]="task.status === 'conforme'"
+                            [class.text-emerald-800]="task.status === 'conforme'"
+                            [class.border-emerald-200]="task.status === 'conforme'"
+                            [class.bg-white]="task.status !== 'conforme'"
+                            [class.text-stone-500]="task.status !== 'conforme'"
+                            [class.border-stone-200]="task.status !== 'conforme'"
+                            class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-emerald-50 hover:text-emerald-700">
+                            <mat-icon class="text-[18px] w-4.5 h-4.5">check_circle</mat-icon>
+                            Conforme
+                          </button>
+                          <button 
+                            (click)="setStatus(task.id, 'nao_conforme')"
+                            [class.bg-rose-100]="task.status === 'nao_conforme'"
+                            [class.text-rose-800]="task.status === 'nao_conforme'"
+                            [class.border-rose-200]="task.status === 'nao_conforme'"
+                            [class.bg-white]="task.status !== 'nao_conforme'"
+                            [class.text-stone-500]="task.status !== 'nao_conforme'"
+                            [class.border-stone-200]="task.status !== 'nao_conforme'"
+                            class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-rose-50 hover:text-rose-700">
+                            <mat-icon class="text-[18px] w-4.5 h-4.5">cancel</mat-icon>
+                            Não Conforme
+                          </button>
+                        </div>
+                      </div>
+                      
+                      @if (task.status === 'nao_conforme') {
+                        <div class="mt-3 pl-0 sm:pl-4 border-l-2 border-rose-200">
+                          <label [for]="'reason-' + task.id" class="block text-xs font-bold text-stone-700 mb-1 uppercase tracking-wider">Motivo da Não Conformidade</label>
+                          <textarea 
+                            [id]="'reason-' + task.id"
+                            [ngModel]="task.reason"
+                            (blur)="updateReason(task.id, $any($event.target).value)"
+                            class="w-full p-2.5 border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none" 
+                            rows="2" 
+                            placeholder="Ex: Faltou produto de limpeza, equipamento quebrado, equipe saiu mais cedo..."></textarea>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Análise e Assinatura -->
+              <div class="space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
+                  <h3 class="text-lg font-bold text-stone-900 mb-4">Análise Geral do Plantão</h3>
+                  <textarea class="w-full h-32 p-3 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none" placeholder="Registre ocorrências gerais, quebras de equipamento, faltas ou observações sobre o serviço de hoje..." aria-label="Análise do plantão"></textarea>
+                  
+                  <div class="mt-6 pt-6 border-t border-stone-100">
+                    <button class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
+                      <mat-icon>verified</mat-icon>
+                      Assinar e Encerrar Plantão
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          }
         }
       </div>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LimpezaComponent {
-  activeTab = signal<'checklists' | 'termometria' | 'fechamento'>('fechamento');
+export class LimpezaComponent implements OnInit {
+  cleaningService = inject(CleaningService);
+  authService = inject(AuthService);
 
-  fechamentoTasks = signal([
-    { id: '1', title: 'Limpeza das Praças', description: 'Todas as praças higienizadas e organizadas.', status: 'pending', reason: '' },
-    { id: '2', title: 'Equipamentos e Exaustão', description: 'Fornos, fritadeiras, chapas e exaustão desligados.', status: 'pending', reason: '' },
-    { id: '3', title: 'Válvulas de Gás', description: 'Registros de gás principal e das praças fechados.', status: 'pending', reason: '' },
-    { id: '4', title: 'Câmaras e Geladeiras', description: 'Organizadas, sem produtos abertos sem etiqueta, e trancadas.', status: 'pending', reason: '' },
-    { id: '5', title: 'Gestão de Validades (PVPS)', description: 'Insumos vencidos descartados e baixados no sistema.', status: 'pending', reason: '' },
-    { id: '6', title: 'Gestão de Resíduos', description: 'Lixo retirado, lixeiras lavadas e chão limpo.', status: 'pending', reason: '' },
-    { id: '7', title: 'Ponto da Equipe', description: 'Todos os colaboradores registraram a saída.', status: 'pending', reason: '' },
-    { id: '8', title: 'Requisições de Estoque', description: 'Pedidos para a produção de amanhã enviados ao almoxarifado.', status: 'pending', reason: '' }
-  ]);
+  activeTab = signal<'checklist' | 'termometria' | 'fechamento'>('fechamento');
+  showNewTaskForm = signal(false);
 
-  setStatus(id: string, status: 'conforme' | 'nao_conforme') {
-    this.fechamentoTasks.update(tasks => tasks.map(t => t.id === id ? { ...t, status } : t));
+  newTask: Partial<CleaningTask> = {
+    title: '',
+    category: 'fechamento',
+    description: '',
+    target_value: ''
+  };
+
+  checklists = computed(() => this.cleaningService.tasks().filter(t => t.category === 'checklist'));
+  termometria = computed(() => this.cleaningService.tasks().filter(t => t.category === 'termometria'));
+  fechamento = computed(() => this.cleaningService.tasks().filter(t => t.category === 'fechamento'));
+
+  completedChecklists = computed(() => this.checklists().filter(t => t.status === 'completed').length);
+
+  ngOnInit() {
+    this.cleaningService.loadTasks();
   }
 
-  updateReason(id: string, reason: string) {
-    this.fechamentoTasks.update(tasks => tasks.map(t => t.id === id ? { ...t, reason } : t));
+  canManageTasks() {
+    const role = this.authService.currentUser()?.role;
+    return role === 'admin' || role === 'chef';
+  }
+
+  async onSubmit() {
+    if (!this.newTask.title || !this.newTask.category) return;
+    
+    try {
+      await this.cleaningService.addTask(this.newTask);
+      this.showNewTaskForm.set(false);
+      this.newTask = {
+        title: '',
+        category: this.activeTab(),
+        description: '',
+        target_value: ''
+      };
+    } catch (error) {
+      // Error is handled by service
+    }
+  }
+
+  async toggleTaskStatus(task: CleaningTask) {
+    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+    await this.cleaningService.updateTaskStatus(task.id, newStatus);
+  }
+
+  async setStatus(id: string, status: 'conforme' | 'nao_conforme') {
+    await this.cleaningService.updateTaskStatus(id, status);
+  }
+
+  async updateReason(id: string, reason: string) {
+    await this.cleaningService.updateTaskStatus(id, 'nao_conforme', reason);
+  }
+
+  async updateValue(task: CleaningTask, value: string) {
+    if (task.value === value) return;
+    await this.cleaningService.updateTaskStatus(task.id, task.status, undefined, value);
+  }
+
+  async toggleConformity(task: CleaningTask) {
+    const newStatus = task.status === 'nao_conforme' ? 'conforme' : 'nao_conforme';
+    await this.cleaningService.updateTaskStatus(task.id, newStatus);
+  }
+
+  async deleteTask(id: string) {
+    if (confirm('Tem certeza que deseja excluir este registro?')) {
+      await this.cleaningService.removeTask(id);
+    }
   }
 }
+

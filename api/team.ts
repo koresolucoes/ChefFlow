@@ -47,7 +47,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method === 'GET') {
       const { data: users, error } = await supabase
         .from('users')
-        .select('id, name, email, role, created_at')
+        .select(`
+          id, name, email, role, created_at, team_id,
+          teams:team_id (id, name)
+        `)
         .order('created_at', { ascending: false });
         
       if (error) throw error;
@@ -56,7 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // CRIAR USUÁRIO
     if (req.method === 'POST') {
-      const { name, email, password, role } = req.body;
+      const { name, email, password, role, team_id } = req.body;
       
       // 1. Cria o usuário no Supabase Auth
       const { data: newAuthUser, error: createError } = await supabase.auth.admin.createUser({
@@ -80,9 +83,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           id: newAuthUser.user.id, // Vincula o ID do Auth ao ID da tabela
           name, 
           email, 
-          role 
+          role,
+          team_id: team_id || null
         })
-        .select('id, name, email, role, created_at');
+        .select(`
+          id, name, email, role, created_at, team_id,
+          teams:team_id (id, name)
+        `);
         
       if (insertError) {
         // Se falhar no banco, apaga no Auth para não ficar sujo
