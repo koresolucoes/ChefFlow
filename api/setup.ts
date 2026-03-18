@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcryptjs';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -29,6 +30,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Se o usuário passar ?fix=true na URL, vamos corrigir as senhas em texto puro
+    if (req.query.fix === 'true') {
+      const { data: allUsers, error: fetchError } = await supabase.from('users').select('*');
+      
+      if (fetchError) {
+        return res.status(500).json({ error: 'Erro ao buscar usuários', details: fetchError.message });
+      }
+
+      let fixedCount = 0;
+      for (const user of allUsers || []) {
+        // Se a senha não começar com $2a$ ou $2b$ (padrão do bcrypt), significa que está em texto puro
+        if (!user.password_hash.startsWith('$2a$') && !user.password_hash.startsWith('$2b$')) {
+          const newHash = await bcrypt.hash(user.password_hash, 10);
+          await supabase.from('users').update({ password_hash: newHash }).eq('id', user.id);
+          fixedCount++;
+        }
+      }
+
+      return res.status(200).json({ 
+        message: `Senhas corrigidas com sucesso! ${fixedCount} usuário(s) atualizado(s) para usar criptografia bcrypt.`,
+        fixed_count: fixedCount
+      });
+    }
+
     // Verifica se o admin padrão já existe
     const { data: existingAdmin, error } = await supabase
       .from('users')
@@ -45,9 +70,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     
     if (existingAdmin && existingAdmin.length === 0) {
+      // Vamos criar o admin automaticamente se a tabela existir mas ele não
+      const hash = await bcrypt.hash('admin123', 10);
+      const { error: insertError } = await supabase.from('users').insert({
+        name: 'Chef Admin',
+        email: 'admin@chefflow.com',
+        password_hash: hash,
+        role: 'admin'
+      });
+
+      if (insertError) {
+        return res.status(500).json({ error: 'Erro ao criar admin', details: insertError.message });
+      }
+
       return res.status(200).json({ 
-        message: 'Tabelas existem, mas o admin não foi encontrado. Por favor, execute o script SQL de INSERT no Supabase.',
-        sql_required: true
+        message: 'Admin criado com sucesso! Use admin@chefflow.com e admin123',
+        admin_created: true
       });
     }
 
