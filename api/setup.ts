@@ -1,5 +1,4 @@
-import { neon } from '@neondatabase/serverless';
-import bcrypt from 'bcryptjs';
+import { createClient } from '@supabase/supabase-js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -21,66 +20,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    if (!process.env['DATABASE_URL']) {
-      return res.status(500).json({ error: 'DATABASE_URL não configurada no ambiente.' });
+    const supabaseUrl = process.env['SUPABASE_URL'];
+    const supabaseKey = process.env['SUPABASE_ANON_KEY'] || process.env['SUPABASE_SERVICE_ROLE_KEY'];
+
+    if (!supabaseUrl || !supabaseKey) {
+      return res.status(500).json({ error: 'SUPABASE_URL ou SUPABASE_ANON_KEY não configuradas no ambiente.' });
     }
 
-    const sql = neon(process.env['DATABASE_URL']);
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 1. Cria a tabela de usuários se não existir
-    await sql`
-      CREATE TABLE IF NOT EXISTS users (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
-        role VARCHAR(50) NOT NULL DEFAULT 'cook',
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );
-    `;
-
-    // 2. Cria a tabela de escalas (schedules)
-    await sql`
-      CREATE TABLE IF NOT EXISTS schedules (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-        date DATE NOT NULL,
-        shift_start TIME,
-        shift_end TIME,
-        type VARCHAR(50) NOT NULL DEFAULT 'regular', -- regular, folga, extra
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );
-    `;
-
-    // 3. Verifica se o admin padrão já existe
-    const existingAdmin = await sql`SELECT * FROM users WHERE email = 'admin@chefflow.com'`;
-    
-    if (existingAdmin.length === 0) {
-      // Cria o hash da senha 'admin123'
-      const hash = await bcrypt.hash('admin123', 10);
+    // Verifica se o admin padrão já existe
+    const { data: existingAdmin, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', 'admin@chefflow.com');
       
-      // Insere o usuário admin
-      await sql`
-        INSERT INTO users (name, email, password_hash, role)
-        VALUES ('Chef Admin', 'admin@chefflow.com', ${hash}, 'admin')
-      `;
-      
+    if (error) {
+      // Se der erro, provavelmente a tabela não existe
       return res.status(200).json({ 
-        message: 'Banco de dados configurado com sucesso!',
-        admin_created: true,
-        credentials: {
-          email: 'admin@chefflow.com',
-          password: 'admin123'
-        }
+        message: 'Por favor, execute o script SQL no painel do Supabase para criar as tabelas.',
+        sql_required: true,
+        error: error.message
+      });
+    }
+    
+    if (existingAdmin && existingAdmin.length === 0) {
+      return res.status(200).json({ 
+        message: 'Tabelas existem, mas o admin não foi encontrado. Por favor, execute o script SQL de INSERT no Supabase.',
+        sql_required: true
       });
     }
 
     return res.status(200).json({ 
-      message: 'A tabela users já existe e o admin já foi criado anteriormente.',
-      admin_created: false
+      message: 'Banco de dados Supabase configurado e conectado com sucesso!',
+      admin_created: true
     });
   } catch (error) {
     console.error('Erro no setup do banco:', error);
-    return res.status(500).json({ error: 'Falha ao configurar o banco de dados', details: String(error) });
+    return res.status(500).json({ error: 'Falha ao verificar o banco de dados', details: String(error) });
   }
 }

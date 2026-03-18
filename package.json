@@ -25,6 +25,7 @@
     "@angular/ssr": "^21.0.0",
     "@google/genai": "^1.27.0",
     "@neondatabase/serverless": "^1.0.2",
+    "@supabase/supabase-js": "^2.99.2",
     "bcryptjs": "^3.0.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.3",

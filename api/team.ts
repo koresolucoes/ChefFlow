@@ -1,4 +1,4 @@
-import { neon } from '@neondatabase/serverless';
+import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
@@ -35,15 +35,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
        return res.status(403).json({ message: 'Acesso negado' });
     }
 
-    if (!process.env['DATABASE_URL']) {
-      return res.status(500).json({ message: 'DATABASE_URL não configurada' });
+    const supabaseUrl = process.env['SUPABASE_URL'];
+    const supabaseKey = process.env['SUPABASE_ANON_KEY'] || process.env['SUPABASE_SERVICE_ROLE_KEY'];
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('SUPABASE_URL ou SUPABASE_ANON_KEY não configuradas');
     }
 
-    const sql = neon(process.env['DATABASE_URL']);
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // LISTAR USUÁRIOS
     if (req.method === 'GET') {
-      const users = await sql`SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC`;
+      const { data: users, error } = await supabase
+        .from('users')
+        .select('id, name, email, role, created_at')
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
       return res.status(200).json(users);
     }
 
@@ -52,18 +60,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { name, email, password, role } = req.body;
       
       // Verifica se o email já existe
-      const existing = await sql`SELECT id FROM users WHERE email = ${email}`;
-      if (existing.length > 0) {
+      const { data: existing, error: fetchError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', email);
+        
+      if (fetchError) throw fetchError;
+      
+      if (existing && existing.length > 0) {
         return res.status(400).json({ message: 'E-mail já cadastrado' });
       }
 
       const hash = await bcrypt.hash(password, 10);
-      const newUser = await sql`
-        INSERT INTO users (name, email, password_hash, role)
-        VALUES (${name}, ${email}, ${hash}, ${role})
-        RETURNING id, name, email, role, created_at
-      `;
-      return res.status(201).json(newUser[0]);
+      const { data: newUser, error: insertError } = await supabase
+        .from('users')
+        .insert({ name, email, password_hash: hash, role })
+        .select('id, name, email, role, created_at');
+        
+      if (insertError) throw insertError;
+      return res.status(201).json(newUser?.[0]);
     }
 
     // DELETAR USUÁRIO
@@ -75,7 +90,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ message: 'Não é possível deletar seu próprio usuário' });
       }
 
-      await sql`DELETE FROM users WHERE id = ${id}`;
+      const { error } = await supabase.from('users').delete().eq('id', id);
+      if (error) throw error;
+      
       return res.status(200).json({ message: 'Usuário removido com sucesso' });
     }
 

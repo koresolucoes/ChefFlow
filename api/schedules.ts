@@ -1,4 +1,4 @@
-import { neon } from '@neondatabase/serverless';
+import { createClient } from '@supabase/supabase-js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -16,26 +16,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    if (!process.env['DATABASE_URL']) {
-      throw new Error('DATABASE_URL não configurada');
+    const supabaseUrl = process.env['SUPABASE_URL'];
+    const supabaseKey = process.env['SUPABASE_ANON_KEY'] || process.env['SUPABASE_SERVICE_ROLE_KEY'];
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('SUPABASE_URL ou SUPABASE_ANON_KEY não configuradas');
     }
-    const sql = neon(process.env['DATABASE_URL']);
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // GET: Buscar escalas (opcionalmente filtrando por data)
     if (req.method === 'GET') {
       const { start_date, end_date } = req.query;
-      let schedules;
+      
+      let query = supabase.from('schedules').select('*').order('date', { ascending: true });
       
       if (start_date && end_date) {
-        schedules = await sql`
-          SELECT * FROM schedules 
-          WHERE date >= ${start_date as string} AND date <= ${end_date as string} 
-          ORDER BY date ASC
-        `;
-      } else {
-        schedules = await sql`SELECT * FROM schedules ORDER BY date ASC`;
+        query = query.gte('date', start_date).lte('date', end_date);
       }
       
+      const { data: schedules, error } = await query;
+      
+      if (error) throw error;
       return res.status(200).json(schedules);
     }
 
@@ -48,26 +50,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       // Verifica se já existe uma escala para este usuário nesta data
-      const existing = await sql`SELECT id FROM schedules WHERE user_id = ${user_id} AND date = ${date}`;
+      const { data: existing, error: fetchError } = await supabase
+        .from('schedules')
+        .select('id')
+        .eq('user_id', user_id)
+        .eq('date', date);
+        
+      if (fetchError) throw fetchError;
       
-      if (existing.length > 0) {
+      if (existing && existing.length > 0) {
         // Atualiza
-        const updated = await sql`
-          UPDATE schedules 
-          SET shift_start = ${shift_start || null}, 
-              shift_end = ${shift_end || null}, 
-              type = ${type}
-          WHERE id = ${existing[0]['id']}
-          RETURNING *
-        `;
+        const { data: updated, error: updateError } = await supabase
+          .from('schedules')
+          .update({ shift_start: shift_start || null, shift_end: shift_end || null, type })
+          .eq('id', existing[0].id)
+          .select();
+          
+        if (updateError) throw updateError;
         return res.status(200).json(updated[0]);
       } else {
         // Insere
-        const inserted = await sql`
-          INSERT INTO schedules (user_id, date, shift_start, shift_end, type)
-          VALUES (${user_id}, ${date}, ${shift_start || null}, ${shift_end || null}, ${type})
-          RETURNING *
-        `;
+        const { data: inserted, error: insertError } = await supabase
+          .from('schedules')
+          .insert({ user_id, date, shift_start: shift_start || null, shift_end: shift_end || null, type })
+          .select();
+          
+        if (insertError) throw insertError;
         return res.status(201).json(inserted[0]);
       }
     }
