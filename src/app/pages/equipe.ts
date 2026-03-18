@@ -34,13 +34,13 @@ import { TeamService } from '../services/team.service';
           
           <form [formGroup]="pracaForm" (ngSubmit)="onSubmitTeam()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-stone-700">Nome da Praça</label>
-              <input type="text" formControlName="name" placeholder="Ex: Cozinha Quente" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="pracaName" class="text-sm font-medium text-stone-700">Nome da Praça</label>
+              <input id="pracaName" type="text" formControlName="name" placeholder="Ex: Cozinha Quente" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-stone-700">Descrição (Opcional)</label>
-              <input type="text" formControlName="description" placeholder="Responsável por grelhados..." class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="pracaDesc" class="text-sm font-medium text-stone-700">Descrição (Opcional)</label>
+              <input id="pracaDesc" type="text" formControlName="description" placeholder="Responsável por grelhados..." class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
             </div>
 
             <div class="md:col-span-2 flex justify-end mt-2">
@@ -65,23 +65,23 @@ import { TeamService } from '../services/team.service';
           
           <form [formGroup]="teamForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-stone-700">Nome Completo</label>
-              <input type="text" formControlName="name" placeholder="Ex: João Silva" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="memberName" class="text-sm font-medium text-stone-700">Nome Completo</label>
+              <input id="memberName" type="text" formControlName="name" placeholder="Ex: João Silva" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-stone-700">E-mail</label>
-              <input type="email" formControlName="email" placeholder="joao@restaurante.com" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="memberEmail" class="text-sm font-medium text-stone-700">E-mail</label>
+              <input id="memberEmail" type="email" formControlName="email" placeholder="joao@restaurante.com" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-stone-700">Senha Temporária</label>
-              <input type="password" formControlName="password" placeholder="Mínimo 6 caracteres" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="memberPass" class="text-sm font-medium text-stone-700">Senha Temporária</label>
+              <input id="memberPass" type="password" formControlName="password" placeholder="Mínimo 6 caracteres" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-stone-700">Cargo / Função</label>
-              <select formControlName="role" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="memberRole" class="text-sm font-medium text-stone-700">Cargo / Função</label>
+              <select id="memberRole" formControlName="role" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
                 <option value="cook">Cozinheiro / Auxiliar</option>
                 <option value="chef">Chef de Praça</option>
                 <option value="admin">Chef Executivo / Admin</option>
@@ -89,8 +89,8 @@ import { TeamService } from '../services/team.service';
             </div>
 
             <div class="space-y-1.5 md:col-span-2">
-              <label class="text-sm font-medium text-stone-700">Praça (Equipe)</label>
-              <select formControlName="team_id" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="memberTeam" class="text-sm font-medium text-stone-700">Praça (Equipe)</label>
+              <select id="memberTeam" formControlName="team_id" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
                 <option value="">Nenhuma praça (Geral)</option>
                 @for (team of teamService.teams(); track team.id) {
                   <option [value]="team.id">{{ team.name }}</option>

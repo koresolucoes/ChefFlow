@@ -189,8 +189,8 @@ import { ScheduleService, Schedule } from '../services/schedule.service';
             </p>
             
             <div>
-              <label class="block text-sm font-medium text-stone-700 mb-1">Tipo de Turno</label>
-              <select [(ngModel)]="modalType" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <label for="shiftType" class="block text-sm font-medium text-stone-700 mb-1">Tipo de Turno</label>
+              <select id="shiftType" [(ngModel)]="modalType" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 <option value="regular">Regular (Trabalho)</option>
                 <option value="folga">Folga</option>
                 <option value="extra">Extra</option>
@@ -200,12 +200,12 @@ import { ScheduleService, Schedule } from '../services/schedule.service';
             @if (modalType() !== 'folga') {
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-stone-700 mb-1">Entrada</label>
-                  <input type="time" [(ngModel)]="modalStart" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                  <label for="shiftStart" class="block text-sm font-medium text-stone-700 mb-1">Entrada</label>
+                  <input id="shiftStart" type="time" [(ngModel)]="modalStart" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-stone-700 mb-1">Saída</label>
-                  <input type="time" [(ngModel)]="modalEnd" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                  <label for="shiftEnd" class="block text-sm font-medium text-stone-700 mb-1">Saída</label>
+                  <input id="shiftEnd" type="time" [(ngModel)]="modalEnd" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 </div>
               </div>
             }

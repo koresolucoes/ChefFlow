@@ -70,13 +70,13 @@ import { AuthService } from '../services/auth.service';
           <form (ngSubmit)="onSubmit()" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-stone-700 mb-1">Título</label>
-                <input type="text" [(ngModel)]="newAnnouncement.title" name="title" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
+                <label for="title" class="block text-sm font-medium text-stone-700 mb-1">Título</label>
+                <input id="title" type="text" [(ngModel)]="newAnnouncement.title" name="title" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-stone-700 mb-1">Tipo</label>
-                <select [(ngModel)]="newAnnouncement.type" name="type" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
+                <label for="type" class="block text-sm font-medium text-stone-700 mb-1">Tipo</label>
+                <select id="type" [(ngModel)]="newAnnouncement.type" name="type" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
                   <option value="info">Informação</option>
                   <option value="warning">Aviso Importante</option>
                   <option value="urgent">Urgente</option>
@@ -85,8 +85,8 @@ import { AuthService } from '../services/auth.service';
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-stone-700 mb-1">Mensagem</label>
-              <textarea [(ngModel)]="newAnnouncement.content" name="content" required rows="4" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900"></textarea>
+              <label for="content" class="block text-sm font-medium text-stone-700 mb-1">Mensagem</label>
+              <textarea id="content" [(ngModel)]="newAnnouncement.content" name="content" required rows="4" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900"></textarea>
             </div>
             
             <div class="flex justify-end gap-3 pt-4">
@@ -286,7 +286,7 @@ export class ComunicacaoComponent implements OnInit {
         content: '',
         type: 'info'
       };
-    } catch (error) {
+    } catch {
       // Error is handled by service
     }
   }
