@@ -26,6 +26,11 @@ import { AuthService } from './services/auth.service';
             Gestão
           </div>
           
+          <a routerLink="/equipe" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+            <mat-icon>badge</mat-icon>
+            <span class="font-medium">Equipe & Praças</span>
+          </a>
+
           <a routerLink="/escalas" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
             <mat-icon>groups</mat-icon>
             <span class="font-medium">Escalas & Pessoal</span>
