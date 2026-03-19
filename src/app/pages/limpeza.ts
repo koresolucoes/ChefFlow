@@ -88,7 +88,7 @@ import autoTable from 'jspdf-autotable';
           
           <form (ngSubmit)="onSubmit()" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div [class.md:col-span-2]="activeTab() !== 'termometria'">
+              <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-stone-700 mb-1">
                   @if (activeTab() === 'termometria') { Nome do Equipamento }
                   @else { Título da Tarefa }
@@ -96,6 +96,15 @@ import autoTable from 'jspdf-autotable';
                 <input type="text" [(ngModel)]="newTask.title" name="title" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
               </div>
               
+              <div>
+                <label class="block text-sm font-medium text-stone-700 mb-1">Momento do Plantão</label>
+                <select [(ngModel)]="newTask.shift_moment" name="shift_moment" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900 bg-white">
+                  <option value="abertura">Abertura</option>
+                  <option value="operacao">Operação</option>
+                  <option value="fechamento">Fechamento</option>
+                </select>
+              </div>
+
               @if (activeTab() === 'termometria') {
                 <div>
                   <label class="block text-sm font-medium text-stone-700 mb-1">Meta (Ex: 0°C a 4°C)</label>
@@ -426,7 +435,8 @@ export class LimpezaComponent implements OnInit {
     title: '',
     category: 'fechamento',
     description: '',
-    target_value: ''
+    target_value: '',
+    shift_moment: 'abertura'
   };
 
   checklists = computed(() => this.cleaningService.tasks().filter(t => t.category === 'checklist'));
@@ -446,7 +456,7 @@ export class LimpezaComponent implements OnInit {
 
   async onSubmit() {
     this.newTask.category = this.activeTab();
-    if (!this.newTask.title || !this.newTask.category) return;
+    if (!this.newTask.title || !this.newTask.category || !this.newTask.shift_moment) return;
     
     try {
       await this.cleaningService.addTask(this.newTask);
@@ -455,7 +465,8 @@ export class LimpezaComponent implements OnInit {
         title: '',
         category: this.activeTab(),
         description: '',
-        target_value: ''
+        target_value: '',
+        shift_moment: 'abertura'
       };
     } catch (error) {
       // Error is handled by service
