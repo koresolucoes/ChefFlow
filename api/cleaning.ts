@@ -87,6 +87,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .single();
 
         if (error) throw error;
+        
+        await supabase.from('cleaning_task_history').insert([{
+          task_id: data.id,
+          user_id: user.id,
+          action: 'created'
+        }]);
+
         return res.status(201).json(data);
       }
 
@@ -110,6 +117,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .single();
 
         if (error) throw error;
+        
+        // Insert into history
+        let action = 'updated';
+        if (status === 'completed' || status === 'conforme' || status === 'nao_conforme') action = 'status_changed';
+        if (value !== undefined) action = 'temperature_read';
+        
+        await supabase.from('cleaning_task_history').insert([{
+          task_id: id,
+          user_id: user.id,
+          action: action,
+          new_value: value || status,
+          notes: reason
+        }]);
+
         return res.status(200).json(data);
       }
 

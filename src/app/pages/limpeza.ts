@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CleaningService, CleaningTask } from '../services/cleaning.service';
 import { AuthService } from '../services/auth.service';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-limpeza',
@@ -17,6 +19,10 @@ import { AuthService } from '../services/auth.service';
           <p class="text-stone-500 mt-1">Checklists sanitários e termometria.</p>
         </div>
         <div class="flex gap-3">
+          <button (click)="generateReport()" class="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2">
+            <mat-icon>picture_as_pdf</mat-icon>
+            Gerar Relatório
+          </button>
           @if (canManageTasks()) {
             <button (click)="showNewTaskForm.set(true)" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
               <mat-icon>add</mat-icon>
@@ -70,7 +76,11 @@ import { AuthService } from '../services/auth.service';
       @if (showNewTaskForm()) {
         <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
           <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-stone-900">Novo Registro</h2>
+            <h2 class="text-xl font-bold text-stone-900">
+              @if (activeTab() === 'checklist') { Novo Checklist de Fechamento }
+              @if (activeTab() === 'termometria') { Novo Equipamento (Termometria) }
+              @if (activeTab() === 'fechamento') { Nova Tarefa de Fechamento de Plantão }
+            </h2>
             <button (click)="showNewTaskForm.set(false)" class="text-stone-400 hover:text-stone-600">
               <mat-icon>close</mat-icon>
             </button>
@@ -78,21 +88,15 @@ import { AuthService } from '../services/auth.service';
           
           <form (ngSubmit)="onSubmit()" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-stone-700 mb-1">Título</label>
+              <div [class.md:col-span-2]="activeTab() !== 'termometria'">
+                <label class="block text-sm font-medium text-stone-700 mb-1">
+                  @if (activeTab() === 'termometria') { Nome do Equipamento }
+                  @else { Título da Tarefa }
+                </label>
                 <input type="text" [(ngModel)]="newTask.title" name="title" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
               </div>
               
-              <div>
-                <label class="block text-sm font-medium text-stone-700 mb-1">Categoria</label>
-                <select [(ngModel)]="newTask.category" name="category" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
-                  <option value="checklist">Checklist</option>
-                  <option value="termometria">Termometria</option>
-                  <option value="fechamento">Fechamento</option>
-                </select>
-              </div>
-              
-              @if (newTask.category === 'termometria') {
+              @if (activeTab() === 'termometria') {
                 <div>
                   <label class="block text-sm font-medium text-stone-700 mb-1">Meta (Ex: 0°C a 4°C)</label>
                   <input type="text" [(ngModel)]="newTask.target_value" name="target_value" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
@@ -370,6 +374,7 @@ export class LimpezaComponent implements OnInit {
   }
 
   async onSubmit() {
+    this.newTask.category = this.activeTab();
     if (!this.newTask.title || !this.newTask.category) return;
     
     try {
@@ -413,6 +418,65 @@ export class LimpezaComponent implements OnInit {
     if (confirm('Tem certeza que deseja excluir este registro?')) {
       await this.cleaningService.removeTask(id);
     }
+  }
+
+  generateReport() {
+    const doc = new jsPDF();
+    const date = new Date().toLocaleDateString('pt-BR');
+    
+    doc.setFontSize(18);
+    doc.text(`Relatório de Higiene e Limpeza - ${date}`, 14, 22);
+    
+    doc.setFontSize(14);
+    doc.text('Checklists de Fechamento', 14, 35);
+    
+    const checklistData = this.checklists().map(t => [
+      t.title,
+      t.status === 'completed' ? 'Concluído' : 'Pendente',
+      t.updated_at ? new Date(t.updated_at).toLocaleTimeString('pt-BR') : '-'
+    ]);
+    
+    autoTable(doc, {
+      startY: 40,
+      head: [['Tarefa', 'Status', 'Horário']],
+      body: checklistData,
+    });
+    
+    const finalY1 = (doc as any).lastAutoTable.finalY || 40;
+    
+    doc.text('Termometria (Equipamentos)', 14, finalY1 + 15);
+    
+    const termometriaData = this.termometria().map(t => [
+      t.title,
+      t.target_value || '-',
+      t.value ? `${t.value}°C` : '-',
+      t.status === 'nao_conforme' ? 'Não Conforme' : 'Normal',
+      t.updated_at ? new Date(t.updated_at).toLocaleTimeString('pt-BR') : '-'
+    ]);
+    
+    autoTable(doc, {
+      startY: finalY1 + 20,
+      head: [['Equipamento', 'Meta', 'Leitura', 'Status', 'Horário']],
+      body: termometriaData,
+    });
+    
+    const finalY2 = (doc as any).lastAutoTable.finalY || finalY1 + 20;
+    
+    doc.text('Fechamento de Plantão', 14, finalY2 + 15);
+    
+    const fechamentoData = this.fechamento().map(t => [
+      t.title,
+      t.status === 'conforme' ? 'Conforme' : (t.status === 'nao_conforme' ? 'Não Conforme' : 'Pendente'),
+      t.reason || '-'
+    ]);
+    
+    autoTable(doc, {
+      startY: finalY2 + 20,
+      head: [['Tarefa', 'Status', 'Motivo']],
+      body: fechamentoData,
+    });
+    
+    doc.save(`relatorio-limpeza-${date.replace(/\//g, '-')}.pdf`);
   }
 }
 
