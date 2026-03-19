@@ -45,69 +45,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     switch (req.method) {
       case 'GET': {
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-        const todayStartISO = todayStart.toISOString();
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const logDate = `${yyyy}-${mm}-${dd}`;
 
-        const [checklistsRes, equipmentsRes, closingRes] = await Promise.all([
-          supabase.from('checklists').select('*, checklist_records(*)').gte('checklist_records.created_at', todayStartISO).order('created_at', { foreignTable: 'checklist_records', ascending: false }),
-          supabase.from('equipments').select('*, temperature_records(*)').gte('temperature_records.created_at', todayStartISO).order('created_at', { foreignTable: 'temperature_records', ascending: false }),
-          supabase.from('closing_tasks').select('*, closing_records(*)').gte('closing_records.created_at', todayStartISO).order('created_at', { foreignTable: 'closing_records', ascending: false })
-        ]);
+        const { data: templates, error: templatesError } = await supabase
+          .from('cleaning_templates')
+          .select('*, cleaning_logs(*)')
+          .eq('is_active', true)
+          .eq('cleaning_logs.log_date', logDate)
+          .order('created_at', { ascending: true });
 
-        if (checklistsRes.error) throw checklistsRes.error;
-        if (equipmentsRes.error) throw equipmentsRes.error;
-        if (closingRes.error) throw closingRes.error;
+        if (templatesError) throw templatesError;
 
-        const tasks: any[] = [];
-
-        if (checklistsRes.data) {
-          tasks.push(...checklistsRes.data.map(c => {
-            const record = c.checklist_records?.[0];
-            return {
-              id: c.id,
-              title: c.title,
-              description: c.description,
-              category: 'checklist',
-              status: record ? record.status : 'pending',
-              updated_at: record ? record.created_at : c.created_at
-            };
-          }));
-        }
-
-        if (equipmentsRes.data) {
-          tasks.push(...equipmentsRes.data.map(e => {
-            const record = e.temperature_records?.[0];
-            return {
-              id: e.id,
-              title: e.name,
-              description: e.description,
-              category: 'termometria',
-              target_value: e.target_value,
-              status: record ? record.status : 'pending',
-              value: record ? record.value : undefined,
-              updated_at: record ? record.created_at : e.created_at
-            };
-          }));
-        }
-
-        if (closingRes.data) {
-          tasks.push(...closingRes.data.map(c => {
-            const record = c.closing_records?.[0];
-            return {
-              id: c.id,
-              title: c.title,
-              description: c.description,
-              category: 'fechamento',
-              status: record ? record.status : 'pending',
-              reason: record ? record.reason : undefined,
-              updated_at: record ? record.created_at : c.created_at
-            };
-          }));
-        }
-
-        // Sort by created_at descending
-        tasks.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+        const tasks = templates?.map(t => {
+          const log = t.cleaning_logs?.[0];
+          return {
+            id: t.id,
+            title: t.title,
+            description: t.description,
+            category: t.category,
+            shift_moment: t.shift_moment,
+            target_value: t.target_value,
+            status: log ? log.status : 'pending',
+            value: log ? log.value : undefined,
+            reason: log ? log.reason : undefined,
+            updated_at: log ? log.created_at : t.created_at
+          };
+        }) || [];
 
         return res.status(200).json(tasks);
       }
@@ -117,81 +84,70 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(403).json({ error: 'Forbidden: Only admins and chefs can create tasks' });
         }
 
-        const { title, description, category, target_value } = req.body;
+        const { title, description, category, shift_moment, target_value } = req.body;
         
-        if (!title || !category) {
-          return res.status(400).json({ error: 'Title and category are required' });
+        if (!title || !category || !shift_moment) {
+          return res.status(400).json({ error: 'Title, category, and shift_moment are required' });
         }
 
-        let resultData;
+        const { data, error } = await supabase
+          .from('cleaning_templates')
+          .insert([{ title, description, category, shift_moment, target_value }])
+          .select()
+          .single();
 
-        if (category === 'checklist') {
-          const { data, error } = await supabase.from('checklists').insert([{ title, description }]).select().single();
-          if (error) throw error;
-          resultData = { id: data.id, title: data.title, description: data.description, category: 'checklist', status: 'pending', updated_at: data.created_at };
-        } else if (category === 'termometria') {
-          const { data, error } = await supabase.from('equipments').insert([{ name: title, description, target_value }]).select().single();
-          if (error) throw error;
-          resultData = { id: data.id, title: data.name, description: data.description, category: 'termometria', target_value: data.target_value, status: 'pending', updated_at: data.created_at };
-        } else if (category === 'fechamento') {
-          const { data, error } = await supabase.from('closing_tasks').insert([{ title, description }]).select().single();
-          if (error) throw error;
-          resultData = { id: data.id, title: data.title, description: data.description, category: 'fechamento', status: 'pending', updated_at: data.created_at };
-        } else {
-          return res.status(400).json({ error: 'Invalid category' });
-        }
+        if (error) throw error;
 
-        return res.status(201).json(resultData);
+        return res.status(201).json({
+          id: data.id,
+          title: data.title,
+          description: data.description,
+          category: data.category,
+          shift_moment: data.shift_moment,
+          target_value: data.target_value,
+          status: 'pending',
+          updated_at: data.created_at
+        });
       }
 
       case 'PUT': {
-        const { id, category, status, reason, value } = req.body;
+        const { id, status, reason, value } = req.body;
 
-        if (!id || !category) {
-          return res.status(400).json({ error: 'Task ID and category are required' });
+        if (!id || !status) {
+          return res.status(400).json({ error: 'Template ID and status are required' });
         }
 
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const logDate = `${yyyy}-${mm}-${dd}`;
+
+        if (status === 'pending') {
+           await supabase.from('cleaning_logs').delete().eq('template_id', id).eq('log_date', logDate);
+           return res.status(200).json({ status: 'pending', updated_at: new Date().toISOString() });
+        }
+
+        const { data: existing } = await supabase
+          .from('cleaning_logs')
+          .select('id')
+          .eq('template_id', id)
+          .eq('log_date', logDate)
+          .single();
+
+        const logData: any = { status, user_id: user.id, log_date: logDate };
+        if (reason !== undefined) logData.reason = reason;
+        if (value !== undefined) logData.value = value;
+
         let resultData;
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-
-        if (category === 'checklist') {
-          if (status === 'pending') {
-             await supabase.from('checklist_records').delete().eq('checklist_id', id).gte('created_at', todayStart.toISOString());
-             resultData = { status: 'pending', updated_at: new Date().toISOString() };
-          } else {
-             const { data: existing } = await supabase.from('checklist_records').select('id').eq('checklist_id', id).gte('created_at', todayStart.toISOString()).single();
-             if (existing) {
-               const { data } = await supabase.from('checklist_records').update({ status, user_id: user.id, created_at: new Date().toISOString() }).eq('id', existing.id).select().single();
-               resultData = data;
-             } else {
-               const { data } = await supabase.from('checklist_records').insert([{ checklist_id: id, status, user_id: user.id }]).select().single();
-               resultData = data;
-             }
-          }
-        } else if (category === 'termometria') {
-          const { data: existing } = await supabase.from('temperature_records').select('id').eq('equipment_id', id).gte('created_at', todayStart.toISOString()).single();
-          const recordData = { value: value !== undefined ? value : '', status: status || 'conforme', user_id: user.id, created_at: new Date().toISOString() };
-
-          if (existing) {
-            const { data } = await supabase.from('temperature_records').update(recordData).eq('id', existing.id).select().single();
-            resultData = data;
-          } else {
-            const { data } = await supabase.from('temperature_records').insert([{ equipment_id: id, ...recordData }]).select().single();
-            resultData = data;
-          }
-        } else if (category === 'fechamento') {
-          const { data: existing } = await supabase.from('closing_records').select('id').eq('closing_task_id', id).gte('created_at', todayStart.toISOString()).single();
-          const recordData: any = { status: status || 'conforme', user_id: user.id, created_at: new Date().toISOString() };
-          if (reason !== undefined) recordData.reason = reason;
-
-          if (existing) {
-            const { data } = await supabase.from('closing_records').update(recordData).eq('id', existing.id).select().single();
-            resultData = data;
-          } else {
-            const { data } = await supabase.from('closing_records').insert([{ closing_task_id: id, ...recordData }]).select().single();
-            resultData = data;
-          }
+        if (existing) {
+          const { data, error } = await supabase.from('cleaning_logs').update(logData).eq('id', existing.id).select().single();
+          if (error) throw error;
+          resultData = data;
+        } else {
+          const { data, error } = await supabase.from('cleaning_logs').insert([{ template_id: id, ...logData }]).select().single();
+          if (error) throw error;
+          resultData = data;
         }
 
         return res.status(200).json({
@@ -207,20 +163,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(403).json({ error: 'Forbidden: Only admins and chefs can delete tasks' });
         }
 
-        const { id, category } = req.query;
-        if (!id || !category) {
-          return res.status(400).json({ error: 'ID and category are required' });
+        const { id } = req.query;
+        if (!id) {
+          return res.status(400).json({ error: 'ID is required' });
         }
 
-        let table = '';
-        if (category === 'checklist') table = 'checklists';
-        else if (category === 'termometria') table = 'equipments';
-        else if (category === 'fechamento') table = 'closing_tasks';
-
-        if (!table) return res.status(400).json({ error: 'Invalid category' });
-
-        const { error } = await supabase.from(table).delete().eq('id', id);
+        // Soft delete
+        const { error } = await supabase.from('cleaning_templates').update({ is_active: false }).eq('id', id);
         if (error) throw error;
+        
         return res.status(200).json({ message: 'Deleted successfully' });
       }
 

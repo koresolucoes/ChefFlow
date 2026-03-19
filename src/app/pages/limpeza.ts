@@ -150,28 +150,72 @@ import autoTable from 'jspdf-autotable';
                   </div>
                 }
                 @for (task of checklists(); track task.id) {
-                  <div class="p-4 flex items-start gap-4 hover:bg-stone-50 transition-colors group">
-                    <button 
-                      (click)="toggleTaskStatus(task)"
-                      [class.bg-emerald-500]="task.status === 'completed'"
-                      [class.border-emerald-500]="task.status === 'completed'"
-                      [class.border-stone-300]="task.status !== 'completed'"
-                      class="mt-1 w-6 h-6 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors" 
-                      aria-label="Marcar como concluído">
-                      @if (task.status === 'completed') {
-                        <mat-icon class="text-white text-[16px] w-4 h-4">check</mat-icon>
-                      }
-                    </button>
-                    <div class="flex-1 min-w-0">
-                      <h3 class="text-base font-bold text-stone-900" [class.line-through]="task.status === 'completed'" [class.text-stone-400]="task.status === 'completed'">{{ task.title }}</h3>
-                      @if (task.description) {
-                        <p class="text-sm text-stone-500 mt-1">{{ task.description }}</p>
-                      }
+                  <div class="p-4 hover:bg-stone-50 transition-colors group">
+                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                          <h3 class="text-base font-bold text-stone-900" [class.text-stone-400]="task.status !== 'pending'">{{ task.title }}</h3>
+                          @if (canManageTasks()) {
+                            <button (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <mat-icon class="text-[18px] w-4.5 h-4.5">delete</mat-icon>
+                            </button>
+                          }
+                        </div>
+                        @if (task.description) {
+                          <p class="text-sm text-stone-500 mt-1">{{ task.description }}</p>
+                        }
+                      </div>
+                      <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <button 
+                          (click)="setStatus(task, 'conforme')"
+                          [class.bg-emerald-100]="task.status === 'conforme' || task.status === 'completed'"
+                          [class.text-emerald-800]="task.status === 'conforme' || task.status === 'completed'"
+                          [class.border-emerald-200]="task.status === 'conforme' || task.status === 'completed'"
+                          [class.bg-white]="task.status !== 'conforme' && task.status !== 'completed'"
+                          [class.text-stone-500]="task.status !== 'conforme' && task.status !== 'completed'"
+                          [class.border-stone-200]="task.status !== 'conforme' && task.status !== 'completed'"
+                          class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-emerald-50 hover:text-emerald-700">
+                          <mat-icon class="text-[18px] w-4.5 h-4.5">check_circle</mat-icon>
+                          Conforme
+                        </button>
+                        <button 
+                          (click)="setStatus(task, 'nao_conforme')"
+                          [class.bg-rose-100]="task.status === 'nao_conforme'"
+                          [class.text-rose-800]="task.status === 'nao_conforme'"
+                          [class.border-rose-200]="task.status === 'nao_conforme'"
+                          [class.bg-white]="task.status !== 'nao_conforme'"
+                          [class.text-stone-500]="task.status !== 'nao_conforme'"
+                          [class.border-stone-200]="task.status !== 'nao_conforme'"
+                          class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-rose-50 hover:text-rose-700">
+                          <mat-icon class="text-[18px] w-4.5 h-4.5">cancel</mat-icon>
+                          Não Conforme
+                        </button>
+                        <button 
+                          (click)="setStatus(task, 'na')"
+                          [class.bg-stone-200]="task.status === 'na'"
+                          [class.text-stone-800]="task.status === 'na'"
+                          [class.border-stone-300]="task.status === 'na'"
+                          [class.bg-white]="task.status !== 'na'"
+                          [class.text-stone-500]="task.status !== 'na'"
+                          [class.border-stone-200]="task.status !== 'na'"
+                          class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-stone-100 hover:text-stone-700">
+                          <mat-icon class="text-[18px] w-4.5 h-4.5">remove_circle_outline</mat-icon>
+                          N/A
+                        </button>
+                      </div>
                     </div>
-                    @if (canManageTasks()) {
-                      <button (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <mat-icon>delete</mat-icon>
-                      </button>
+                    
+                    @if (task.status === 'nao_conforme') {
+                      <div class="mt-3 pl-0 sm:pl-4 border-l-2 border-rose-200">
+                        <label [for]="'reason-chk-' + task.id" class="block text-xs font-bold text-stone-700 mb-1 uppercase tracking-wider">Motivo da Não Conformidade</label>
+                        <textarea 
+                          [id]="'reason-chk-' + task.id"
+                          [ngModel]="task.reason"
+                          (blur)="updateReason(task, $any($event.target).value)"
+                          class="w-full p-2.5 border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none" 
+                          rows="2" 
+                          placeholder="Ex: Falta de material, equipamento com defeito..."></textarea>
+                      </div>
                     }
                   </div>
                 }
@@ -238,6 +282,21 @@ import autoTable from 'jspdf-autotable';
                       </span>
                     }
                   </div>
+                  @if (task.status === 'nao_conforme') {
+                    <div class="mt-4 pt-4 border-t border-stone-100">
+                      <label [for]="'reason-term-' + task.id" class="block text-xs font-bold text-rose-700 mb-1 uppercase tracking-wider">
+                        <mat-icon class="text-[14px] w-3.5 h-3.5 inline align-text-bottom">warning</mat-icon>
+                        Justificativa / Ação Corretiva
+                      </label>
+                      <textarea 
+                        [id]="'reason-term-' + task.id"
+                        [ngModel]="task.reason"
+                        (blur)="updateReason(task, $any($event.target).value)"
+                        class="w-full p-2.5 border border-rose-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none bg-rose-50" 
+                        rows="2" 
+                        placeholder="Ex: Termostato ajustado, técnico acionado..."></textarea>
+                    </div>
+                  }
                 </div>
               }
             </div>
@@ -302,6 +361,18 @@ import autoTable from 'jspdf-autotable';
                             <mat-icon class="text-[18px] w-4.5 h-4.5">cancel</mat-icon>
                             Não Conforme
                           </button>
+                          <button 
+                            (click)="setStatus(task, 'na')"
+                            [class.bg-stone-200]="task.status === 'na'"
+                            [class.text-stone-800]="task.status === 'na'"
+                            [class.border-stone-300]="task.status === 'na'"
+                            [class.bg-white]="task.status !== 'na'"
+                            [class.text-stone-500]="task.status !== 'na'"
+                            [class.border-stone-200]="task.status !== 'na'"
+                            class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-stone-100 hover:text-stone-700">
+                            <mat-icon class="text-[18px] w-4.5 h-4.5">remove_circle_outline</mat-icon>
+                            N/A
+                          </button>
                         </div>
                       </div>
                       
@@ -362,7 +433,7 @@ export class LimpezaComponent implements OnInit {
   termometria = computed(() => this.cleaningService.tasks().filter(t => t.category === 'termometria'));
   fechamento = computed(() => this.cleaningService.tasks().filter(t => t.category === 'fechamento'));
 
-  completedChecklists = computed(() => this.checklists().filter(t => t.status === 'completed').length);
+  completedChecklists = computed(() => this.checklists().filter(t => t.status !== 'pending').length);
 
   ngOnInit() {
     this.cleaningService.loadTasks();
@@ -391,12 +462,7 @@ export class LimpezaComponent implements OnInit {
     }
   }
 
-  async toggleTaskStatus(task: CleaningTask) {
-    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
-    await this.cleaningService.updateTaskStatus(task.id, task.category, newStatus);
-  }
-
-  async setStatus(task: CleaningTask, status: 'conforme' | 'nao_conforme') {
+  async setStatus(task: CleaningTask, status: 'conforme' | 'nao_conforme' | 'na') {
     await this.cleaningService.updateTaskStatus(task.id, task.category, status);
   }
 
@@ -404,9 +470,54 @@ export class LimpezaComponent implements OnInit {
     await this.cleaningService.updateTaskStatus(task.id, task.category, 'nao_conforme', reason);
   }
 
+  validateTemperature(value: string, target?: string): boolean {
+    if (!target || !value) return true;
+    
+    const numValue = parseFloat(value.replace(',', '.'));
+    if (isNaN(numValue)) return true;
+
+    const targetStr = target.toLowerCase().replace('°c', '').trim();
+    
+    const rangeMatch = targetStr.match(/(-?\d+(?:\.\d+)?)\s*(?:a|até|-)\s*(-?\d+(?:\.\d+)?)/);
+    if (rangeMatch) {
+      const min = parseFloat(rangeMatch[1]);
+      const max = parseFloat(rangeMatch[2]);
+      return numValue >= min && numValue <= max;
+    }
+
+    const maxMatch = targetStr.match(/(?:<|máx|max|abaixo de)\s*(-?\d+(?:\.\d+)?)/);
+    if (maxMatch) {
+      const max = parseFloat(maxMatch[1]);
+      return numValue <= max;
+    }
+
+    const minMatch = targetStr.match(/(?:>|mín|min|acima de)\s*(-?\d+(?:\.\d+)?)/);
+    if (minMatch) {
+      const min = parseFloat(minMatch[1]);
+      return numValue >= min;
+    }
+
+    const exactMatch = targetStr.match(/^(-?\d+(?:\.\d+)?)$/);
+    if (exactMatch) {
+      const exact = parseFloat(exactMatch[1]);
+      return numValue === exact;
+    }
+
+    return true;
+  }
+
   async updateValue(task: CleaningTask, value: string) {
     if (task.value === value) return;
-    await this.cleaningService.updateTaskStatus(task.id, task.category, task.status, undefined, value);
+    
+    let newStatus = task.status;
+    if (task.target_value) {
+      const isValid = this.validateTemperature(value, task.target_value);
+      newStatus = isValid ? 'conforme' : 'nao_conforme';
+    } else {
+      newStatus = 'conforme';
+    }
+
+    await this.cleaningService.updateTaskStatus(task.id, task.category, newStatus, task.reason, value);
   }
 
   async toggleConformity(task: CleaningTask) {
@@ -432,7 +543,7 @@ export class LimpezaComponent implements OnInit {
     
     const checklistData = this.checklists().map(t => [
       t.title,
-      t.status === 'completed' ? 'Concluído' : 'Pendente',
+      t.status === 'conforme' ? 'Conforme' : (t.status === 'nao_conforme' ? 'Não Conforme' : (t.status === 'na' ? 'N/A' : 'Pendente')),
       t.updated_at ? new Date(t.updated_at).toLocaleTimeString('pt-BR') : '-'
     ]);
     
@@ -466,7 +577,7 @@ export class LimpezaComponent implements OnInit {
     
     const fechamentoData = this.fechamento().map(t => [
       t.title,
-      t.status === 'conforme' ? 'Conforme' : (t.status === 'nao_conforme' ? 'Não Conforme' : 'Pendente'),
+      t.status === 'conforme' ? 'Conforme' : (t.status === 'nao_conforme' ? 'Não Conforme' : (t.status === 'na' ? 'N/A' : 'Pendente')),
       t.reason || '-'
     ]);
     

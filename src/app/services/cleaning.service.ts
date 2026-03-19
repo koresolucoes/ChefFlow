@@ -7,7 +7,7 @@ export interface CleaningTask {
   title: string;
   description?: string;
   category: 'checklist' | 'termometria' | 'fechamento';
-  status: 'pending' | 'completed' | 'conforme' | 'nao_conforme';
+  status: 'pending' | 'completed' | 'conforme' | 'nao_conforme' | 'na';
   reason?: string;
   value?: string;
   target_value?: string;
