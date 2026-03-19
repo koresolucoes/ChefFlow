@@ -128,27 +128,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
            return res.status(200).json({ status: 'pending', updated_at: new Date().toISOString() });
         }
 
-        const { data: existing } = await supabase
-          .from('cleaning_logs')
-          .select('id')
-          .eq('template_id', id)
-          .eq('log_date', logDate)
-          .single();
-
-        const logData: any = { status, user_id: user.id, log_date: logDate };
+        const logData: any = { template_id: id, status, user_id: user.id, log_date: logDate };
         if (reason !== undefined) logData.reason = reason;
         if (value !== undefined) logData.value = value;
 
-        let resultData;
-        if (existing) {
-          const { data, error } = await supabase.from('cleaning_logs').update(logData).eq('id', existing.id).select().single();
-          if (error) throw error;
-          resultData = data;
-        } else {
-          const { data, error } = await supabase.from('cleaning_logs').insert([{ template_id: id, ...logData }]).select().single();
-          if (error) throw error;
-          resultData = data;
-        }
+        const { data: resultData, error } = await supabase
+          .from('cleaning_logs')
+          .upsert(logData, { onConflict: 'template_id,log_date' })
+          .select()
+          .single();
+
+        if (error) throw error;
 
         return res.status(200).json({
           status: resultData?.status || 'pending',

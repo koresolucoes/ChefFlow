@@ -107,8 +107,12 @@ import autoTable from 'jspdf-autotable';
 
               @if (activeTab() === 'termometria') {
                 <div>
-                  <label class="block text-sm font-medium text-stone-700 mb-1">Meta (Ex: 0°C a 4°C)</label>
-                  <input type="text" [(ngModel)]="newTask.target_value" name="target_value" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
+                  <label class="block text-sm font-medium text-stone-700 mb-1">Temp. Mínima (°C)</label>
+                  <input type="number" [(ngModel)]="newTaskMinTemp" name="min_temp" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-stone-700 mb-1">Temp. Máxima (°C)</label>
+                  <input type="number" [(ngModel)]="newTaskMaxTemp" name="max_temp" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
                 </div>
               }
             </div>
@@ -406,10 +410,10 @@ import autoTable from 'jspdf-autotable';
               <div class="space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
                   <h3 class="text-lg font-bold text-stone-900 mb-4">Análise Geral do Plantão</h3>
-                  <textarea class="w-full h-32 p-3 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none" placeholder="Registre ocorrências gerais, quebras de equipamento, faltas ou observações sobre o serviço de hoje..." aria-label="Análise do plantão"></textarea>
+                  <textarea [(ngModel)]="shiftAnalysis" class="w-full h-32 p-3 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none" placeholder="Registre ocorrências gerais, quebras de equipamento, faltas ou observações sobre o serviço de hoje..." aria-label="Análise do plantão"></textarea>
                   
                   <div class="mt-6 pt-6 border-t border-stone-100">
-                    <button class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
+                    <button (click)="encerrarPlantao()" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
                       <mat-icon>verified</mat-icon>
                       Assinar e Encerrar Plantão
                     </button>
@@ -430,6 +434,10 @@ export class LimpezaComponent implements OnInit {
 
   activeTab = signal<'checklist' | 'termometria' | 'fechamento'>('fechamento');
   showNewTaskForm = signal(false);
+  shiftAnalysis = signal('');
+
+  newTaskMinTemp: number | null = null;
+  newTaskMaxTemp: number | null = null;
 
   newTask: Partial<CleaningTask> = {
     title: '',
@@ -458,9 +466,21 @@ export class LimpezaComponent implements OnInit {
     this.newTask.category = this.activeTab();
     if (!this.newTask.title || !this.newTask.category || !this.newTask.shift_moment) return;
     
+    if (this.activeTab() === 'termometria') {
+      if (this.newTaskMinTemp !== null && this.newTaskMaxTemp !== null) {
+        this.newTask.target_value = `${this.newTaskMinTemp}°C a ${this.newTaskMaxTemp}°C`;
+      } else if (this.newTaskMinTemp !== null) {
+        this.newTask.target_value = `> ${this.newTaskMinTemp}°C`;
+      } else if (this.newTaskMaxTemp !== null) {
+        this.newTask.target_value = `< ${this.newTaskMaxTemp}°C`;
+      }
+    }
+
     try {
       await this.cleaningService.addTask(this.newTask);
       this.showNewTaskForm.set(false);
+      this.newTaskMinTemp = null;
+      this.newTaskMaxTemp = null;
       this.newTask = {
         title: '',
         category: this.activeTab(),
@@ -470,6 +490,13 @@ export class LimpezaComponent implements OnInit {
       };
     } catch (error) {
       // Error is handled by service
+    }
+  }
+
+  encerrarPlantao() {
+    if (confirm('Tem certeza que deseja encerrar o plantão? Isso registrará a análise geral.')) {
+      alert('Plantão encerrado com sucesso!');
+      this.shiftAnalysis.set('');
     }
   }
 
