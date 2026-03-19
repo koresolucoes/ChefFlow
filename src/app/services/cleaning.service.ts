@@ -61,11 +61,11 @@ export class CleaningService {
     }
   }
 
-  async updateTaskStatus(id: string, status: string, reason?: string, value?: string) {
+  async updateTaskStatus(id: string, category: string, status: string, reason?: string, value?: string) {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const body: any = { id, status };
+      const body: any = { id, category, status };
       if (reason !== undefined) body.reason = reason;
       if (value !== undefined) body.value = value;
       

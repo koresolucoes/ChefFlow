@@ -35,6 +35,13 @@
             ],
             "server": "src/main.server.ts",
             "outputMode": "server",
+            "allowedCommonJsDependencies": [
+              "jspdf",
+              "canvg",
+              "core-js",
+              "raf",
+              "rgbcolor"
+            ],
             "ssr": {
               "entry": "src/server.ts"
             }

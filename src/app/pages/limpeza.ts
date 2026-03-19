@@ -49,7 +49,7 @@ import autoTable from 'jspdf-autotable';
             [class.border-transparent]="activeTab() !== 'checklist'"
             [class.text-stone-500]="activeTab() !== 'checklist'"
             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
-            Checklists de Fechamento
+            Checklist Diário
           </button>
           <button 
             (click)="activeTab.set('termometria')"
@@ -77,7 +77,7 @@ import autoTable from 'jspdf-autotable';
         <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold text-stone-900">
-              @if (activeTab() === 'checklist') { Novo Checklist de Fechamento }
+              @if (activeTab() === 'checklist') { Novo Item de Checklist Diário }
               @if (activeTab() === 'termometria') { Novo Equipamento (Termometria) }
               @if (activeTab() === 'fechamento') { Nova Tarefa de Fechamento de Plantão }
             </h2>
@@ -279,7 +279,7 @@ import autoTable from 'jspdf-autotable';
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
                           <button 
-                            (click)="setStatus(task.id, 'conforme')"
+                            (click)="setStatus(task, 'conforme')"
                             [class.bg-emerald-100]="task.status === 'conforme'"
                             [class.text-emerald-800]="task.status === 'conforme'"
                             [class.border-emerald-200]="task.status === 'conforme'"
@@ -291,7 +291,7 @@ import autoTable from 'jspdf-autotable';
                             Conforme
                           </button>
                           <button 
-                            (click)="setStatus(task.id, 'nao_conforme')"
+                            (click)="setStatus(task, 'nao_conforme')"
                             [class.bg-rose-100]="task.status === 'nao_conforme'"
                             [class.text-rose-800]="task.status === 'nao_conforme'"
                             [class.border-rose-200]="task.status === 'nao_conforme'"
@@ -311,7 +311,7 @@ import autoTable from 'jspdf-autotable';
                           <textarea 
                             [id]="'reason-' + task.id"
                             [ngModel]="task.reason"
-                            (blur)="updateReason(task.id, $any($event.target).value)"
+                            (blur)="updateReason(task, $any($event.target).value)"
                             class="w-full p-2.5 border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none" 
                             rows="2" 
                             placeholder="Ex: Faltou produto de limpeza, equipamento quebrado, equipe saiu mais cedo..."></textarea>
@@ -393,25 +393,25 @@ export class LimpezaComponent implements OnInit {
 
   async toggleTaskStatus(task: CleaningTask) {
     const newStatus = task.status === 'completed' ? 'pending' : 'completed';
-    await this.cleaningService.updateTaskStatus(task.id, newStatus);
+    await this.cleaningService.updateTaskStatus(task.id, task.category, newStatus);
   }
 
-  async setStatus(id: string, status: 'conforme' | 'nao_conforme') {
-    await this.cleaningService.updateTaskStatus(id, status);
+  async setStatus(task: CleaningTask, status: 'conforme' | 'nao_conforme') {
+    await this.cleaningService.updateTaskStatus(task.id, task.category, status);
   }
 
-  async updateReason(id: string, reason: string) {
-    await this.cleaningService.updateTaskStatus(id, 'nao_conforme', reason);
+  async updateReason(task: CleaningTask, reason: string) {
+    await this.cleaningService.updateTaskStatus(task.id, task.category, 'nao_conforme', reason);
   }
 
   async updateValue(task: CleaningTask, value: string) {
     if (task.value === value) return;
-    await this.cleaningService.updateTaskStatus(task.id, task.status, undefined, value);
+    await this.cleaningService.updateTaskStatus(task.id, task.category, task.status, undefined, value);
   }
 
   async toggleConformity(task: CleaningTask) {
     const newStatus = task.status === 'nao_conforme' ? 'conforme' : 'nao_conforme';
-    await this.cleaningService.updateTaskStatus(task.id, newStatus);
+    await this.cleaningService.updateTaskStatus(task.id, task.category, newStatus);
   }
 
   async deleteTask(task: CleaningTask) {
@@ -428,7 +428,7 @@ export class LimpezaComponent implements OnInit {
     doc.text(`Relatório de Higiene e Limpeza - ${date}`, 14, 22);
     
     doc.setFontSize(14);
-    doc.text('Checklists de Fechamento', 14, 35);
+    doc.text('Checklist Diário', 14, 35);
     
     const checklistData = this.checklists().map(t => [
       t.title,
