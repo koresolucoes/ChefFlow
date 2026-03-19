@@ -1,7 +1,7 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { firstValueFrom } from 'rxjs';
-import { AuthService } from './auth.service';
 
 export interface InventoryItem {
   id: string;
@@ -11,87 +11,67 @@ export interface InventoryItem {
   quantity: number;
   min_quantity: number;
   cost_per_unit: number;
-  created_at: string;
+  created_at?: string;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class InventoryService {
   private http = inject(HttpClient);
-  private auth = inject(AuthService);
-
+  
   items = signal<InventoryItem[]>([]);
-  loading = signal(false);
-  error = signal<string | null>(null);
-
-  private get headers() {
-    return {
-      Authorization: `Bearer ${this.auth.token()}`
-    };
-  }
+  isLoading = signal(false);
 
   async loadItems() {
-    this.loading.set(true);
-    this.error.set(null);
+    this.isLoading.set(true);
     try {
-      const data = await firstValueFrom(
-        this.http.get<InventoryItem[]>('/api/inventory', { headers: this.headers })
+      const items = await firstValueFrom(
+        this.http.get<InventoryItem[]>(`${environment.apiUrl}/inventory`)
       );
-      this.items.set(data);
-    } catch (err) {
-      const error = err as { error?: { error?: string } };
-      this.error.set(error.error?.error || 'Erro ao carregar estoque');
+      this.items.set(items);
+    } catch (error) {
+      console.error('Erro ao carregar estoque:', error);
+      this.items.set([]);
     } finally {
-      this.loading.set(false);
+      this.isLoading.set(false);
     }
   }
 
   async addItem(item: Partial<InventoryItem>) {
-    this.loading.set(true);
     try {
       const newItem = await firstValueFrom(
-        this.http.post<InventoryItem>('/api/inventory', item, { headers: this.headers })
+        this.http.post<InventoryItem>(`${environment.apiUrl}/inventory`, item)
       );
-      this.items.update(prev => [newItem, ...prev]);
-      return newItem;
-    } catch (err) {
-      const error = err as { error?: { error?: string } };
-      this.error.set(error.error?.error || 'Erro ao adicionar item');
-      throw err;
-    } finally {
-      this.loading.set(false);
+      this.items.update(items => [...items, newItem].sort((a, b) => a.name.localeCompare(b.name)));
+      return true;
+    } catch (error) {
+      console.error('Erro ao adicionar item:', error);
+      return false;
     }
   }
 
   async updateItem(item: Partial<InventoryItem>) {
-    this.loading.set(true);
     try {
-      const updated = await firstValueFrom(
-        this.http.put<InventoryItem>('/api/inventory', item, { headers: this.headers })
+      const updatedItem = await firstValueFrom(
+        this.http.put<InventoryItem>(`${environment.apiUrl}/inventory`, item)
       );
-      this.items.update(prev => prev.map(i => i.id === updated.id ? updated : i));
-    } catch (err) {
-      const error = err as { error?: { error?: string } };
-      this.error.set(error.error?.error || 'Erro ao atualizar item');
-      throw err;
-    } finally {
-      this.loading.set(false);
+      this.items.update(items => items.map(i => i.id === updatedItem.id ? updatedItem : i));
+      return true;
+    } catch (error) {
+      console.error('Erro ao atualizar item:', error);
+      return false;
     }
   }
 
   async removeItem(id: string) {
-    this.loading.set(true);
     try {
       await firstValueFrom(
-        this.http.delete(`/api/inventory?id=${id}`, { headers: this.headers })
+        this.http.delete(`${environment.apiUrl}/inventory?id=${id}`)
       );
-      this.items.update(prev => prev.filter(i => i.id !== id));
-    } catch (err) {
-      const error = err as { error?: { error?: string } };
-      this.error.set(error.error?.error || 'Erro ao remover item');
-    } finally {
-      this.loading.set(false);
+      this.items.update(items => items.filter(i => i.id !== id));
+      return true;
+    } catch (error) {
+      console.error('Erro ao remover item:', error);
+      return false;
     }
   }
 }

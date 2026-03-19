@@ -19,12 +19,10 @@ export class AuthService {
   private http = inject(HttpClient);
   
   currentUser = signal<User | null>(null);
-  token = signal<string | null>(null);
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       const stored = localStorage.getItem('kitchen_user');
-      const storedToken = localStorage.getItem('kitchen_token');
       if (stored) {
         try {
           this.currentUser.set(JSON.parse(stored));
@@ -32,25 +30,22 @@ export class AuthService {
           localStorage.removeItem('kitchen_user');
         }
       }
-      if (storedToken) {
-        this.token.set(storedToken);
-      }
     }
   }
 
   async login(email: string, password: string): Promise<boolean> {
     try {
+      // Faz o POST para a sua API na Vercel (que conecta no Neon)
       const response = await firstValueFrom(
         this.http.post<{ user: User, token: string }>(`${environment.apiUrl}/login`, { email, password })
       );
 
       if (response && response.user && response.token) {
         this.currentUser.set(response.user);
-        this.token.set(response.token);
         
         if (isPlatformBrowser(this.platformId)) {
           localStorage.setItem('kitchen_user', JSON.stringify(response.user));
-          localStorage.setItem('kitchen_token', response.token);
+          localStorage.setItem('kitchen_token', response.token); // Salva o JWT
         }
         
         this.router.navigate(['/']);
@@ -65,7 +60,6 @@ export class AuthService {
 
   logout() {
     this.currentUser.set(null);
-    this.token.set(null);
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('kitchen_user');
       localStorage.removeItem('kitchen_token');
