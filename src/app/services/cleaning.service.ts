@@ -31,11 +31,18 @@ export class CleaningService {
   loading = signal(false);
   error = signal<string | null>(null);
 
-  async loadTasks(category?: string) {
+  async loadTasks(category?: string, date?: string) {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const url = category ? `${this.apiUrl}?category=${category}` : this.apiUrl;
+      let url = this.apiUrl;
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (date) params.append('date', date);
+      
+      const queryString = params.toString();
+      if (queryString) url += `?${queryString}`;
+      
       const data = await firstValueFrom(this.http.get<CleaningTask[]>(url));
       this.tasks.set(data);
     } catch (err: any) {
@@ -46,13 +53,13 @@ export class CleaningService {
     }
   }
 
-  async addTask(task: Partial<CleaningTask>) {
+  async addTask(task: Partial<CleaningTask> & { shift_moments?: string[] }) {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const newTask = await firstValueFrom(this.http.post<CleaningTask>(this.apiUrl, task));
-      this.tasks.update(tasks => [newTask, ...tasks]);
-      return newTask;
+      const newTasks = await firstValueFrom(this.http.post<CleaningTask[]>(this.apiUrl, task));
+      this.tasks.update(tasks => [...newTasks, ...tasks]);
+      return newTasks;
     } catch (err: any) {
       console.error('Error adding cleaning task:', err);
       this.error.set(err.error?.error || 'Failed to add cleaning task');

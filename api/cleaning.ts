@@ -45,11 +45,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     switch (req.method) {
       case 'GET': {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        const logDate = `${yyyy}-${mm}-${dd}`;
+        const dateParam = req.query.date as string;
+        let logDate = '';
+        if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+          logDate = dateParam;
+        } else {
+          const today = new Date();
+          const yyyy = today.getFullYear();
+          const mm = String(today.getMonth() + 1).padStart(2, '0');
+          const dd = String(today.getDate()).padStart(2, '0');
+          logDate = `${yyyy}-${mm}-${dd}`;
+        }
 
         const { data: templates, error: templatesError } = await supabase
           .from('cleaning_templates')
@@ -84,30 +90,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(403).json({ error: 'Forbidden: Only admins and chefs can create tasks' });
         }
 
-        const { title, description, category, shift_moment, target_value } = req.body;
+        const { title, description, category, shift_moment, shift_moments, target_value } = req.body;
         
-        if (!title || !category || !shift_moment) {
-          return res.status(400).json({ error: 'Title, category, and shift_moment are required' });
+        const momentsToInsert = shift_moments || (shift_moment ? [shift_moment] : []);
+
+        if (!title || !category || momentsToInsert.length === 0) {
+          return res.status(400).json({ error: 'Title, category, and at least one shift_moment are required' });
         }
+
+        const inserts = momentsToInsert.map((sm: string) => ({
+          title,
+          description,
+          category,
+          shift_moment: sm,
+          target_value
+        }));
 
         const { data, error } = await supabase
           .from('cleaning_templates')
-          .insert([{ title, description, category, shift_moment, target_value }])
-          .select()
-          .single();
+          .insert(inserts)
+          .select();
 
         if (error) throw error;
 
-        return res.status(201).json({
-          id: data.id,
-          title: data.title,
-          description: data.description,
-          category: data.category,
-          shift_moment: data.shift_moment,
-          target_value: data.target_value,
+        const responseData = data.map(d => ({
+          id: d.id,
+          title: d.title,
+          description: d.description,
+          category: d.category,
+          shift_moment: d.shift_moment,
+          target_value: d.target_value,
           status: 'pending',
-          updated_at: data.created_at
-        });
+          updated_at: d.created_at
+        }));
+
+        return res.status(201).json(responseData);
       }
 
       case 'PUT': {
@@ -134,7 +151,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const { data: resultData, error } = await supabase
           .from('cleaning_logs')
-          .upsert(logData, { onConflict: 'template_id,log_date' })
+          .upsert(logData, { onConflict: 'cleaning_logs_template_id_log_date_key' })
           .select()
           .single();
 

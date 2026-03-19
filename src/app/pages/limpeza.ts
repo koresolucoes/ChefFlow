@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, inject, OnInit, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, inject, OnInit, computed, effect } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -19,6 +19,10 @@ import autoTable from 'jspdf-autotable';
           <p class="text-stone-500 mt-1">Checklists sanitários e termometria.</p>
         </div>
         <div class="flex gap-3">
+          <div class="flex items-center gap-2 bg-white border border-stone-200 text-stone-700 rounded-lg px-3 py-2 font-medium">
+            <mat-icon class="text-stone-500">calendar_today</mat-icon>
+            <input type="date" [ngModel]="selectedDate()" (ngModelChange)="onDateChange($event)" class="border-none focus:ring-0 text-stone-700 font-medium bg-transparent p-0 outline-none">
+          </div>
           <button (click)="generateReport()" class="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2">
             <mat-icon>picture_as_pdf</mat-icon>
             Gerar Relatório
@@ -43,22 +47,22 @@ import autoTable from 'jspdf-autotable';
       <div class="border-b border-stone-200">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
           <button 
-            (click)="activeTab.set('checklist')"
-            [class.border-stone-900]="activeTab() === 'checklist'"
-            [class.text-stone-900]="activeTab() === 'checklist'"
-            [class.border-transparent]="activeTab() !== 'checklist'"
-            [class.text-stone-500]="activeTab() !== 'checklist'"
+            (click)="activeTab.set('abertura')"
+            [class.border-stone-900]="activeTab() === 'abertura'"
+            [class.text-stone-900]="activeTab() === 'abertura'"
+            [class.border-transparent]="activeTab() !== 'abertura'"
+            [class.text-stone-500]="activeTab() !== 'abertura'"
             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
-            Checklist Diário
+            Abertura
           </button>
           <button 
-            (click)="activeTab.set('termometria')"
-            [class.border-stone-900]="activeTab() === 'termometria'"
-            [class.text-stone-900]="activeTab() === 'termometria'"
-            [class.border-transparent]="activeTab() !== 'termometria'"
-            [class.text-stone-500]="activeTab() !== 'termometria'"
+            (click)="activeTab.set('operacao')"
+            [class.border-stone-900]="activeTab() === 'operacao'"
+            [class.text-stone-900]="activeTab() === 'operacao'"
+            [class.border-transparent]="activeTab() !== 'operacao'"
+            [class.text-stone-500]="activeTab() !== 'operacao'"
             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
-            Termometria (Equipamentos)
+            Operação
           </button>
           <button 
             (click)="activeTab.set('fechamento')"
@@ -67,7 +71,7 @@ import autoTable from 'jspdf-autotable';
             [class.border-transparent]="activeTab() !== 'fechamento'"
             [class.text-stone-500]="activeTab() !== 'fechamento'"
             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
-            Fechamento de Plantão (Chef)
+            Fechamento
           </button>
         </nav>
       </div>
@@ -77,9 +81,7 @@ import autoTable from 'jspdf-autotable';
         <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold text-stone-900">
-              @if (activeTab() === 'checklist') { Novo Item de Checklist Diário }
-              @if (activeTab() === 'termometria') { Novo Equipamento (Termometria) }
-              @if (activeTab() === 'fechamento') { Nova Tarefa de Fechamento de Plantão }
+              Novo Registro
             </h2>
             <button (click)="showNewTaskForm.set(false)" class="text-stone-400 hover:text-stone-600">
               <mat-icon>close</mat-icon>
@@ -90,22 +92,38 @@ import autoTable from 'jspdf-autotable';
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-stone-700 mb-1">
-                  @if (activeTab() === 'termometria') { Nome do Equipamento }
-                  @else { Título da Tarefa }
+                  Título da Tarefa / Equipamento
                 </label>
                 <input type="text" [(ngModel)]="newTask.title" name="title" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-stone-700 mb-1">Momento do Plantão</label>
-                <select [(ngModel)]="newTask.shift_moment" name="shift_moment" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900 bg-white">
-                  <option value="abertura">Abertura</option>
-                  <option value="operacao">Operação</option>
-                  <option value="fechamento">Fechamento</option>
+                <label class="block text-sm font-medium text-stone-700 mb-1">Categoria</label>
+                <select [(ngModel)]="newTask.category" name="category" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900 bg-white">
+                  <option value="checklist">Checklist</option>
+                  <option value="termometria">Termometria</option>
                 </select>
               </div>
 
-              @if (activeTab() === 'termometria') {
+              <div>
+                <label class="block text-sm font-medium text-stone-700 mb-1">Momentos do Plantão</label>
+                <div class="flex gap-4 mt-2">
+                  <label class="flex items-center gap-2 text-sm text-stone-700">
+                    <input type="checkbox" [checked]="newTaskShiftMoments.includes('abertura')" (change)="toggleShiftMoment('abertura')" class="rounded border-stone-300 text-stone-900 focus:ring-stone-900">
+                    Abertura
+                  </label>
+                  <label class="flex items-center gap-2 text-sm text-stone-700">
+                    <input type="checkbox" [checked]="newTaskShiftMoments.includes('operacao')" (change)="toggleShiftMoment('operacao')" class="rounded border-stone-300 text-stone-900 focus:ring-stone-900">
+                    Operação
+                  </label>
+                  <label class="flex items-center gap-2 text-sm text-stone-700">
+                    <input type="checkbox" [checked]="newTaskShiftMoments.includes('fechamento')" (change)="toggleShiftMoment('fechamento')" class="rounded border-stone-300 text-stone-900 focus:ring-stone-900">
+                    Fechamento
+                  </label>
+                </div>
+              </div>
+
+              @if (newTask.category === 'termometria') {
                 <div>
                   <label class="block text-sm font-medium text-stone-700 mb-1">Temp. Mínima (°C)</label>
                   <input type="number" [(ngModel)]="newTaskMinTemp" name="min_temp" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
@@ -141,28 +159,28 @@ import autoTable from 'jspdf-autotable';
       }
 
       <!-- Tab Content -->
-      <div class="mt-6">
+      <div class="mt-6 space-y-8">
         @if (cleaningService.loading() && !showNewTaskForm()) {
           <div class="flex justify-center p-12">
             <mat-icon class="animate-spin text-stone-400 text-4xl">autorenew</mat-icon>
           </div>
         } @else {
-          @if (activeTab() === 'checklist') {
-            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-              <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
-                <h2 class="font-bold text-stone-900">Checklists</h2>
-                <div class="text-sm font-medium text-stone-500">
-                  {{ completedChecklists() }}/{{ checklists().length }} Concluído
-                </div>
+          <!-- Checklist Section -->
+          <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+            <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+              <h2 class="font-bold text-stone-900">Checklists de {{ activeTab() | titlecase }}</h2>
+              <div class="text-sm font-medium text-stone-500">
+                {{ completedChecklists() }}/{{ checklists().length }} Concluído
               </div>
-              
-              <div class="divide-y divide-stone-100">
-                @if (checklists().length === 0) {
-                  <div class="p-8 text-center text-stone-500">
-                    Nenhum checklist cadastrado.
-                  </div>
-                }
-                @for (task of checklists(); track task.id) {
+            </div>
+            
+            <div class="divide-y divide-stone-100">
+              @if (checklists().length === 0) {
+                <div class="p-8 text-center text-stone-500">
+                  Nenhum checklist cadastrado para este momento.
+                </div>
+              }
+              @for (task of checklists(); track task.id) {
                   <div class="p-4 hover:bg-stone-50 transition-colors group">
                     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                       <div class="flex-1 min-w-0">
@@ -234,13 +252,14 @@ import autoTable from 'jspdf-autotable';
                 }
               </div>
             </div>
-          }
 
-          @if (activeTab() === 'termometria') {
+          <!-- Termometria Section -->
+          <div>
+            <h2 class="text-xl font-bold text-stone-900 mb-4">Termometria de {{ activeTab() | titlecase }}</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               @if (termometria().length === 0) {
                 <div class="col-span-full p-8 text-center text-stone-500 bg-white rounded-2xl border border-stone-200">
-                  Nenhum equipamento cadastrado.
+                  Nenhum equipamento cadastrado para este momento.
                 </div>
               }
               @for (task of termometria(); track task.id) {
@@ -313,111 +332,20 @@ import autoTable from 'jspdf-autotable';
                 </div>
               }
             </div>
-          }
+          </div>
 
           @if (activeTab() === 'fechamento') {
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <!-- Checklist de Auditoria -->
-              <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-                <div class="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
-                  <div>
-                    <h2 class="font-bold text-stone-900">Auditoria de Fechamento</h2>
-                    <p class="text-sm text-stone-500">Verificação final detalhada do Chef de Turno</p>
-                  </div>
-                  <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full uppercase tracking-wide">Em Andamento</span>
-                </div>
-                
-                <div class="divide-y divide-stone-100">
-                  @if (fechamento().length === 0) {
-                    <div class="p-8 text-center text-stone-500">
-                      Nenhuma tarefa de fechamento cadastrada.
-                    </div>
-                  }
-                  @for (task of fechamento(); track task.id) {
-                    <div class="p-4 hover:bg-stone-50 transition-colors group">
-                      <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                        <div class="flex-1 min-w-0">
-                          <div class="flex items-center gap-2">
-                            <h3 class="text-base font-bold text-stone-900">{{ task.title }}</h3>
-                            @if (canManageTasks()) {
-                              <button (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <mat-icon class="text-[18px] w-4.5 h-4.5">delete</mat-icon>
-                              </button>
-                            }
-                          </div>
-                          @if (task.description) {
-                            <p class="text-sm text-stone-500 mt-1">{{ task.description }}</p>
-                          }
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                          <button 
-                            (click)="setStatus(task, 'conforme')"
-                            [class.bg-emerald-100]="task.status === 'conforme'"
-                            [class.text-emerald-800]="task.status === 'conforme'"
-                            [class.border-emerald-200]="task.status === 'conforme'"
-                            [class.bg-white]="task.status !== 'conforme'"
-                            [class.text-stone-500]="task.status !== 'conforme'"
-                            [class.border-stone-200]="task.status !== 'conforme'"
-                            class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-emerald-50 hover:text-emerald-700">
-                            <mat-icon class="text-[18px] w-4.5 h-4.5">check_circle</mat-icon>
-                            Conforme
-                          </button>
-                          <button 
-                            (click)="setStatus(task, 'nao_conforme')"
-                            [class.bg-rose-100]="task.status === 'nao_conforme'"
-                            [class.text-rose-800]="task.status === 'nao_conforme'"
-                            [class.border-rose-200]="task.status === 'nao_conforme'"
-                            [class.bg-white]="task.status !== 'nao_conforme'"
-                            [class.text-stone-500]="task.status !== 'nao_conforme'"
-                            [class.border-stone-200]="task.status !== 'nao_conforme'"
-                            class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-rose-50 hover:text-rose-700">
-                            <mat-icon class="text-[18px] w-4.5 h-4.5">cancel</mat-icon>
-                            Não Conforme
-                          </button>
-                          <button 
-                            (click)="setStatus(task, 'na')"
-                            [class.bg-stone-200]="task.status === 'na'"
-                            [class.text-stone-800]="task.status === 'na'"
-                            [class.border-stone-300]="task.status === 'na'"
-                            [class.bg-white]="task.status !== 'na'"
-                            [class.text-stone-500]="task.status !== 'na'"
-                            [class.border-stone-200]="task.status !== 'na'"
-                            class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-stone-100 hover:text-stone-700">
-                            <mat-icon class="text-[18px] w-4.5 h-4.5">remove_circle_outline</mat-icon>
-                            N/A
-                          </button>
-                        </div>
-                      </div>
-                      
-                      @if (task.status === 'nao_conforme') {
-                        <div class="mt-3 pl-0 sm:pl-4 border-l-2 border-rose-200">
-                          <label [for]="'reason-' + task.id" class="block text-xs font-bold text-stone-700 mb-1 uppercase tracking-wider">Motivo da Não Conformidade</label>
-                          <textarea 
-                            [id]="'reason-' + task.id"
-                            [ngModel]="task.reason"
-                            (blur)="updateReason(task, $any($event.target).value)"
-                            class="w-full p-2.5 border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none" 
-                            rows="2" 
-                            placeholder="Ex: Faltou produto de limpeza, equipamento quebrado, equipe saiu mais cedo..."></textarea>
-                        </div>
-                      }
-                    </div>
-                  }
-                </div>
-              </div>
-
+            <div class="mt-8">
               <!-- Análise e Assinatura -->
-              <div class="space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-                  <h3 class="text-lg font-bold text-stone-900 mb-4">Análise Geral do Plantão</h3>
-                  <textarea [(ngModel)]="shiftAnalysis" class="w-full h-32 p-3 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none" placeholder="Registre ocorrências gerais, quebras de equipamento, faltas ou observações sobre o serviço de hoje..." aria-label="Análise do plantão"></textarea>
-                  
-                  <div class="mt-6 pt-6 border-t border-stone-100">
-                    <button (click)="encerrarPlantao()" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
-                      <mat-icon>verified</mat-icon>
-                      Assinar e Encerrar Plantão
-                    </button>
-                  </div>
+              <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
+                <h3 class="text-lg font-bold text-stone-900 mb-4">Análise Geral do Plantão</h3>
+                <textarea [(ngModel)]="shiftAnalysis" class="w-full h-32 p-3 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none" placeholder="Registre ocorrências gerais, quebras de equipamento, faltas ou observações sobre o serviço de hoje..." aria-label="Análise do plantão"></textarea>
+                
+                <div class="mt-6 pt-6 border-t border-stone-100">
+                  <button (click)="encerrarPlantao()" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
+                    <mat-icon>verified</mat-icon>
+                    Assinar e Encerrar Plantão
+                  </button>
                 </div>
               </div>
             </div>
@@ -432,29 +360,56 @@ export class LimpezaComponent implements OnInit {
   cleaningService = inject(CleaningService);
   authService = inject(AuthService);
 
-  activeTab = signal<'checklist' | 'termometria' | 'fechamento'>('fechamento');
+  activeTab = signal<'abertura' | 'operacao' | 'fechamento'>('abertura');
   showNewTaskForm = signal(false);
   shiftAnalysis = signal('');
+  selectedDate = signal(new Date().toISOString().split('T')[0]);
 
   newTaskMinTemp: number | null = null;
   newTaskMaxTemp: number | null = null;
+  newTaskShiftMoments: string[] = ['abertura'];
 
   newTask: Partial<CleaningTask> = {
     title: '',
-    category: 'fechamento',
+    category: 'checklist',
     description: '',
-    target_value: '',
-    shift_moment: 'abertura'
+    target_value: ''
   };
 
-  checklists = computed(() => this.cleaningService.tasks().filter(t => t.category === 'checklist'));
-  termometria = computed(() => this.cleaningService.tasks().filter(t => t.category === 'termometria'));
-  fechamento = computed(() => this.cleaningService.tasks().filter(t => t.category === 'fechamento'));
+  currentTasks = computed(() => this.cleaningService.tasks().filter(t => t.shift_moment === this.activeTab()));
+  checklists = computed(() => this.currentTasks().filter(t => t.category === 'checklist'));
+  termometria = computed(() => this.currentTasks().filter(t => t.category === 'termometria'));
+  shiftAnalysisTask = computed(() => this.cleaningService.tasks().find(t => t.title === 'Análise Geral do Plantão' && t.category === 'fechamento'));
 
   completedChecklists = computed(() => this.checklists().filter(t => t.status !== 'pending').length);
 
+  constructor() {
+    effect(() => {
+      const task = this.shiftAnalysisTask();
+      if (task && task.reason) {
+        this.shiftAnalysis.set(task.reason);
+      } else {
+        this.shiftAnalysis.set('');
+      }
+    }, { allowSignalWrites: true });
+  }
+
   ngOnInit() {
-    this.cleaningService.loadTasks();
+    this.cleaningService.loadTasks(undefined, this.selectedDate());
+  }
+
+  onDateChange(newDate: string) {
+    this.selectedDate.set(newDate);
+    this.cleaningService.loadTasks(undefined, newDate);
+  }
+
+  toggleShiftMoment(moment: string) {
+    const idx = this.newTaskShiftMoments.indexOf(moment);
+    if (idx > -1) {
+      this.newTaskShiftMoments.splice(idx, 1);
+    } else {
+      this.newTaskShiftMoments.push(moment);
+    }
   }
 
   canManageTasks() {
@@ -463,10 +418,9 @@ export class LimpezaComponent implements OnInit {
   }
 
   async onSubmit() {
-    this.newTask.category = this.activeTab();
-    if (!this.newTask.title || !this.newTask.category || !this.newTask.shift_moment) return;
+    if (!this.newTask.title || !this.newTask.category || this.newTaskShiftMoments.length === 0) return;
     
-    if (this.activeTab() === 'termometria') {
+    if (this.newTask.category === 'termometria') {
       if (this.newTaskMinTemp !== null && this.newTaskMaxTemp !== null) {
         this.newTask.target_value = `${this.newTaskMinTemp}°C a ${this.newTaskMaxTemp}°C`;
       } else if (this.newTaskMinTemp !== null) {
@@ -477,26 +431,46 @@ export class LimpezaComponent implements OnInit {
     }
 
     try {
-      await this.cleaningService.addTask(this.newTask);
+      await this.cleaningService.addTask({
+        ...this.newTask,
+        shift_moments: this.newTaskShiftMoments
+      });
       this.showNewTaskForm.set(false);
       this.newTaskMinTemp = null;
       this.newTaskMaxTemp = null;
+      this.newTaskShiftMoments = [this.activeTab()];
       this.newTask = {
         title: '',
-        category: this.activeTab(),
+        category: 'checklist',
         description: '',
-        target_value: '',
-        shift_moment: 'abertura'
+        target_value: ''
       };
     } catch (error) {
       // Error is handled by service
     }
   }
 
-  encerrarPlantao() {
+  async encerrarPlantao() {
     if (confirm('Tem certeza que deseja encerrar o plantão? Isso registrará a análise geral.')) {
-      alert('Plantão encerrado com sucesso!');
-      this.shiftAnalysis.set('');
+      try {
+        let task = this.shiftAnalysisTask();
+        if (!task) {
+          const newTasks = await this.cleaningService.addTask({
+            title: 'Análise Geral do Plantão',
+            category: 'fechamento',
+            description: 'Registro geral do plantão',
+            shift_moments: ['fechamento']
+          });
+          task = newTasks[0];
+        }
+        
+        if (task) {
+          await this.cleaningService.updateTaskStatus(task.id, 'fechamento', 'conforme', this.shiftAnalysis(), this.shiftAnalysis());
+          alert('Plantão encerrado com sucesso!');
+        }
+      } catch (error) {
+        alert('Erro ao encerrar plantão. Tente novamente.');
+      }
     }
   }
 
@@ -611,19 +585,12 @@ export class LimpezaComponent implements OnInit {
     
     const finalY2 = (doc as any).lastAutoTable.finalY || finalY1 + 20;
     
-    doc.text('Fechamento de Plantão', 14, finalY2 + 15);
-    
-    const fechamentoData = this.fechamento().map(t => [
-      t.title,
-      t.status === 'conforme' ? 'Conforme' : (t.status === 'nao_conforme' ? 'Não Conforme' : (t.status === 'na' ? 'N/A' : 'Pendente')),
-      t.reason || '-'
-    ]);
-    
-    autoTable(doc, {
-      startY: finalY2 + 20,
-      head: [['Tarefa', 'Status', 'Motivo']],
-      body: fechamentoData,
-    });
+    if (this.shiftAnalysis()) {
+      doc.text('Análise Geral do Plantão', 14, finalY2 + 15);
+      doc.setFontSize(11);
+      const splitText = doc.splitTextToSize(this.shiftAnalysis(), 180);
+      doc.text(splitText, 14, finalY2 + 25);
+    }
     
     doc.save(`relatorio-limpeza-${date.replace(/\//g, '-')}.pdf`);
   }
