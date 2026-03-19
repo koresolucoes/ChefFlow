@@ -80,11 +80,11 @@ export class CleaningService {
     }
   }
 
-  async removeTask(id: string) {
+  async removeTask(id: string, category: string) {
     this.loading.set(true);
     this.error.set(null);
     try {
-      await firstValueFrom(this.http.delete(`${this.apiUrl}?id=${id}`));
+      await firstValueFrom(this.http.delete(`${this.apiUrl}?id=${id}&category=${category}`));
       this.tasks.update(tasks => tasks.filter(t => t.id !== id));
     } catch (err: any) {
       console.error('Error removing cleaning task:', err);

@@ -169,7 +169,7 @@ import autoTable from 'jspdf-autotable';
                       }
                     </div>
                     @if (canManageTasks()) {
-                      <button (click)="deleteTask(task.id)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
                         <mat-icon>delete</mat-icon>
                       </button>
                     }
@@ -197,7 +197,7 @@ import autoTable from 'jspdf-autotable';
                     </div>
                     <div class="flex items-center gap-2">
                       @if (canManageTasks()) {
-                        <button (click)="deleteTask(task.id)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
                           <mat-icon>delete</mat-icon>
                         </button>
                       }
@@ -268,7 +268,7 @@ import autoTable from 'jspdf-autotable';
                           <div class="flex items-center gap-2">
                             <h3 class="text-base font-bold text-stone-900">{{ task.title }}</h3>
                             @if (canManageTasks()) {
-                              <button (click)="deleteTask(task.id)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <mat-icon class="text-[18px] w-4.5 h-4.5">delete</mat-icon>
                               </button>
                             }
@@ -414,9 +414,9 @@ export class LimpezaComponent implements OnInit {
     await this.cleaningService.updateTaskStatus(task.id, newStatus);
   }
 
-  async deleteTask(id: string) {
+  async deleteTask(task: CleaningTask) {
     if (confirm('Tem certeza que deseja excluir este registro?')) {
-      await this.cleaningService.removeTask(id);
+      await this.cleaningService.removeTask(task.id, task.category);
     }
   }
 
