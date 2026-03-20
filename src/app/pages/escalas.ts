@@ -198,7 +198,7 @@ import { TimeTrackingService } from '../services/time-tracking.service';
                 <p class="text-sm text-stone-500">Registro de entradas e saídas.</p>
               </div>
               <div class="flex gap-3">
-                <select #pontoUser class="border border-stone-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                <select #pontoUser (change)="0" class="border border-stone-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                   <option value="">Selecione o Freelancer</option>
                   @for (member of getFreelancers(); track member.id) {
                     <option [value]="member.id">{{ member.name }}</option>

@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, effect, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -93,11 +94,20 @@ import { AuthService } from '../services/auth.service';
 export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
 
   email = signal('');
   password = signal('');
   isLoading = signal(false);
   error = signal('');
+
+  constructor() {
+    effect(() => {
+      if (isPlatformBrowser(this.platformId) && this.authService.currentUser()) {
+        this.router.navigate(['/']);
+      }
+    });
+  }
 
   async onSubmit() {
     if (!this.email() || !this.password()) return;

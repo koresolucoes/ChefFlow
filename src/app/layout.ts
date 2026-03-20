@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, signal, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { ChangeDetectionStrategy, Component, signal, inject, effect, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from './services/auth.service';
 
@@ -103,7 +104,17 @@ import { AuthService } from './services/auth.service';
 })
 export class LayoutComponent {
   authService = inject(AuthService);
+  private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
   isSidebarOpen = signal(false);
+
+  constructor() {
+    effect(() => {
+      if (isPlatformBrowser(this.platformId) && !this.authService.currentUser()) {
+        this.router.navigate(['/login']);
+      }
+    });
+  }
 
   toggleSidebar() {
     this.isSidebarOpen.update(v => !v);
