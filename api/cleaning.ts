@@ -149,11 +149,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (reason !== undefined) logData.reason = reason;
         if (value !== undefined) logData.value = value;
 
-        const { data: resultData, error } = await supabase
+        // Check if log exists
+        const { data: existingLog } = await supabase
           .from('cleaning_logs')
-          .upsert(logData, { onConflict: 'cleaning_logs_template_id_log_date_key' })
-          .select()
+          .select('id')
+          .eq('template_id', id)
+          .eq('log_date', logDate)
           .single();
+
+        let resultData;
+        let error;
+
+        if (existingLog) {
+          const { data, error: updateError } = await supabase
+            .from('cleaning_logs')
+            .update(logData)
+            .eq('id', existingLog.id)
+            .select()
+            .single();
+          resultData = data;
+          error = updateError;
+        } else {
+          const { data, error: insertError } = await supabase
+            .from('cleaning_logs')
+            .insert(logData)
+            .select()
+            .single();
+          resultData = data;
+          error = insertError;
+        }
 
         if (error) throw error;
 
