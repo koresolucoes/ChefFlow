@@ -9,7 +9,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'chef' | 'cook';
+  role: 'admin' | 'chef' | 'cook' | 'freelancer';
 }
 
 @Injectable({ providedIn: 'root' })

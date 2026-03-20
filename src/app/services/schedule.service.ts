@@ -52,4 +52,19 @@ export class ScheduleService {
       return false;
     }
   }
+
+  async deleteSchedule(id: string) {
+    try {
+      await firstValueFrom(
+        this.http.delete(`${environment.apiUrl}/schedules?id=${id}`)
+      );
+      
+      // Atualiza o estado local
+      this.schedules.update(current => current.filter(s => s.id !== id));
+      return true;
+    } catch (error) {
+      console.error('Erro ao deletar escala:', error);
+      return false;
+    }
+  }
 }
