@@ -45,7 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     switch (req.method) {
       case 'GET': {
-        const dateParam = req.query.date as string;
+        const dateParam = req.query['date'] as string;
         let logDate = '';
         if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
           logDate = dateParam;

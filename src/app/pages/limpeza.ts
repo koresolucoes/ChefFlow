@@ -277,15 +277,30 @@ import autoTable from 'jspdf-autotable';
                           <mat-icon>delete</mat-icon>
                         </button>
                       }
-                      <div class="flex items-center border border-stone-200 rounded-lg overflow-hidden">
-                        <input 
-                          type="text" 
-                          [ngModel]="task.value" 
-                          (blur)="updateValue(task, $any($event.target).value)"
-                          (keyup.enter)="updateValue(task, $any($event.target).value)"
-                          class="w-16 px-2 py-1 text-right font-bold text-stone-900 focus:outline-none" 
-                          placeholder="--">
-                        <span class="px-2 py-1 bg-stone-50 text-stone-500 font-medium border-l border-stone-200">°C</span>
+                      <div class="flex items-center gap-2">
+                        @if (editingTaskId() === task.id || !task.value) {
+                          <div class="flex items-center border border-stone-200 rounded-lg overflow-hidden">
+                            <input 
+                              #tempInput
+                              type="text" 
+                              [value]="task.value || ''" 
+                              (keyup.enter)="saveTemperature(task, tempInput.value)"
+                              class="w-16 px-2 py-1 text-right font-bold text-stone-900 focus:outline-none" 
+                              placeholder="--">
+                            <span class="px-2 py-1 bg-stone-50 text-stone-500 font-medium border-l border-stone-200">°C</span>
+                          </div>
+                          <button (click)="saveTemperature(task, tempInput.value)" class="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors" title="Salvar">
+                            <mat-icon class="text-[18px] w-4.5 h-4.5">check</mat-icon>
+                          </button>
+                        } @else {
+                          <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg overflow-hidden px-3 py-1">
+                            <span class="font-bold text-stone-900">{{ task.value }}</span>
+                            <span class="text-stone-500 ml-1">°C</span>
+                          </div>
+                          <button (click)="editTemperature(task.id)" class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-stone-200 transition-colors" title="Editar">
+                            <mat-icon class="text-[18px] w-4.5 h-4.5">edit</mat-icon>
+                          </button>
+                        }
                       </div>
                     </div>
                   </div>
@@ -364,6 +379,8 @@ export class LimpezaComponent implements OnInit {
   showNewTaskForm = signal(false);
   shiftAnalysis = signal('');
   selectedDate = signal(new Date().toISOString().split('T')[0]);
+
+  editingTaskId = signal<string | null>(null);
 
   newTaskMinTemp: number | null = null;
   newTaskMaxTemp: number | null = null;
@@ -466,7 +483,8 @@ export class LimpezaComponent implements OnInit {
         
         if (task) {
           await this.cleaningService.updateTaskStatus(task.id, 'fechamento', 'conforme', this.shiftAnalysis(), this.shiftAnalysis());
-          alert('Plantão encerrado com sucesso!');
+          this.generateReport();
+          alert('Plantão encerrado e relatório gerado com sucesso!');
         }
       } catch (error) {
         alert('Erro ao encerrar plantão. Tente novamente.');
@@ -530,6 +548,15 @@ export class LimpezaComponent implements OnInit {
     }
 
     await this.cleaningService.updateTaskStatus(task.id, task.category, newStatus, task.reason, value);
+  }
+
+  editTemperature(id: string) {
+    this.editingTaskId.set(id);
+  }
+
+  async saveTemperature(task: CleaningTask, value: string) {
+    await this.updateValue(task, value);
+    this.editingTaskId.set(null);
   }
 
   async toggleConformity(task: CleaningTask) {
