@@ -79,7 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // 2. Cria o perfil na tabela public.users
       const { data: newUser, error: insertError } = await supabase
         .from('users')
-        .insert({ 
+        .upsert({ 
           id: newAuthUser.user.id, // Vincula o ID do Auth ao ID da tabela
           name, 
           email, 

@@ -49,7 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // 2. Cria o perfil na tabela public.users
       if (newAuthUser.user) {
-        await supabase.from('users').insert({
+        await supabase.from('users').upsert({
           id: newAuthUser.user.id, // Usa o mesmo ID do Auth
           name: 'Chef Admin',
           email: 'admin@chefflow.com',
