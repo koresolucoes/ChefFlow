@@ -30,9 +30,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data, error } = await query.order('clock_in', { ascending: false });
       
       if (error) {
-        if (error.code === '42P01') {
-          // relation "time_entries" does not exist
-          console.warn('Table time_entries does not exist. Returning empty array.');
+        if (error.code === '42P01' || error.code === 'PGRST200') {
+          console.warn(`Table or relationship error (${error.code}). Returning empty array.`);
           return res.status(200).json([]);
         }
         throw error;
