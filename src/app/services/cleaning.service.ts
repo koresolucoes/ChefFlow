@@ -87,7 +87,17 @@ export class CleaningService {
       if (value !== undefined) body.value = value;
       
       const updatedTask = await firstValueFrom(this.http.put<CleaningTask>(this.apiUrl, body));
-      this.tasks.update(tasks => tasks.map(t => t.id === id ? { ...t, ...updatedTask } : t));
+      this.tasks.update(tasks => tasks.map(t => {
+        if (t.id === id) {
+          return {
+            ...t,
+            ...updatedTask,
+            reason: reason !== undefined ? updatedTask.reason : t.reason,
+            value: value !== undefined ? updatedTask.value : t.value
+          };
+        }
+        return t;
+      }));
     } catch (err: any) {
       console.error('Error updating cleaning task:', err);
       this.error.set(err.error?.error || 'Failed to update cleaning task');

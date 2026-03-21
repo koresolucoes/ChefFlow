@@ -15,25 +15,28 @@ import autoTable from 'jspdf-autotable';
     <div class="space-y-6">
       <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 class="text-3xl font-bold tracking-tight text-stone-900">Higiene & Limpeza</h1>
+          <h1 class="text-3xl font-bold tracking-tight text-stone-900">Checklist</h1>
           <p class="text-stone-500 mt-1">Checklists sanitários e termometria.</p>
         </div>
-        <div class="flex flex-wrap gap-2 md:gap-3 w-full md:w-auto mt-2 md:mt-0">
-          <div class="flex-1 md:flex-none flex items-center gap-2 bg-white border border-stone-200 text-stone-700 rounded-lg px-3 py-2 font-medium min-w-[140px]">
+        <div class="flex flex-col sm:flex-row gap-2 md:gap-3 w-full md:w-auto mt-4 md:mt-0">
+          <div class="flex items-center gap-2 bg-white border border-stone-200 text-stone-700 rounded-lg px-3 py-2 font-medium w-full sm:w-auto">
             <mat-icon class="text-stone-500">calendar_today</mat-icon>
             <input type="date" [ngModel]="selectedDate()" (ngModelChange)="onDateChange($event)" class="w-full border-none focus:ring-0 text-stone-700 font-medium bg-transparent p-0 outline-none">
           </div>
-          <button (click)="generateReport()" class="flex-1 md:flex-none justify-center px-3 md:px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2 whitespace-nowrap">
-            <mat-icon>picture_as_pdf</mat-icon>
-            <span class="hidden sm:inline">Gerar Relatório</span>
-            <span class="sm:hidden">Relatório</span>
-          </button>
-          @if (canManageTasks()) {
-            <button (click)="showNewTaskForm.set(true)" class="w-full md:w-auto justify-center px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
-              <mat-icon>add</mat-icon>
-              Novo Registro
+          <div class="flex gap-2 w-full sm:w-auto">
+            <button type="button" (click)="generateReport()" class="flex-1 sm:flex-none justify-center px-3 md:px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2 whitespace-nowrap">
+              <mat-icon>picture_as_pdf</mat-icon>
+              <span class="hidden sm:inline">Gerar Relatório</span>
+              <span class="sm:hidden">Relatório</span>
             </button>
-          }
+            @if (canManageTasks()) {
+              <button type="button" (click)="showNewTaskForm.set(true)" class="flex-1 sm:flex-none justify-center px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
+                <mat-icon>add</mat-icon>
+                <span class="hidden sm:inline">Novo Registro</span>
+                <span class="sm:hidden">Novo</span>
+              </button>
+            }
+          </div>
         </div>
       </header>
 
@@ -84,7 +87,7 @@ import autoTable from 'jspdf-autotable';
             <h2 class="text-xl font-bold text-stone-900">
               Novo Registro
             </h2>
-            <button (click)="showNewTaskForm.set(false)" class="text-stone-400 hover:text-stone-600">
+            <button type="button" (click)="showNewTaskForm.set(false)" class="text-stone-400 hover:text-stone-600">
               <mat-icon>close</mat-icon>
             </button>
           </div>
@@ -108,7 +111,7 @@ import autoTable from 'jspdf-autotable';
 
               <div>
                 <label class="block text-sm font-medium text-stone-700 mb-1">Momentos do Plantão</label>
-                <div class="flex gap-4 mt-2">
+                <div class="flex flex-wrap gap-3 mt-2">
                   <label class="flex items-center gap-2 text-sm text-stone-700">
                     <input type="checkbox" [checked]="newTaskShiftMoments.includes('abertura')" (change)="toggleShiftMoment('abertura')" class="rounded border-stone-300 text-stone-900 focus:ring-stone-900">
                     Abertura
@@ -160,7 +163,7 @@ import autoTable from 'jspdf-autotable';
       }
 
       <!-- Tab Content -->
-      <div class="mt-6 space-y-8 relative" [class.opacity-60]="cleaningService.loading() && currentTasks().length > 0">
+      <div class="mt-6 space-y-8 relative">
         @if (cleaningService.loading() && !showNewTaskForm() && currentTasks().length === 0) {
           <div class="flex justify-center p-12">
             <mat-icon class="animate-spin text-stone-400 text-4xl">autorenew</mat-icon>
@@ -188,7 +191,7 @@ import autoTable from 'jspdf-autotable';
                         <div class="flex items-center gap-2">
                           <h3 class="text-base font-bold text-stone-900" [class.text-stone-400]="task.status !== 'pending'">{{ task.title }}</h3>
                           @if (canManageTasks()) {
-                            <button (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button type="button" (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
                               <mat-icon class="text-[18px] w-4.5 h-4.5">delete</mat-icon>
                             </button>
                           }
@@ -197,8 +200,8 @@ import autoTable from 'jspdf-autotable';
                           <p class="text-sm text-stone-500 mt-1">{{ task.description }}</p>
                         }
                       </div>
-                      <div class="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto mt-3 sm:mt-0">
-                        <button 
+                      <div class="grid grid-cols-3 sm:flex items-center gap-2 shrink-0 w-full sm:w-auto mt-3 sm:mt-0">
+                        <button type="button"
                           (click)="setStatus(task, 'conforme')"
                           [class.bg-emerald-100]="task.status === 'conforme' || task.status === 'completed'"
                           [class.text-emerald-800]="task.status === 'conforme' || task.status === 'completed'"
@@ -211,7 +214,7 @@ import autoTable from 'jspdf-autotable';
                           <span class="hidden sm:inline">Conforme</span>
                           <span class="sm:hidden">OK</span>
                         </button>
-                        <button 
+                        <button type="button"
                           (click)="setStatus(task, 'nao_conforme')"
                           [class.bg-rose-100]="task.status === 'nao_conforme'"
                           [class.text-rose-800]="task.status === 'nao_conforme'"
@@ -224,7 +227,7 @@ import autoTable from 'jspdf-autotable';
                           <span class="hidden sm:inline">Não Conforme</span>
                           <span class="sm:hidden">Falha</span>
                         </button>
-                        <button 
+                        <button type="button"
                           (click)="setStatus(task, 'na')"
                           [class.bg-stone-200]="task.status === 'na'"
                           [class.text-stone-800]="task.status === 'na'"
@@ -244,7 +247,7 @@ import autoTable from 'jspdf-autotable';
                         <label [for]="'reason-chk-' + task.id" class="block text-xs font-bold text-stone-700 mb-1 uppercase tracking-wider">Motivo da Não Conformidade</label>
                         <textarea 
                           [id]="'reason-chk-' + task.id"
-                          [ngModel]="task.reason"
+                          [(ngModel)]="task.reason"
                           (blur)="updateReason(task, $any($event.target).value)"
                           class="w-full p-2.5 border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none" 
                           rows="2" 
@@ -276,7 +279,7 @@ import autoTable from 'jspdf-autotable';
                     </div>
                     <div class="flex items-center gap-2">
                       @if (canManageTasks()) {
-                        <button (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button type="button" (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
                           <mat-icon>delete</mat-icon>
                         </button>
                       }
@@ -292,7 +295,7 @@ import autoTable from 'jspdf-autotable';
                               placeholder="--">
                             <span class="px-1 md:px-2 py-1 bg-stone-50 text-stone-500 font-medium border-l border-stone-200 text-sm md:text-base">°C</span>
                           </div>
-                          <button (click)="saveTemperature(task, tempInput.value)" class="p-1 md:p-1.5 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors" title="Salvar">
+                          <button type="button" (click)="saveTemperature(task, tempInput.value)" class="p-1 md:p-1.5 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors" title="Salvar">
                             <mat-icon class="text-[16px] md:text-[18px] w-4 h-4 md:w-4.5 md:h-4.5">check</mat-icon>
                           </button>
                         } @else {
@@ -300,7 +303,7 @@ import autoTable from 'jspdf-autotable';
                             <span class="font-bold text-stone-900 text-sm md:text-base">{{ task.value }}</span>
                             <span class="text-stone-500 ml-1 text-sm md:text-base">°C</span>
                           </div>
-                          <button (click)="editTemperature(task.id)" class="p-1 md:p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-stone-200 transition-colors" title="Editar">
+                          <button type="button" (click)="editTemperature(task.id)" class="p-1 md:p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-stone-200 transition-colors" title="Editar">
                             <mat-icon class="text-[16px] md:text-[18px] w-4 h-4 md:w-4.5 md:h-4.5">edit</mat-icon>
                           </button>
                         }
@@ -340,7 +343,7 @@ import autoTable from 'jspdf-autotable';
                       </label>
                       <textarea 
                         [id]="'reason-term-' + task.id"
-                        [ngModel]="task.reason"
+                        [(ngModel)]="task.reason"
                         (blur)="updateReason(task, $any($event.target).value)"
                         class="w-full p-2 md:p-2.5 border border-rose-200 rounded-lg text-xs md:text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none bg-rose-50" 
                         rows="2" 
@@ -360,7 +363,7 @@ import autoTable from 'jspdf-autotable';
                 <textarea [(ngModel)]="shiftAnalysis" class="w-full h-32 p-3 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none" placeholder="Registre ocorrências gerais, quebras de equipamento, faltas ou observações sobre o serviço de hoje..." aria-label="Análise do plantão"></textarea>
                 
                 <div class="mt-6 pt-6 border-t border-stone-100">
-                  <button (click)="encerrarPlantao()" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
+                  <button type="button" (click)="encerrarPlantao()" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
                     <mat-icon>verified</mat-icon>
                     Assinar e Encerrar Plantão
                   </button>
@@ -578,7 +581,7 @@ export class LimpezaComponent implements OnInit {
     const date = new Date().toLocaleDateString('pt-BR');
     
     doc.setFontSize(18);
-    doc.text(`Relatório de Higiene e Limpeza - ${date}`, 14, 22);
+    doc.text(`Relatório de Checklist - ${date}`, 14, 22);
     
     doc.setFontSize(14);
     doc.text('Checklist Diário', 14, 35);
@@ -622,7 +625,7 @@ export class LimpezaComponent implements OnInit {
       doc.text(splitText, 14, finalY2 + 25);
     }
     
-    doc.save(`relatorio-limpeza-${date.replace(/\//g, '-')}.pdf`);
+    doc.save(`relatorio-checklist-${date.replace(/\//g, '-')}.pdf`);
   }
 }
 
