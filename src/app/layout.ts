@@ -10,14 +10,14 @@ import { AuthService } from './services/auth.service';
   imports: [RouterOutlet, RouterLink, RouterLinkActive, MatIconModule],
   template: `
     <div class="min-h-screen bg-stone-50 flex">
-      <!-- Sidebar -->
-      <aside class="w-64 bg-stone-900 text-stone-300 flex flex-col transition-all duration-300" [class.-ml-64]="!isSidebarOpen()" [class.md:ml-0]="true">
+      <!-- Sidebar (Desktop Only) -->
+      <aside class="hidden md:flex w-64 bg-stone-900 text-stone-300 flex-col shrink-0">
         <div class="p-6 flex items-center gap-3 text-white border-b border-stone-800">
           <mat-icon class="text-emerald-500">restaurant_menu</mat-icon>
           <span class="text-xl font-bold tracking-tight">ChefFlow</span>
         </div>
         
-        <nav class="flex-1 py-6 px-3 space-y-1">
+        <nav class="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
           <a routerLink="/dashboard" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
             <mat-icon>dashboard</mat-icon>
             <span class="font-medium">Dashboard</span>
@@ -79,11 +79,14 @@ import { AuthService } from './services/auth.service';
       <!-- Main Content -->
       <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
         <!-- Top Header (Mobile) -->
-        <header class="bg-white border-b border-stone-200 h-16 flex items-center px-4 md:hidden">
-          <button (click)="toggleSidebar()" class="p-2 -ml-2 text-stone-500 hover:text-stone-900 rounded-lg">
-            <mat-icon>menu</mat-icon>
+        <header class="bg-white border-b border-stone-200 h-16 flex items-center justify-between px-4 md:hidden shrink-0">
+          <div class="flex items-center gap-2">
+            <mat-icon class="text-emerald-600">restaurant_menu</mat-icon>
+            <span class="text-lg font-bold text-stone-900">ChefFlow</span>
+          </div>
+          <button (click)="toggleSidebar()" class="p-2 text-stone-500 hover:bg-stone-100 rounded-lg transition-colors">
+            <mat-icon>apps</mat-icon>
           </button>
-          <span class="ml-2 text-lg font-bold text-stone-900">ChefFlow</span>
         </header>
 
         <!-- Content Area -->
@@ -94,9 +97,71 @@ import { AuthService } from './services/auth.service';
         </div>
       </main>
       
-      <!-- Mobile Overlay -->
+      <!-- Mobile App Drawer Overlay -->
       @if (isSidebarOpen()) {
-        <div class="fixed inset-0 bg-black/50 z-40 md:hidden" (click)="toggleSidebar()" (keyup.enter)="toggleSidebar()" tabindex="0" role="button" aria-label="Close sidebar"></div>
+        <div class="fixed inset-0 z-50 bg-stone-50 flex flex-col md:hidden animate-in slide-in-from-bottom-full duration-300">
+          <div class="flex items-center justify-between p-4 bg-white border-b border-stone-200 shrink-0">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">
+                {{ authService.currentUser()?.name?.charAt(0) || 'U' }}
+              </div>
+              <div>
+                <p class="text-sm font-bold text-stone-900">{{ authService.currentUser()?.name || 'Usuário' }}</p>
+                <p class="text-xs text-stone-500 capitalize">{{ authService.currentUser()?.role || 'Admin' }}</p>
+              </div>
+            </div>
+            <button (click)="toggleSidebar()" class="p-2 text-stone-500 hover:bg-stone-100 rounded-full transition-colors">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          
+          <div class="flex-1 overflow-y-auto p-4">
+            <h2 class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4 px-2">Menu Principal</h2>
+            <div class="grid grid-cols-2 gap-3">
+              <a routerLink="/dashboard" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" [routerLinkActiveOptions]="{exact: true}" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
+                <mat-icon class="text-[32px] w-8 h-8 text-emerald-600">dashboard</mat-icon>
+                <span class="font-bold text-stone-900 text-sm">Dashboard</span>
+              </a>
+              
+              <a routerLink="/equipe" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
+                <mat-icon class="text-[32px] w-8 h-8 text-blue-600">badge</mat-icon>
+                <span class="font-bold text-stone-900 text-sm text-center">Equipe</span>
+              </a>
+
+              <a routerLink="/escalas" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
+                <mat-icon class="text-[32px] w-8 h-8 text-indigo-600">groups</mat-icon>
+                <span class="font-bold text-stone-900 text-sm text-center">Escalas</span>
+              </a>
+              
+              <a routerLink="/producao" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
+                <mat-icon class="text-[32px] w-8 h-8 text-amber-600">receipt_long</mat-icon>
+                <span class="font-bold text-stone-900 text-sm text-center">Produção</span>
+              </a>
+              
+              <a routerLink="/estoque" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
+                <mat-icon class="text-[32px] w-8 h-8 text-orange-600">inventory_2</mat-icon>
+                <span class="font-bold text-stone-900 text-sm text-center">Estoque</span>
+              </a>
+              
+              <a routerLink="/limpeza" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
+                <mat-icon class="text-[32px] w-8 h-8 text-cyan-600">cleaning_services</mat-icon>
+                <span class="font-bold text-stone-900 text-sm text-center">Limpeza</span>
+              </a>
+              
+              <a routerLink="/comunicacao" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
+                <mat-icon class="text-[32px] w-8 h-8 text-purple-600">campaign</mat-icon>
+                <span class="font-bold text-stone-900 text-sm text-center">Mural & BI</span>
+              </a>
+            </div>
+            
+            <div class="mt-8 px-2 pb-8">
+              <button (click)="logout()" class="w-full flex items-center justify-center gap-2 p-4 bg-rose-100 text-rose-700 rounded-2xl font-bold active:scale-95 transition-all">
+                <mat-icon>logout</mat-icon>
+                Sair do Sistema
+              </button>
+            </div>
+          </div>
+        </div>
       }
     </div>
   `,
