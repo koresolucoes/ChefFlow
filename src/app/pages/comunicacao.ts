@@ -108,8 +108,8 @@ import { AuthService } from '../services/auth.service';
       }
 
       <!-- Tab Content -->
-      <div class="mt-6">
-        @if (communicationService.loading() && !showNewAnnouncementForm()) {
+      <div class="mt-6 relative" [class.opacity-60]="communicationService.loading() && communicationService.announcements().length > 0">
+        @if (communicationService.loading() && !showNewAnnouncementForm() && communicationService.announcements().length === 0) {
           <div class="flex justify-center p-12">
             <mat-icon class="animate-spin text-stone-400 text-4xl">autorenew</mat-icon>
           </div>

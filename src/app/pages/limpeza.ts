@@ -18,17 +18,18 @@ import autoTable from 'jspdf-autotable';
           <h1 class="text-3xl font-bold tracking-tight text-stone-900">Higiene & Limpeza</h1>
           <p class="text-stone-500 mt-1">Checklists sanitários e termometria.</p>
         </div>
-        <div class="flex gap-3">
-          <div class="flex items-center gap-2 bg-white border border-stone-200 text-stone-700 rounded-lg px-3 py-2 font-medium">
+        <div class="flex flex-wrap gap-2 md:gap-3 w-full md:w-auto mt-2 md:mt-0">
+          <div class="flex-1 md:flex-none flex items-center gap-2 bg-white border border-stone-200 text-stone-700 rounded-lg px-3 py-2 font-medium min-w-[140px]">
             <mat-icon class="text-stone-500">calendar_today</mat-icon>
-            <input type="date" [ngModel]="selectedDate()" (ngModelChange)="onDateChange($event)" class="border-none focus:ring-0 text-stone-700 font-medium bg-transparent p-0 outline-none">
+            <input type="date" [ngModel]="selectedDate()" (ngModelChange)="onDateChange($event)" class="w-full border-none focus:ring-0 text-stone-700 font-medium bg-transparent p-0 outline-none">
           </div>
-          <button (click)="generateReport()" class="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2">
+          <button (click)="generateReport()" class="flex-1 md:flex-none justify-center px-3 md:px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2 whitespace-nowrap">
             <mat-icon>picture_as_pdf</mat-icon>
-            Gerar Relatório
+            <span class="hidden sm:inline">Gerar Relatório</span>
+            <span class="sm:hidden">Relatório</span>
           </button>
           @if (canManageTasks()) {
-            <button (click)="showNewTaskForm.set(true)" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
+            <button (click)="showNewTaskForm.set(true)" class="w-full md:w-auto justify-center px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
               <mat-icon>add</mat-icon>
               Novo Registro
             </button>
@@ -159,8 +160,8 @@ import autoTable from 'jspdf-autotable';
       }
 
       <!-- Tab Content -->
-      <div class="mt-6 space-y-8">
-        @if (cleaningService.loading() && !showNewTaskForm()) {
+      <div class="mt-6 space-y-8 relative" [class.opacity-60]="cleaningService.loading() && currentTasks().length > 0">
+        @if (cleaningService.loading() && !showNewTaskForm() && currentTasks().length === 0) {
           <div class="flex justify-center p-12">
             <mat-icon class="animate-spin text-stone-400 text-4xl">autorenew</mat-icon>
           </div>
@@ -196,7 +197,7 @@ import autoTable from 'jspdf-autotable';
                           <p class="text-sm text-stone-500 mt-1">{{ task.description }}</p>
                         }
                       </div>
-                      <div class="flex flex-wrap items-center gap-2 shrink-0">
+                      <div class="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto mt-3 sm:mt-0">
                         <button 
                           (click)="setStatus(task, 'conforme')"
                           [class.bg-emerald-100]="task.status === 'conforme' || task.status === 'completed'"
@@ -205,9 +206,10 @@ import autoTable from 'jspdf-autotable';
                           [class.bg-white]="task.status !== 'conforme' && task.status !== 'completed'"
                           [class.text-stone-500]="task.status !== 'conforme' && task.status !== 'completed'"
                           [class.border-stone-200]="task.status !== 'conforme' && task.status !== 'completed'"
-                          class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-emerald-50 hover:text-emerald-700">
+                          class="flex-1 sm:flex-none justify-center px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-emerald-50 hover:text-emerald-700">
                           <mat-icon class="text-[18px] w-4.5 h-4.5">check_circle</mat-icon>
-                          Conforme
+                          <span class="hidden sm:inline">Conforme</span>
+                          <span class="sm:hidden">OK</span>
                         </button>
                         <button 
                           (click)="setStatus(task, 'nao_conforme')"
@@ -217,9 +219,10 @@ import autoTable from 'jspdf-autotable';
                           [class.bg-white]="task.status !== 'nao_conforme'"
                           [class.text-stone-500]="task.status !== 'nao_conforme'"
                           [class.border-stone-200]="task.status !== 'nao_conforme'"
-                          class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-rose-50 hover:text-rose-700">
+                          class="flex-1 sm:flex-none justify-center px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-rose-50 hover:text-rose-700">
                           <mat-icon class="text-[18px] w-4.5 h-4.5">cancel</mat-icon>
-                          Não Conforme
+                          <span class="hidden sm:inline">Não Conforme</span>
+                          <span class="sm:hidden">Falha</span>
                         </button>
                         <button 
                           (click)="setStatus(task, 'na')"
@@ -229,7 +232,7 @@ import autoTable from 'jspdf-autotable';
                           [class.bg-white]="task.status !== 'na'"
                           [class.text-stone-500]="task.status !== 'na'"
                           [class.border-stone-200]="task.status !== 'na'"
-                          class="px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-stone-100 hover:text-stone-700">
+                          class="flex-1 sm:flex-none justify-center px-3 py-1.5 border rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors hover:bg-stone-100 hover:text-stone-700">
                           <mat-icon class="text-[18px] w-4.5 h-4.5">remove_circle_outline</mat-icon>
                           N/A
                         </button>

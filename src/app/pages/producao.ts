@@ -91,14 +91,14 @@ import { AuthService } from '../services/auth.service';
       </div>
 
       <!-- Prep List -->
-      <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden relative" [class.opacity-60]="prepTaskService.isLoading() && prepTaskService.tasks().length > 0">
         <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
           <h2 class="font-bold text-stone-900">Prep List de Hoje</h2>
           <div class="text-sm font-medium text-stone-500">{{ completionPercentage() }}% Concluído</div>
         </div>
         
         <div class="divide-y divide-stone-100">
-          @if (prepTaskService.isLoading()) {
+          @if (prepTaskService.isLoading() && prepTaskService.tasks().length === 0) {
             <div class="p-8 text-center text-stone-500">
               <mat-icon class="animate-spin text-emerald-600 mb-2">refresh</mat-icon>
               <p>Carregando tarefas...</p>

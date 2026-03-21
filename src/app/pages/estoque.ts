@@ -111,7 +111,7 @@ import { AuthService } from '../services/auth.service';
       </div>
 
       <!-- Inventory List -->
-      <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden relative" [class.opacity-60]="inventoryService.isLoading() && filteredItems().length > 0">
         <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left border-collapse">
@@ -125,7 +125,7 @@ import { AuthService } from '../services/auth.service';
               </tr>
             </thead>
             <tbody class="divide-y divide-stone-200">
-              @if (inventoryService.isLoading()) {
+              @if (inventoryService.isLoading() && filteredItems().length === 0) {
                 <tr>
                   <td colspan="5" class="px-6 py-8 text-center text-stone-500">
                     <mat-icon class="animate-spin text-emerald-600 mb-2">refresh</mat-icon>
@@ -192,7 +192,7 @@ import { AuthService } from '../services/auth.service';
 
         <!-- Mobile Card View -->
         <div class="md:hidden divide-y divide-stone-200">
-          @if (inventoryService.isLoading()) {
+          @if (inventoryService.isLoading() && filteredItems().length === 0) {
             <div class="px-6 py-8 text-center text-stone-500">
               <mat-icon class="animate-spin text-emerald-600 mb-2">refresh</mat-icon>
               <p>Carregando estoque...</p>

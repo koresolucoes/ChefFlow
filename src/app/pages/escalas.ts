@@ -80,7 +80,7 @@ import { TimeTrackingService } from '../services/time-tracking.service';
               </div>
             </div>
             
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto relative" [class.opacity-60]="(teamService.isLoading() || scheduleService.isLoading()) && teamService.teamMembers().length > 0">
               <table class="min-w-full divide-y divide-stone-200">
                 <thead class="bg-stone-50">
                   <tr>
@@ -93,7 +93,7 @@ import { TimeTrackingService } from '../services/time-tracking.service';
                   </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-stone-200">
-                  @if (teamService.isLoading() || scheduleService.isLoading()) {
+                  @if ((teamService.isLoading() || scheduleService.isLoading()) && teamService.teamMembers().length === 0) {
                     <tr>
                       <td colspan="8" class="px-6 py-8 text-center text-stone-500">
                         <mat-icon class="animate-spin mb-2">refresh</mat-icon>
@@ -213,7 +213,7 @@ import { TimeTrackingService } from '../services/time-tracking.service';
               </div>
             </div>
             
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto relative" [class.opacity-60]="timeTrackingService.isLoading() && timeTrackingService.entries().length > 0">
               <table class="min-w-full divide-y divide-stone-200">
                 <thead class="bg-white">
                   <tr>
@@ -224,7 +224,7 @@ import { TimeTrackingService } from '../services/time-tracking.service';
                   </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-stone-200">
-                  @if (timeTrackingService.isLoading()) {
+                  @if (timeTrackingService.isLoading() && timeTrackingService.entries().length === 0) {
                     <tr>
                       <td colspan="4" class="px-6 py-8 text-center text-stone-500">
                         <mat-icon class="animate-spin mb-2">refresh</mat-icon>

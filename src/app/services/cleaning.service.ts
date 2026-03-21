@@ -29,6 +29,7 @@ export class CleaningService {
 
   tasks = signal<CleaningTask[]>([]);
   loading = signal(false);
+  updatingTaskId = signal<string | null>(null);
   error = signal<string | null>(null);
 
   async loadTasks(category?: string, date?: string) {
@@ -70,9 +71,17 @@ export class CleaningService {
   }
 
   async updateTaskStatus(id: string, category: string, status: string, reason?: string, value?: string) {
-    this.loading.set(true);
+    this.updatingTaskId.set(id);
     this.error.set(null);
     try {
+      // Optimistic update
+      this.tasks.update(tasks => tasks.map(t => {
+        if (t.id === id) {
+          return { ...t, status: status as any, reason: reason !== undefined ? reason : t.reason, value: value !== undefined ? value : t.value };
+        }
+        return t;
+      }));
+
       const body: any = { id, category, status };
       if (reason !== undefined) body.reason = reason;
       if (value !== undefined) body.value = value;
@@ -82,14 +91,16 @@ export class CleaningService {
     } catch (err: any) {
       console.error('Error updating cleaning task:', err);
       this.error.set(err.error?.error || 'Failed to update cleaning task');
+      // Revert optimistic update by reloading tasks
+      this.loadTasks(undefined, new Date().toISOString().split('T')[0]);
       throw err;
     } finally {
-      this.loading.set(false);
+      this.updatingTaskId.set(null);
     }
   }
 
   async removeTask(id: string, category: string) {
-    this.loading.set(true);
+    this.updatingTaskId.set(id);
     this.error.set(null);
     try {
       await firstValueFrom(this.http.delete(`${this.apiUrl}?id=${id}&category=${category}`));
@@ -99,7 +110,7 @@ export class CleaningService {
       this.error.set(err.error?.error || 'Failed to remove cleaning task');
       throw err;
     } finally {
-      this.loading.set(false);
+      this.updatingTaskId.set(null);
     }
   }
 }
