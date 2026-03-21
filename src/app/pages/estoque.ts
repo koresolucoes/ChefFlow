@@ -112,7 +112,8 @@ import { AuthService } from '../services/auth.service';
 
       <!-- Inventory List -->
       <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-        <div class="overflow-x-auto">
+        <!-- Desktop Table View -->
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-stone-50 border-b border-stone-200 text-stone-500 text-xs uppercase tracking-wider">
@@ -187,6 +188,66 @@ import { AuthService } from '../services/auth.service';
               }
             </tbody>
           </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="md:hidden divide-y divide-stone-200">
+          @if (inventoryService.isLoading()) {
+            <div class="px-6 py-8 text-center text-stone-500">
+              <mat-icon class="animate-spin text-emerald-600 mb-2">refresh</mat-icon>
+              <p>Carregando estoque...</p>
+            </div>
+          } @else if (filteredItems().length === 0) {
+            <div class="px-6 py-8 text-center text-stone-500">
+              <p>Nenhum item encontrado.</p>
+            </div>
+          } @else {
+            @for (item of filteredItems(); track item.id) {
+              <div class="p-4 space-y-3">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <div class="font-medium text-stone-900 text-base">{{ item.name }}</div>
+                    <span class="inline-block mt-1 px-2.5 py-0.5 bg-stone-100 text-stone-700 text-[10px] font-medium rounded-full uppercase tracking-wider">
+                      {{ item.category }}
+                    </span>
+                  </div>
+                  @if (item.quantity <= item.min_quantity) {
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                      <mat-icon class="text-[12px] w-3 h-3">warning</mat-icon>
+                      Baixo
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                      <mat-icon class="text-[12px] w-3 h-3">check_circle</mat-icon>
+                      OK
+                    </span>
+                  }
+                </div>
+                
+                <div class="flex items-center justify-between pt-2 border-t border-stone-100">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs text-stone-500 uppercase tracking-wider font-medium">Qtd:</span>
+                    <span class="font-bold text-stone-900 text-lg">{{ item.quantity }}</span>
+                    <span class="text-stone-500 text-sm">{{ item.unit }}</span>
+                  </div>
+                  
+                  <div class="flex items-center gap-1">
+                    <button (click)="updateQuantity(item, -1)" class="p-2 text-stone-500 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors" title="Diminuir">
+                      <mat-icon class="text-[20px] w-5 h-5">remove</mat-icon>
+                    </button>
+                    <button (click)="updateQuantity(item, 1)" class="p-2 text-stone-500 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors" title="Aumentar">
+                      <mat-icon class="text-[20px] w-5 h-5">add</mat-icon>
+                    </button>
+                    @if (canManageInventory()) {
+                      <button (click)="removeItem(item.id)" class="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-1" title="Remover Item">
+                        <mat-icon class="text-[20px] w-5 h-5">delete_outline</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          }
         </div>
       </div>
     </div>

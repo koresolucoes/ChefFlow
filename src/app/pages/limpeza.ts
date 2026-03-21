@@ -44,8 +44,8 @@ import autoTable from 'jspdf-autotable';
       }
 
       <!-- Tabs -->
-      <div class="border-b border-stone-200">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+      <div class="border-b border-stone-200 overflow-x-auto">
+        <nav class="-mb-px flex space-x-6 md:space-x-8 min-w-max px-2 md:px-0" aria-label="Tabs">
           <button 
             (click)="activeTab.set('abertura')"
             [class.border-stone-900]="activeTab() === 'abertura'"
@@ -256,19 +256,19 @@ import autoTable from 'jspdf-autotable';
           <!-- Termometria Section -->
           <div>
             <h2 class="text-xl font-bold text-stone-900 mb-4">Termometria de {{ activeTab() | titlecase }}</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               @if (termometria().length === 0) {
                 <div class="col-span-full p-8 text-center text-stone-500 bg-white rounded-2xl border border-stone-200">
                   Nenhum equipamento cadastrado para este momento.
                 </div>
               }
               @for (task of termometria(); track task.id) {
-                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 relative overflow-hidden group">
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-4 md:p-6 relative overflow-hidden group">
                   @if (task.status === 'nao_conforme') {
                     <div class="absolute top-0 right-0 w-2 h-full bg-rose-500"></div>
                   }
                   <div class="flex justify-between items-start mb-4">
-                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                       <mat-icon>ac_unit</mat-icon>
                     </div>
                     <div class="flex items-center gap-2">
@@ -277,7 +277,7 @@ import autoTable from 'jspdf-autotable';
                           <mat-icon>delete</mat-icon>
                         </button>
                       }
-                      <div class="flex items-center gap-2">
+                      <div class="flex items-center gap-1 md:gap-2">
                         @if (editingTaskId() === task.id || !task.value) {
                           <div class="flex items-center border border-stone-200 rounded-lg overflow-hidden">
                             <input 
@@ -285,31 +285,31 @@ import autoTable from 'jspdf-autotable';
                               type="text" 
                               [value]="task.value || ''" 
                               (keyup.enter)="saveTemperature(task, tempInput.value)"
-                              class="w-16 px-2 py-1 text-right font-bold text-stone-900 focus:outline-none" 
+                              class="w-12 md:w-16 px-1 md:px-2 py-1 text-right font-bold text-stone-900 focus:outline-none text-sm md:text-base" 
                               placeholder="--">
-                            <span class="px-2 py-1 bg-stone-50 text-stone-500 font-medium border-l border-stone-200">°C</span>
+                            <span class="px-1 md:px-2 py-1 bg-stone-50 text-stone-500 font-medium border-l border-stone-200 text-sm md:text-base">°C</span>
                           </div>
-                          <button (click)="saveTemperature(task, tempInput.value)" class="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors" title="Salvar">
-                            <mat-icon class="text-[18px] w-4.5 h-4.5">check</mat-icon>
+                          <button (click)="saveTemperature(task, tempInput.value)" class="p-1 md:p-1.5 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors" title="Salvar">
+                            <mat-icon class="text-[16px] md:text-[18px] w-4 h-4 md:w-4.5 md:h-4.5">check</mat-icon>
                           </button>
                         } @else {
-                          <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg overflow-hidden px-3 py-1">
-                            <span class="font-bold text-stone-900">{{ task.value }}</span>
-                            <span class="text-stone-500 ml-1">°C</span>
+                          <div class="flex items-center bg-stone-50 border border-stone-200 rounded-lg overflow-hidden px-2 md:px-3 py-1">
+                            <span class="font-bold text-stone-900 text-sm md:text-base">{{ task.value }}</span>
+                            <span class="text-stone-500 ml-1 text-sm md:text-base">°C</span>
                           </div>
-                          <button (click)="editTemperature(task.id)" class="p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-stone-200 transition-colors" title="Editar">
-                            <mat-icon class="text-[18px] w-4.5 h-4.5">edit</mat-icon>
+                          <button (click)="editTemperature(task.id)" class="p-1 md:p-1.5 bg-stone-100 text-stone-600 rounded-lg hover:bg-stone-200 transition-colors" title="Editar">
+                            <mat-icon class="text-[16px] md:text-[18px] w-4 h-4 md:w-4.5 md:h-4.5">edit</mat-icon>
                           </button>
                         }
                       </div>
                     </div>
                   </div>
-                  <h3 class="text-lg font-bold text-stone-900">{{ task.title }}</h3>
+                  <h3 class="text-base md:text-lg font-bold text-stone-900">{{ task.title }}</h3>
                   @if (task.target_value) {
-                    <p class="text-sm text-stone-500 mt-1">Meta: {{ task.target_value }}</p>
+                    <p class="text-xs md:text-sm text-stone-500 mt-1">Meta: {{ task.target_value }}</p>
                   }
                   <div class="mt-4 pt-4 border-t border-stone-100 flex justify-between items-center">
-                    <span class="text-xs text-stone-500">
+                    <span class="text-[10px] md:text-xs text-stone-500">
                       {{ task.updated_at ? ('Última leitura: ' + (task.updated_at | date:'HH:mm')) : 'Sem leitura' }}
                     </span>
                     @if (task.value) {
@@ -318,10 +318,10 @@ import autoTable from 'jspdf-autotable';
                         [class.text-emerald-800]="task.status !== 'nao_conforme'"
                         [class.bg-rose-100]="task.status === 'nao_conforme'"
                         [class.text-rose-800]="task.status === 'nao_conforme'"
-                        class="px-2 py-1 text-xs font-bold rounded uppercase tracking-wide flex items-center gap-1 cursor-pointer"
+                        class="px-2 py-1 text-[10px] md:text-xs font-bold rounded uppercase tracking-wide flex items-center gap-1 cursor-pointer"
                         (click)="toggleConformity(task)">
                         @if (task.status === 'nao_conforme') {
-                          <mat-icon class="text-[14px] w-3.5 h-3.5">warning</mat-icon>
+                          <mat-icon class="text-[12px] md:text-[14px] w-3 h-3 md:w-3.5 md:h-3.5">warning</mat-icon>
                           Alerta
                         } @else {
                           Normal
@@ -331,15 +331,15 @@ import autoTable from 'jspdf-autotable';
                   </div>
                   @if (task.status === 'nao_conforme') {
                     <div class="mt-4 pt-4 border-t border-stone-100">
-                      <label [for]="'reason-term-' + task.id" class="block text-xs font-bold text-rose-700 mb-1 uppercase tracking-wider">
-                        <mat-icon class="text-[14px] w-3.5 h-3.5 inline align-text-bottom">warning</mat-icon>
+                      <label [for]="'reason-term-' + task.id" class="block text-[10px] md:text-xs font-bold text-rose-700 mb-1 uppercase tracking-wider">
+                        <mat-icon class="text-[12px] md:text-[14px] w-3 h-3 md:w-3.5 md:h-3.5 inline align-text-bottom">warning</mat-icon>
                         Justificativa / Ação Corretiva
                       </label>
                       <textarea 
                         [id]="'reason-term-' + task.id"
                         [ngModel]="task.reason"
                         (blur)="updateReason(task, $any($event.target).value)"
-                        class="w-full p-2.5 border border-rose-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none bg-rose-50" 
+                        class="w-full p-2 md:p-2.5 border border-rose-200 rounded-lg text-xs md:text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none bg-rose-50" 
                         rows="2" 
                         placeholder="Ex: Termostato ajustado, técnico acionado..."></textarea>
                     </div>
@@ -462,7 +462,7 @@ export class LimpezaComponent implements OnInit {
         description: '',
         target_value: ''
       };
-    } catch (error) {
+    } catch (e) {
       // Error is handled by service
     }
   }
@@ -486,7 +486,7 @@ export class LimpezaComponent implements OnInit {
           this.generateReport();
           alert('Plantão encerrado e relatório gerado com sucesso!');
         }
-      } catch (error) {
+      } catch (e) {
         alert('Erro ao encerrar plantão. Tente novamente.');
       }
     }

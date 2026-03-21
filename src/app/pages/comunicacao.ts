@@ -34,8 +34,8 @@ import { AuthService } from '../services/auth.service';
       }
 
       <!-- Tabs -->
-      <div class="border-b border-stone-200">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+      <div class="border-b border-stone-200 overflow-x-auto">
+        <nav class="-mb-px flex space-x-6 md:space-x-8 min-w-max px-2 md:px-0" aria-label="Tabs">
           <button 
             (click)="activeTab.set('mural')"
             [class.border-stone-900]="activeTab() === 'mural'"
@@ -127,8 +127,8 @@ import { AuthService } from '../services/auth.service';
                   </div>
                 }
                 @for (announcement of communicationService.announcements(); track announcement.id) {
-                  <div class="p-6 hover:bg-stone-50 transition-colors group">
-                    <div class="flex items-start gap-4">
+                  <div class="p-4 md:p-6 hover:bg-stone-50 transition-colors group">
+                    <div class="flex items-start gap-3 md:gap-4">
                       <div 
                         [class.bg-rose-100]="announcement.type === 'urgent'"
                         [class.text-rose-600]="announcement.type === 'urgent'"
@@ -136,27 +136,27 @@ import { AuthService } from '../services/auth.service';
                         [class.text-amber-600]="announcement.type === 'warning'"
                         [class.bg-blue-100]="announcement.type === 'info'"
                         [class.text-blue-600]="announcement.type === 'info'"
-                        class="w-12 h-12 rounded-full flex items-center justify-center shrink-0">
-                        <mat-icon>{{ getIconForType(announcement.type) }}</mat-icon>
+                        class="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0">
+                        <mat-icon class="text-[20px] md:text-[24px] w-5 h-5 md:w-6 md:h-6">{{ getIconForType(announcement.type) }}</mat-icon>
                       </div>
-                      <div class="flex-1">
-                        <div class="flex justify-between items-start">
-                          <h3 class="text-lg font-bold text-stone-900">{{ announcement.title }}</h3>
-                          <div class="flex items-center gap-3">
-                            <span class="text-xs text-stone-400">{{ announcement.created_at | date:'dd/MM HH:mm' }}</span>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 sm:gap-0">
+                          <h3 class="text-base md:text-lg font-bold text-stone-900 truncate pr-2">{{ announcement.title }}</h3>
+                          <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+                            <span class="text-[10px] md:text-xs text-stone-400">{{ announcement.created_at | date:'dd/MM HH:mm' }}</span>
                             @if (canManageAnnouncements()) {
-                              <button (click)="deleteAnnouncement(announcement.id)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button (click)="deleteAnnouncement(announcement.id)" class="text-stone-400 hover:text-rose-600 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity p-1">
                                 <mat-icon class="text-[18px] w-4.5 h-4.5">delete</mat-icon>
                               </button>
                             }
                           </div>
                         </div>
-                        <p class="text-stone-600 mt-2 whitespace-pre-line">{{ announcement.content }}</p>
+                        <p class="text-sm md:text-base text-stone-600 mt-2 whitespace-pre-line">{{ announcement.content }}</p>
                         <div class="mt-4 flex items-center gap-2">
-                          <div class="w-6 h-6 rounded-full bg-stone-300 text-stone-700 flex items-center justify-center text-[10px] font-bold uppercase">
+                          <div class="w-5 h-5 md:w-6 md:h-6 rounded-full bg-stone-300 text-stone-700 flex items-center justify-center text-[9px] md:text-[10px] font-bold uppercase shrink-0">
                             {{ announcement.author?.name?.charAt(0) || '?' }}
                           </div>
-                          <span class="text-xs font-medium text-stone-500">{{ announcement.author?.name }} ({{ announcement.author?.role }})</span>
+                          <span class="text-[10px] md:text-xs font-medium text-stone-500 truncate">{{ announcement.author?.name }} ({{ announcement.author?.role }})</span>
                         </div>
                       </div>
                     </div>
@@ -286,7 +286,7 @@ export class ComunicacaoComponent implements OnInit {
         content: '',
         type: 'info'
       };
-    } catch (error) {
+    } catch (e) {
       // Error is handled by service
     }
   }

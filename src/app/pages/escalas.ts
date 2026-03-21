@@ -30,8 +30,8 @@ import { TimeTrackingService } from '../services/time-tracking.service';
       </header>
 
       <!-- Tabs -->
-      <div class="border-b border-stone-200">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+      <div class="border-b border-stone-200 overflow-x-auto">
+        <nav class="-mb-px flex space-x-6 md:space-x-8 min-w-max px-2 md:px-0" aria-label="Tabs">
           <button 
             (click)="mudarAba('escala')"
             [class.border-stone-900]="activeTab() === 'escala'"
@@ -84,9 +84,9 @@ import { TimeTrackingService } from '../services/time-tracking.service';
               <table class="min-w-full divide-y divide-stone-200">
                 <thead class="bg-stone-50">
                   <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Colaborador</th>
+                    <th scope="col" class="px-4 md:px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider sticky left-0 bg-stone-50 z-10 shadow-[1px_0_0_0_#e7e5e4]">Colaborador</th>
                     @for (date of weekDates(); track date) {
-                      <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-stone-500 uppercase tracking-wider">
+                      <th scope="col" class="px-4 md:px-6 py-3 text-center text-xs font-medium text-stone-500 uppercase tracking-wider min-w-[100px]">
                         {{ date | date:'EEE (dd)' }}
                       </th>
                     }
@@ -109,14 +109,14 @@ import { TimeTrackingService } from '../services/time-tracking.service';
                   } @else {
                     @for (member of teamService.teamMembers(); track member.id) {
                       <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 md:px-6 py-4 whitespace-nowrap sticky left-0 bg-white z-10 shadow-[1px_0_0_0_#e7e5e4]">
                           <div class="flex items-center">
-                            <div class="h-10 w-10 rounded-full bg-stone-200 flex items-center justify-center text-stone-600 font-bold">
+                            <div class="h-8 w-8 md:h-10 md:w-10 rounded-full bg-stone-200 flex items-center justify-center text-stone-600 font-bold text-xs md:text-sm shrink-0">
                               {{ member.name.charAt(0) | uppercase }}
                             </div>
-                            <div class="ml-4">
-                              <div class="text-sm font-medium text-stone-900">{{ member.name }}</div>
-                              <div class="text-xs text-stone-500">{{ member.role | uppercase }}</div>
+                            <div class="ml-3 md:ml-4">
+                              <div class="text-xs md:text-sm font-medium text-stone-900 truncate max-w-[100px] md:max-w-[150px]">{{ member.name }}</div>
+                              <div class="text-[10px] md:text-xs text-stone-500 truncate max-w-[100px] md:max-w-[150px]">{{ member.role | uppercase }}</div>
                             </div>
                           </div>
                         </td>
@@ -124,9 +124,9 @@ import { TimeTrackingService } from '../services/time-tracking.service';
                           <td class="px-2 py-4 whitespace-nowrap text-center cursor-pointer hover:bg-stone-50" (click)="abrirModalEdicao(member.id, date)">
                             @if (getSchedule(member.id, date); as schedule) {
                               @if (schedule.type === 'folga') {
-                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-stone-100 text-stone-800">FOLGA</span>
+                                <span class="px-2 py-1 inline-flex text-[10px] md:text-xs leading-5 font-semibold rounded-full bg-stone-100 text-stone-800">FOLGA</span>
                               } @else {
-                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">
+                                <span class="px-2 py-1 inline-flex text-[10px] md:text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">
                                   {{ schedule.shift_start?.substring(0, 5) }} - {{ schedule.shift_end?.substring(0, 5) }}
                                 </span>
                               }

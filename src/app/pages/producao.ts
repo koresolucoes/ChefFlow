@@ -125,7 +125,7 @@ import { AuthService } from '../services/auth.service';
                 </button>
                 
                 <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2">
+                  <div class="flex flex-wrap items-center gap-2">
                     <h3 class="text-base font-bold text-stone-900" [class.line-through]="task.status === 'completed'" [class.opacity-50]="task.status === 'completed'">
                       {{ task.name }}
                     </h3>

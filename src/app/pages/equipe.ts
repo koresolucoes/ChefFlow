@@ -149,7 +149,57 @@ import { TeamService } from '../services/team.service';
 
         <!-- Lista de Equipe -->
         <div class="lg:col-span-2 bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
-          <div class="overflow-x-auto">
+          
+          <!-- Mobile View (Cards) -->
+          <div class="block md:hidden divide-y divide-stone-200">
+            @if (teamService.isLoading()) {
+              <div class="p-8 text-center text-stone-500">
+                <mat-icon class="animate-spin text-emerald-600 mb-2">refresh</mat-icon>
+                <p>Carregando equipe...</p>
+              </div>
+            } @else if (teamService.teamMembers().length === 0) {
+              <div class="p-8 text-center text-stone-500">
+                <p>Nenhum membro cadastrado.</p>
+              </div>
+            } @else {
+              @for (member of teamService.teamMembers(); track member.id) {
+                <div class="p-4 flex flex-col gap-3">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-600 font-bold text-sm shrink-0">
+                        {{ member.name.charAt(0) }}
+                      </div>
+                      <div>
+                        <div class="font-medium text-stone-900">{{ member.name }}</div>
+                        <div class="text-xs text-stone-500">{{ member.email }}</div>
+                      </div>
+                    </div>
+                    <button (click)="removeMember(member.id)" class="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Remover">
+                      <mat-icon class="text-[20px] w-5 h-5">delete_outline</mat-icon>
+                    </button>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-medium"
+                          [ngClass]="{
+                            'bg-emerald-100 text-emerald-800': member.role === 'admin',
+                            'bg-amber-100 text-amber-800': member.role === 'chef',
+                            'bg-stone-100 text-stone-800': member.role === 'cook'
+                          }">
+                      {{ getRoleLabel(member.role) }}
+                    </span>
+                    @if (member.teams?.name) {
+                      <span class="text-[10px] text-stone-500 font-medium px-2.5 py-1 bg-stone-100 rounded-full">
+                        {{ member.teams?.name }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+
+          <!-- Desktop View (Table) -->
+          <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-stone-50 border-b border-stone-200 text-stone-500 text-xs uppercase tracking-wider">
