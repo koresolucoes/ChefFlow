@@ -25,24 +25,63 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Get auth token from header
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'Missing Authorization header' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    // Get user role and team
+    const { data: userProfile } = await supabase
+      .from('users')
+      .select('role, team_id')
+      .eq('id', user.id)
+      .single();
+
+    const userRole = userProfile?.role || 'cook';
+    const userTeamId = userProfile?.team_id;
+
     // GET: Buscar escalas (opcionalmente filtrando por data)
     if (req.method === 'GET') {
       const { start_date, end_date } = req.query;
       
-      let query = supabase.from('schedules').select('*').order('date', { ascending: true });
+      let query = supabase.from('schedules').select('*, users!inner(team_id)').order('date', { ascending: true });
       
       if (start_date && end_date) {
         query = query.gte('date', start_date).lte('date', end_date);
       }
       
+      // Filter by team if user is not admin/chef
+      if (userRole !== 'admin' && userRole !== 'chef' && userTeamId) {
+        query = query.eq('users.team_id', userTeamId);
+      }
+      
       const { data: schedules, error } = await query;
       
       if (error) throw error;
-      return res.status(200).json(schedules);
+      
+      // Remove the joined users data to match the expected Schedule interface
+      const formattedSchedules = schedules.map((s: any) => {
+        const { users, ...rest } = s;
+        return rest;
+      });
+      
+      return res.status(200).json(formattedSchedules);
     }
 
     // POST: Criar ou atualizar uma escala (Upsert)
     if (req.method === 'POST') {
+      if (userRole !== 'admin' && userRole !== 'chef') {
+        return res.status(403).json({ error: 'Apenas chefs e admins podem criar/modificar escalas' });
+      }
+
       const { user_id, date, shift_start, shift_end, type } = req.body;
       
       if (!user_id || !date || !type) {
@@ -82,6 +121,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // DELETE: Remover uma escala
     if (req.method === 'DELETE') {
+      if (userRole !== 'admin' && userRole !== 'chef') {
+        return res.status(403).json({ error: 'Apenas chefs e admins podem remover escalas' });
+      }
+
       const { id } = req.query;
       
       if (!id) {

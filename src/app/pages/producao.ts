@@ -111,7 +111,7 @@ import { AuthService } from '../services/auth.service';
             @for (task of prepTaskService.tasks(); track task.id) {
               <div class="p-4 flex items-start gap-4 hover:bg-stone-50 transition-colors group" [ngClass]="{'bg-amber-50/30': task.status === 'in-progress'}">
                 
-                <button (click)="toggleTaskStatus(task)" class="mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors"
+                <button (click)="canManageTasks() && toggleTaskStatus(task)" [class.cursor-not-allowed]="!canManageTasks()" class="mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors"
                   [ngClass]="{
                     'border-emerald-500 text-emerald-500 bg-emerald-50': task.status === 'completed',
                     'border-amber-500': task.status === 'in-progress',

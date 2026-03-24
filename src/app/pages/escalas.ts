@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { TeamService } from '../services/team.service';
 import { ScheduleService, Schedule } from '../services/schedule.service';
 import { TimeTrackingService } from '../services/time-tracking.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-escalas',
@@ -18,14 +19,16 @@ import { TimeTrackingService } from '../services/time-tracking.service';
           <p class="text-stone-500 mt-1">Gestão de turnos, freelancers e ponto digital.</p>
         </div>
         <div class="flex gap-3">
-          <button (click)="abrirModalFreelancer()" class="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2">
-            <mat-icon>person_add</mat-icon>
-            Novo Freelancer
-          </button>
-          <button (click)="gerarEscalaPadrao()" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
-            <mat-icon>add</mat-icon>
-            Gerar Escala Padrão
-          </button>
+          @if (canManage()) {
+            <button (click)="abrirModalFreelancer()" class="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2">
+              <mat-icon>person_add</mat-icon>
+              Novo Freelancer
+            </button>
+            <button (click)="gerarEscalaPadrao()" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
+              <mat-icon>add</mat-icon>
+              Gerar Escala Padrão
+            </button>
+          }
         </div>
       </header>
 
@@ -121,7 +124,7 @@ import { TimeTrackingService } from '../services/time-tracking.service';
                           </div>
                         </td>
                         @for (date of weekDates(); track date) {
-                          <td class="px-2 py-4 whitespace-nowrap text-center cursor-pointer hover:bg-stone-50" (click)="abrirModalEdicao(member.id, date)">
+                          <td class="px-2 py-4 whitespace-nowrap text-center hover:bg-stone-50" [class.cursor-pointer]="canManage()" (click)="canManage() && abrirModalEdicao(member.id, date)">
                             @if (getSchedule(member.id, date); as schedule) {
                               @if (schedule.type === 'folga') {
                                 <span class="px-2 py-1 inline-flex text-[10px] md:text-xs leading-5 font-semibold rounded-full bg-stone-100 text-stone-800">FOLGA</span>
@@ -172,19 +175,23 @@ import { TimeTrackingService } from '../services/time-tracking.service';
                   </div>
                 </div>
                 <div class="flex gap-2">
-                  <button class="flex-1 px-3 py-2 bg-stone-100 text-stone-700 font-medium rounded-lg hover:bg-stone-200 transition-colors text-sm">
-                    Editar
-                  </button>
-                  <button (click)="removerFreelancer(freelancer.id)" class="px-3 py-2 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 transition-colors text-sm">
-                    Remover
-                  </button>
+                  @if (canManage()) {
+                    <button class="flex-1 px-3 py-2 bg-stone-100 text-stone-700 font-medium rounded-lg hover:bg-stone-200 transition-colors text-sm">
+                      Editar
+                    </button>
+                    <button (click)="removerFreelancer(freelancer.id)" class="px-3 py-2 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 transition-colors text-sm">
+                      Remover
+                    </button>
+                  }
                 </div>
               </div>
             } @empty {
               <div class="col-span-full bg-white rounded-2xl shadow-sm border border-stone-200 p-12 flex flex-col items-center justify-center text-center text-stone-500 min-h-[200px]">
                 <mat-icon class="text-4xl mb-2 opacity-50">person_add</mat-icon>
                 <p>Nenhum freelancer cadastrado.</p>
-                <button (click)="abrirModalFreelancer()" class="mt-4 text-emerald-600 font-medium hover:text-emerald-700">Adicionar Freelancer</button>
+                @if (canManage()) {
+                  <button (click)="abrirModalFreelancer()" class="mt-4 text-emerald-600 font-medium hover:text-emerald-700">Adicionar Freelancer</button>
+                }
               </div>
             }
           </div>
@@ -363,6 +370,7 @@ export class EscalasComponent implements OnInit {
   teamService = inject(TeamService);
   scheduleService = inject(ScheduleService);
   timeTrackingService = inject(TimeTrackingService);
+  authService = inject(AuthService);
 
   activeTab = signal<'escala' | 'freelancers' | 'ponto'>('escala');
   
@@ -389,6 +397,11 @@ export class EscalasComponent implements OnInit {
     this.teamService.loadTeam();
     this.setupWeek(this.currentDate());
     this.timeTrackingService.loadEntries(this.formatDate(new Date()));
+  }
+
+  canManage(): boolean {
+    const user = this.authService.currentUser();
+    return user?.role === 'admin' || user?.role === 'chef';
   }
 
   mudarAba(aba: 'escala' | 'freelancers' | 'ponto') {

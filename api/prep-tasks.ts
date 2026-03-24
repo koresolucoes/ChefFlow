@@ -59,11 +59,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `)
         .order('created_at', { ascending: false });
 
-      // If cook, maybe only show tasks for their team or assigned to them?
-      // For now, let's allow seeing all tasks, or filter by team if provided
-      const { team_id } = req.query;
-      if (team_id && team_id !== 'todas') {
-        query = query.eq('team_id', team_id);
+      // If cook, only show tasks for their team
+      if (userRole !== 'admin' && userRole !== 'chef' && userTeamId) {
+        query = query.eq('team_id', userTeamId);
+      } else {
+        // For admin/chef, allow filtering by team if provided
+        const { team_id } = req.query;
+        if (team_id && team_id !== 'todas') {
+          query = query.eq('team_id', team_id);
+        }
       }
 
       const { data, error } = await query;
@@ -77,6 +81,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // POST: Create a new prep task
     if (req.method === 'POST') {
+      if (userRole !== 'admin' && userRole !== 'chef') {
+        return res.status(403).json({ error: 'Only admins and chefs can create tasks' });
+      }
+
       const { name, description, status, team_id, assigned_to, due_date } = req.body;
 
       if (!name) {
@@ -109,23 +117,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // PUT: Update a prep task
     if (req.method === 'PUT') {
+      if (userRole !== 'admin' && userRole !== 'chef') {
+        return res.status(403).json({ error: 'Only admins and chefs can update tasks' });
+      }
+
       const { id, name, description, status, team_id, assigned_to, due_date } = req.body;
 
       if (!id) {
         return res.status(400).json({ error: 'Task ID is required' });
       }
 
-      // Cooks can only update status, admins/chefs can update everything
       const updateData: any = {};
       
-      if (userRole === 'admin' || userRole === 'chef') {
-        if (name !== undefined) updateData.name = name;
-        if (description !== undefined) updateData.description = description;
-        if (team_id !== undefined) updateData.team_id = team_id || null;
-        if (assigned_to !== undefined) updateData.assigned_to = assigned_to || null;
-        if (due_date !== undefined) updateData.due_date = due_date || null;
-      }
-      
+      if (name !== undefined) updateData.name = name;
+      if (description !== undefined) updateData.description = description;
+      if (team_id !== undefined) updateData.team_id = team_id || null;
+      if (assigned_to !== undefined) updateData.assigned_to = assigned_to || null;
+      if (due_date !== undefined) updateData.due_date = due_date || null;
       if (status !== undefined) updateData.status = status;
 
       const { data, error } = await supabase
