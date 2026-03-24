@@ -1,11 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env['SUPABASE_URL'] || '';
-const supabaseServiceKey = process.env['SUPABASE_SERVICE_ROLE_KEY'] || '';
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,6 +11,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
+  const supabaseUrl = process.env['SUPABASE_URL'] || '';
+  const supabaseKey = process.env['SUPABASE_ANON_KEY'] || '';
+
   // Authentication check
   const authHeader = req.headers.authorization;
   if (!authHeader) {
@@ -23,16 +21,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const token = authHeader.replace('Bearer ', '');
+
+  const supabase = createClient(supabaseUrl, supabaseKey, {
+    global: {
+      headers: {
+        Authorization: authHeader
+      }
+    }
+  });
+
   const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
   if (authError || !user) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
-  // Get user role
+  // Get user role and tenant
   const { data: userData, error: userError } = await supabase
     .from('users')
-    .select('role')
+    .select('role, tenant_id')
     .eq('id', user.id)
     .single();
 
@@ -41,6 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const userRole = userData.role;
+  const userTenantId = userData.tenant_id;
 
   try {
     switch (req.method) {
@@ -74,7 +82,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             title, 
             content, 
             type: type || 'info',
-            author_id: user.id
+            author_id: user.id,
+            tenant_id: userTenantId
           }])
           .select(`
             *,

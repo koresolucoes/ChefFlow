@@ -23,29 +23,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Supabase credentials missing' });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get auth token from header
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       return res.status(401).json({ error: 'Missing Authorization header' });
     }
 
     const token = authHeader.replace('Bearer ', '');
+
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    });
+
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
-    // Get user role
+    // Get user role and tenant
     const { data: userProfile } = await supabase
       .from('users')
-      .select('role')
+      .select('role, tenant_id')
       .eq('id', user.id)
       .single();
 
     const userRole = userProfile?.role || 'cook';
+    const userTenantId = userProfile?.tenant_id;
 
     // GET: List inventory items
     if (req.method === 'GET') {
@@ -63,8 +70,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // POST: Create a new inventory item
     if (req.method === 'POST') {
-      if (userRole !== 'admin' && userRole !== 'chef') {
-        return res.status(403).json({ error: 'Only admins and chefs can add inventory items' });
+      if (userRole !== 'admin' && userRole !== 'chef' && userRole !== 'estoque') {
+        return res.status(403).json({ error: 'Only admins, chefs and estoque can add inventory items' });
       }
 
       const { name, category, unit, quantity, min_quantity, cost_per_unit } = req.body;
@@ -81,7 +88,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           unit,
           quantity: quantity || 0,
           min_quantity: min_quantity || 0,
-          cost_per_unit: cost_per_unit || 0
+          cost_per_unit: cost_per_unit || 0,
+          tenant_id: userTenantId
         })
         .select()
         .single();
@@ -104,7 +112,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Cooks can only update quantity (e.g., when they use an item)
       const updateData: any = {};
       
-      if (userRole === 'admin' || userRole === 'chef') {
+      if (userRole === 'admin' || userRole === 'chef' || userRole === 'estoque') {
         if (name !== undefined) updateData.name = name;
         if (category !== undefined) updateData.category = category;
         if (unit !== undefined) updateData.unit = unit;
@@ -130,8 +138,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // DELETE: Remove an inventory item
     if (req.method === 'DELETE') {
-      if (userRole !== 'admin' && userRole !== 'chef') {
-        return res.status(403).json({ error: 'Only admins and chefs can delete inventory items' });
+      if (userRole !== 'admin' && userRole !== 'chef' && userRole !== 'estoque') {
+        return res.status(403).json({ error: 'Only admins, chefs and estoque can delete inventory items' });
       }
 
       const { id } = req.query;

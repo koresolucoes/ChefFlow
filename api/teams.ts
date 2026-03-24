@@ -16,13 +16,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const supabaseUrl = process.env['SUPABASE_URL'];
-    const supabaseKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
+    const supabaseKey = process.env['SUPABASE_ANON_KEY'];
 
     if (!supabaseUrl || !supabaseKey) {
       return res.status(500).json({ message: 'Configuração do Supabase ausente' });
     }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Verifica o Token do Supabase Auth
     const authHeader = req.headers.authorization;
@@ -30,6 +28,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
     const token = authHeader.split(' ')[1];
+
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    });
     
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
@@ -48,7 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Apenas admin e chef podem criar/deletar equipes
-    const { data: currentUser } = await supabase.from('users').select('role').eq('id', user.id).single();
+    const { data: currentUser } = await supabase.from('users').select('role, tenant_id').eq('id', user.id).single();
     if (currentUser?.role !== 'admin' && currentUser?.role !== 'chef') {
        return res.status(403).json({ message: 'Acesso negado' });
     }
@@ -63,7 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const { data: newTeam, error } = await supabase
         .from('teams')
-        .insert({ name, description })
+        .insert({ name, description, tenant_id: currentUser?.tenant_id })
         .select('*')
         .single();
         

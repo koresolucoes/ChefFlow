@@ -38,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // 2. Verifica se o usuário tem permissão (admin ou chef)
-    const { data: currentUser } = await supabase.from('users').select('role').eq('id', user.id).single();
+    const { data: currentUser } = await supabase.from('users').select('role, tenant_id').eq('id', user.id).single();
     if (currentUser?.role !== 'admin' && currentUser?.role !== 'chef') {
        return res.status(403).json({ message: 'Acesso negado' });
     }
@@ -48,9 +48,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data: users, error } = await supabase
         .from('users')
         .select(`
-          id, name, email, role, created_at, team_id,
+          id, name, email, role, created_at, team_id, tenant_id,
           teams:team_id (id, name)
         `)
+        .eq('tenant_id', currentUser.tenant_id)
         .order('created_at', { ascending: false });
         
       if (error) throw error;
@@ -84,10 +85,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           name, 
           email, 
           role,
-          team_id: team_id || null
+          team_id: team_id || null,
+          tenant_id: currentUser.tenant_id
         })
         .select(`
-          id, name, email, role, created_at, team_id,
+          id, name, email, role, created_at, team_id, tenant_id,
           teams:team_id (id, name)
         `);
         
