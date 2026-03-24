@@ -23,30 +23,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Supabase credentials missing' });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get auth token from header
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       return res.status(401).json({ error: 'Missing Authorization header' });
     }
 
     const token = authHeader.replace('Bearer ', '');
+
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    });
+
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
-    // Get user role
+    // Get user role and tenant
     const { data: userProfile } = await supabase
       .from('users')
-      .select('role, team_id')
+      .select('role, team_id, tenant_id')
       .eq('id', user.id)
       .single();
 
     const userRole = userProfile?.role || 'cook';
     const userTeamId = userProfile?.team_id;
+    const userTenantId = userProfile?.tenant_id;
 
     // GET: List prep tasks
     if (req.method === 'GET') {
@@ -59,9 +66,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `)
         .order('created_at', { ascending: false });
 
-      // If cook, only show tasks for their team
-      if (userRole !== 'admin' && userRole !== 'chef' && userTeamId) {
-        query = query.eq('team_id', userTeamId);
+      // If cook, only show tasks assigned to them specifically
+      if (userRole !== 'admin' && userRole !== 'chef') {
+        query = query.eq('assigned_to', user.id);
       } else {
         // For admin/chef, allow filtering by team if provided
         const { team_id } = req.query;
@@ -99,7 +106,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           status: status || 'pending',
           team_id: team_id || null,
           assigned_to: assigned_to || null,
-          due_date: due_date || null
+          due_date: due_date || null,
+          tenant_id: userTenantId
         })
         .select(`
           *,

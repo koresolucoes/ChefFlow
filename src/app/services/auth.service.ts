@@ -9,7 +9,9 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'chef' | 'cook' | 'freelancer';
+  role: 'admin' | 'chef' | 'cook' | 'freelancer' | 'estoque';
+  tenant_id?: string;
+  team_id?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -19,6 +21,26 @@ export class AuthService {
   private http = inject(HttpClient);
   
   currentUser = signal<User | null>(null);
+
+  isAdmin() {
+    return this.currentUser()?.role === 'admin';
+  }
+
+  isChef() {
+    return this.currentUser()?.role === 'chef';
+  }
+
+  isCook() {
+    return this.currentUser()?.role === 'cook' || this.currentUser()?.role === 'freelancer';
+  }
+
+  isEstoque() {
+    return this.currentUser()?.role === 'estoque';
+  }
+
+  canManageTeam() {
+    return this.isAdmin() || this.isChef();
+  }
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {

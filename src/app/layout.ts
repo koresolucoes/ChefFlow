@@ -27,29 +27,35 @@ import { AuthService } from './services/auth.service';
             Gestão
           </div>
           
-          <a routerLink="/equipe" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
-            <mat-icon>badge</mat-icon>
-            <span class="font-medium">Equipe & Praças</span>
-          </a>
+          @if (authService.canManageTeam()) {
+            <a routerLink="/equipe" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+              <mat-icon>badge</mat-icon>
+              <span class="font-medium">Equipe & Praças</span>
+            </a>
+          }
 
-          <a routerLink="/escalas" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
-            <mat-icon>groups</mat-icon>
-            <span class="font-medium">Escalas & Pessoal</span>
-          </a>
+          @if (!authService.isEstoque()) {
+            <a routerLink="/escalas" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+              <mat-icon>groups</mat-icon>
+              <span class="font-medium">Escalas & Pessoal</span>
+            </a>
+            
+            <a routerLink="/producao" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+              <mat-icon>receipt_long</mat-icon>
+              <span class="font-medium">Produção (Prep)</span>
+            </a>
+          }
           
-          <a routerLink="/producao" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
-            <mat-icon>receipt_long</mat-icon>
-            <span class="font-medium">Produção (Prep)</span>
-          </a>
-          
-          <a routerLink="/estoque" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
-            <mat-icon>inventory_2</mat-icon>
-            <span class="font-medium">Estoque</span>
-          </a>
+          @if (!authService.isCook()) {
+            <a routerLink="/estoque" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+              <mat-icon>inventory_2</mat-icon>
+              <span class="font-medium">Estoque & Pedidos</span>
+            </a>
+          }
           
           <a routerLink="/limpeza" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
             <mat-icon>checklist</mat-icon>
-            <span class="font-medium">Checklist</span>
+            <span class="font-medium">Qualidade & Checklist</span>
           </a>
           
           <a routerLink="/comunicacao" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
@@ -123,25 +129,31 @@ import { AuthService } from './services/auth.service';
                 <span class="font-bold text-stone-900 text-sm">Dashboard</span>
               </a>
               
-              <a routerLink="/equipe" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
-                <mat-icon class="text-[32px] w-8 h-8 text-blue-600">badge</mat-icon>
-                <span class="font-bold text-stone-900 text-sm text-center">Equipe</span>
-              </a>
+              @if (authService.canManageTeam()) {
+                <a routerLink="/equipe" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
+                  <mat-icon class="text-[32px] w-8 h-8 text-blue-600">badge</mat-icon>
+                  <span class="font-bold text-stone-900 text-sm text-center">Equipe</span>
+                </a>
+              }
 
-              <a routerLink="/escalas" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
-                <mat-icon class="text-[32px] w-8 h-8 text-indigo-600">groups</mat-icon>
-                <span class="font-bold text-stone-900 text-sm text-center">Escalas</span>
-              </a>
+              @if (!authService.isEstoque()) {
+                <a routerLink="/escalas" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
+                  <mat-icon class="text-[32px] w-8 h-8 text-indigo-600">groups</mat-icon>
+                  <span class="font-bold text-stone-900 text-sm text-center">Escalas</span>
+                </a>
+                
+                <a routerLink="/producao" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
+                  <mat-icon class="text-[32px] w-8 h-8 text-amber-600">receipt_long</mat-icon>
+                  <span class="font-bold text-stone-900 text-sm text-center">Produção</span>
+                </a>
+              }
               
-              <a routerLink="/producao" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
-                <mat-icon class="text-[32px] w-8 h-8 text-amber-600">receipt_long</mat-icon>
-                <span class="font-bold text-stone-900 text-sm text-center">Produção</span>
-              </a>
-              
-              <a routerLink="/estoque" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
-                <mat-icon class="text-[32px] w-8 h-8 text-orange-600">inventory_2</mat-icon>
-                <span class="font-bold text-stone-900 text-sm text-center">Estoque</span>
-              </a>
+              @if (!authService.isCook()) {
+                <a routerLink="/estoque" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
+                  <mat-icon class="text-[32px] w-8 h-8 text-orange-600">inventory_2</mat-icon>
+                  <span class="font-bold text-stone-900 text-sm text-center">Estoque</span>
+                </a>
+              }
               
               <a routerLink="/limpeza" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
                 <mat-icon class="text-[32px] w-8 h-8 text-cyan-600">checklist</mat-icon>

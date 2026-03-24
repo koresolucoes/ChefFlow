@@ -23,15 +23,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error('SUPABASE_URL ou SUPABASE_ANON_KEY não configuradas');
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get auth token from header
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       return res.status(401).json({ error: 'Missing Authorization header' });
     }
 
     const token = authHeader.replace('Bearer ', '');
+
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    });
+
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
@@ -41,12 +47,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Get user role and team
     const { data: userProfile } = await supabase
       .from('users')
-      .select('role, team_id')
+      .select('role, team_id, tenant_id')
       .eq('id', user.id)
       .single();
 
     const userRole = userProfile?.role || 'cook';
     const userTeamId = userProfile?.team_id;
+    const userTenantId = userProfile?.tenant_id;
 
     // GET: Buscar escalas (opcionalmente filtrando por data)
     if (req.method === 'GET') {
@@ -58,9 +65,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         query = query.gte('date', start_date).lte('date', end_date);
       }
       
-      // Filter by team if user is not admin/chef
-      if (userRole !== 'admin' && userRole !== 'chef' && userTeamId) {
-        query = query.eq('users.team_id', userTeamId);
+      // Filter by user if not admin/chef
+      if (userRole !== 'admin' && userRole !== 'chef') {
+        query = query.eq('user_id', user.id);
       }
       
       const { data: schedules, error } = await query;
@@ -111,7 +118,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Insere
         const { data: inserted, error: insertError } = await supabase
           .from('schedules')
-          .insert({ user_id, date, shift_start: shift_start || null, shift_end: shift_end || null, type })
+          .insert({ user_id, date, shift_start: shift_start || null, shift_end: shift_end || null, type, tenant_id: userTenantId })
           .select();
           
         if (insertError) throw insertError;
