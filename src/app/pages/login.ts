@@ -3,13 +3,13 @@ import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatIconModule, RouterModule],
   template: `
     <div class="min-h-screen bg-stone-100 flex items-center justify-center p-4">
       <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -81,9 +81,12 @@ import { AuthService } from '../services/auth.service';
             </button>
           </form>
         </div>
-        <div class="px-8 py-6 bg-stone-50 border-t border-stone-100 text-center">
+        <div class="px-8 py-6 bg-stone-50 border-t border-stone-100 text-center flex flex-col gap-2">
           <p class="text-sm text-stone-500">
-            Não tem uma conta? <a href="#" class="font-medium text-emerald-600 hover:text-emerald-500">Fale com o Administrador</a>
+            Não tem uma conta? <a routerLink="/register" class="font-medium text-emerald-600 hover:text-emerald-500 cursor-pointer">Cadastre seu restaurante</a>
+          </p>
+          <p class="text-xs text-stone-400">
+            Membro de equipe? Fale com o Administrador
           </p>
         </div>
       </div>
