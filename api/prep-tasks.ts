@@ -101,7 +101,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data, error } = await supabase
         .from('prep_tasks')
         .insert({
-          name,
+          title: name,
+          name: name,
           description,
           status: status || 'pending',
           team_id: team_id || null,
@@ -137,7 +138,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const updateData: any = {};
       
-      if (name !== undefined) updateData.name = name;
+      if (name !== undefined) {
+        updateData.name = name;
+        updateData.title = name;
+      }
       if (description !== undefined) updateData.description = description;
       if (team_id !== undefined) updateData.team_id = team_id || null;
       if (assigned_to !== undefined) updateData.assigned_to = assigned_to || null;

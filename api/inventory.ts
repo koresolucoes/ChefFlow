@@ -59,7 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data, error } = await supabase
         .from('inventory')
         .select('*')
-        .order('name', { ascending: true });
+        .order('item_name', { ascending: true });
 
       if (error) {
         return res.status(400).json({ error: error.message });
@@ -83,7 +83,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data, error } = await supabase
         .from('inventory')
         .insert({
-          name,
+          item_name: name,
+          name: name,
           category: category || 'Geral',
           unit,
           quantity: quantity || 0,
@@ -113,7 +114,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const updateData: any = {};
       
       if (userRole === 'admin' || userRole === 'chef' || userRole === 'estoque') {
-        if (name !== undefined) updateData.name = name;
+        if (name !== undefined) {
+          updateData.name = name;
+          updateData.item_name = name;
+        }
         if (category !== undefined) updateData.category = category;
         if (unit !== undefined) updateData.unit = unit;
         if (min_quantity !== undefined) updateData.min_quantity = min_quantity;

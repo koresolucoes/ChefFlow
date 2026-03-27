@@ -13,13 +13,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const supabaseUrl = process.env['SUPABASE_URL'];
-    const supabaseKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
+    const supabaseKey = process.env['SUPABASE_ANON_KEY'];
 
     if (!supabaseUrl || !supabaseKey) {
       throw new Error('Missing Supabase env vars');
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'Missing Authorization header' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    // Get user role and tenant
+    const { data: userProfile } = await supabase
+      .from('users')
+      .select('role, tenant_id')
+      .eq('id', user.id)
+      .single();
+
+    const userTenantId = userProfile?.tenant_id;
 
     if (req.method === 'GET') {
       const { date } = req.query;
@@ -48,7 +76,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { data, error } = await supabase.from('time_entries').insert({
           user_id,
           date: today,
-          clock_in: now
+          clock_in: now,
+          tenant_id: userTenantId
         }).select().single();
         
         if (error) {
