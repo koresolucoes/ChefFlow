@@ -57,15 +57,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.log(`[Login] Perfil não encontrado na tabela users para: ${email}. Tentando criar a partir do user_metadata...`);
       
       const metadata = authData.user.user_metadata;
-      if (metadata && metadata.name && metadata.role && metadata.tenant_id) {
+      if (metadata && metadata['name'] && metadata['role'] && metadata['tenant_id']) {
         const { data: newUser, error: insertError } = await supabase
           .from('users')
           .insert({
             id: authData.user.id,
-            name: metadata.name,
+            name: metadata['name'],
             email: email,
-            role: metadata.role,
-            tenant_id: metadata.tenant_id
+            role: metadata['role'],
+            tenant_id: metadata['tenant_id']
           })
           .select('*')
           .single();
