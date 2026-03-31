@@ -47,15 +47,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // 2. Busca os dados extras (nome e cargo) na tabela public.users
-    const { data: userData, error: dbError } = await supabase
+    let { data: userData, error: dbError } = await supabase
       .from('users')
       .select('*')
       .eq('id', authData.user.id)
       .single();
 
     if (dbError || !userData) {
-      console.log(`[Login] Perfil não encontrado na tabela users para: ${email}`);
-      return res.status(401).json({ message: 'Perfil de usuário não encontrado' });
+      console.log(`[Login] Perfil não encontrado na tabela users para: ${email}. Tentando criar a partir do user_metadata...`);
+      
+      const metadata = authData.user.user_metadata;
+      if (metadata && metadata.name && metadata.role && metadata.tenant_id) {
+        const { data: newUser, error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: authData.user.id,
+            name: metadata.name,
+            email: email,
+            role: metadata.role,
+            tenant_id: metadata.tenant_id
+          })
+          .select('*')
+          .single();
+          
+        if (insertError || !newUser) {
+          console.error(`[Login] Falha ao criar perfil na tabela users para: ${email}`, insertError);
+          return res.status(401).json({ message: 'Perfil de usuário não encontrado e não pôde ser criado' });
+        }
+        
+        userData = newUser;
+      } else {
+        return res.status(401).json({ message: 'Perfil de usuário não encontrado' });
+      }
     }
 
     // Retorna os dados do usuário e o token do Supabase Auth

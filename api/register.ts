@@ -47,10 +47,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     });
 
-    if (authError) {
+    if (authError || !authUser.user) {
       // Rollback: deletar o tenant se a criação do usuário falhar
       await supabase.from('tenants').delete().eq('id', tenant.id);
-      return res.status(400).json({ message: authError.message });
+      return res.status(400).json({ message: authError?.message || 'Erro ao criar usuário' });
+    }
+
+    // 3. Criar o usuário na tabela public.users
+    const { error: userError } = await supabase.from('users').insert({
+      id: authUser.user.id,
+      name: name,
+      email: email,
+      role: 'admin',
+      tenant_id: tenant.id
+    });
+
+    if (userError) {
+      // Rollback
+      await supabase.auth.admin.deleteUser(authUser.user.id);
+      await supabase.from('tenants').delete().eq('id', tenant.id);
+      return res.status(400).json({ message: userError.message });
     }
 
     return res.status(201).json({ message: 'Conta criada com sucesso!' });
