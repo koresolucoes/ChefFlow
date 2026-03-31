@@ -30,7 +30,7 @@ export interface Requisition {
 @Injectable({ providedIn: 'root' })
 export class RequisitionService {
   private http = inject(HttpClient);
-  private apiUrl = environment.apiUrl + '/api/requisitions';
+  private apiUrl = environment.apiUrl + '/requisitions';
 
   getRequisitions() {
     return firstValueFrom(this.http.get<Requisition[]>(this.apiUrl));

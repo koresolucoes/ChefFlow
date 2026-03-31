@@ -135,7 +135,7 @@ export class RegisterComponent {
 
     const { restaurantName, name, email, password } = this.registerForm.value;
 
-    this.http.post<{message: string}>(environment.apiUrl + '/api/register', {
+    this.http.post<{message: string}>(environment.apiUrl + '/register', {
       restaurantName,
       name,
       email,

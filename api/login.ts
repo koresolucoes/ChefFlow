@@ -27,7 +27,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const supabaseUrl = process.env['SUPABASE_URL'];
-    const supabaseKey = process.env['SUPABASE_ANON_KEY'] || process.env['SUPABASE_SERVICE_ROLE_KEY'];
+    const supabaseKey = process.env['SUPABASE_SERVICE_ROLE_KEY'] || process.env['SUPABASE_ANON_KEY'];
 
     if (!supabaseUrl || !supabaseKey) {
       throw new Error('SUPABASE_URL ou SUPABASE_ANON_KEY não configuradas');
