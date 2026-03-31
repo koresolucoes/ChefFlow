@@ -32,13 +32,13 @@ import { AuthService } from '../services/auth.service';
           
           <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-stone-700">Nome da Tarefa</label>
-              <input type="text" formControlName="name" placeholder="Ex: Caldo de Legumes" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="task-name" class="text-sm font-medium text-stone-700">Nome da Tarefa</label>
+              <input id="task-name" type="text" formControlName="name" placeholder="Ex: Caldo de Legumes" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-stone-700">Praça (Equipe)</label>
-              <select formControlName="team_id" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="task-team" class="text-sm font-medium text-stone-700">Praça (Equipe)</label>
+              <select id="task-team" formControlName="team_id" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
                 <option value="">Nenhuma praça (Geral)</option>
                 @for (team of teamService.teams(); track team.id) {
                   <option [value]="team.id">{{ team.name }}</option>
@@ -47,8 +47,8 @@ import { AuthService } from '../services/auth.service';
             </div>
 
             <div class="space-y-1.5 md:col-span-2">
-              <label class="text-sm font-medium text-stone-700">Descrição / Instruções</label>
-              <input type="text" formControlName="description" placeholder="Ex: Fazer 10 litros para o serviço da noite" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="task-description" class="text-sm font-medium text-stone-700">Descrição / Instruções</label>
+              <input id="task-description" type="text" formControlName="description" placeholder="Ex: Fazer 10 litros para o serviço da noite" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
             </div>
 
             <div class="md:col-span-2 flex justify-end mt-2">

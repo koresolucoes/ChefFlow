@@ -24,9 +24,7 @@ export class InventoryService {
   async loadItems() {
     this.isLoading.set(true);
     try {
-      const items = await firstValueFrom(
-        this.http.get<InventoryItem[]>(`${environment.apiUrl}/inventory`)
-      );
+      const items = await this.getItems();
       this.items.set(items);
     } catch (error) {
       console.error('Erro ao carregar estoque:', error);
@@ -34,6 +32,12 @@ export class InventoryService {
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  async getItems() {
+    return firstValueFrom(
+      this.http.get<InventoryItem[]>(`${environment.apiUrl}/inventory`)
+    );
   }
 
   async addItem(item: Partial<InventoryItem>) {

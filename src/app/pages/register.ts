@@ -141,7 +141,7 @@ export class RegisterComponent {
       email,
       password
     }).subscribe({
-      next: (res) => {
+      next: () => {
         this.success.set('Conta criada com sucesso! Redirecionando...');
         setTimeout(() => {
           this.router.navigate(['/login']);

@@ -33,13 +33,13 @@ import { AuthService } from '../services/auth.service';
           
           <form [formGroup]="itemForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="space-y-1.5 md:col-span-2">
-              <label class="text-sm font-medium text-stone-700">Nome do Item</label>
-              <input type="text" formControlName="name" placeholder="Ex: Farinha de Trigo" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="item-name" class="text-sm font-medium text-stone-700">Nome do Item</label>
+              <input id="item-name" type="text" formControlName="name" placeholder="Ex: Farinha de Trigo" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
             </div>
             
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-stone-700">Categoria</label>
-              <select formControlName="category" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="item-category" class="text-sm font-medium text-stone-700">Categoria</label>
+              <select id="item-category" formControlName="category" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
                 <option value="Secos">Secos</option>
                 <option value="Frios">Frios / Laticínios</option>
                 <option value="Carnes">Carnes</option>
@@ -50,8 +50,8 @@ import { AuthService } from '../services/auth.service';
             </div>
 
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-stone-700">Unidade de Medida</label>
-              <select formControlName="unit" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="item-unit" class="text-sm font-medium text-stone-700">Unidade de Medida</label>
+              <select id="item-unit" formControlName="unit" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
                 <option value="kg">Quilograma (kg)</option>
                 <option value="g">Grama (g)</option>
                 <option value="l">Litro (L)</option>
@@ -62,13 +62,13 @@ import { AuthService } from '../services/auth.service';
             </div>
 
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-stone-700">Quantidade Atual</label>
-              <input type="number" formControlName="quantity" min="0" step="0.01" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="item-quantity" class="text-sm font-medium text-stone-700">Quantidade Atual</label>
+              <input id="item-quantity" type="number" formControlName="quantity" min="0" step="0.01" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
             </div>
 
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-stone-700">Estoque Mínimo</label>
-              <input type="number" formControlName="min_quantity" min="0" step="0.01" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="item-min-quantity" class="text-sm font-medium text-stone-700">Estoque Mínimo</label>
+              <input id="item-min-quantity" type="number" formControlName="min_quantity" min="0" step="0.01" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
             </div>
 
             <div class="md:col-span-3 flex justify-end mt-2">

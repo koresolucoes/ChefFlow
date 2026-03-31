@@ -52,6 +52,11 @@ import { AuthService } from './services/auth.service';
               <span class="font-medium">Estoque & Pedidos</span>
             </a>
           }
+
+          <a routerLink="/requisicoes" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+            <mat-icon>shopping_cart</mat-icon>
+            <span class="font-medium">Requisições</span>
+          </a>
           
           <a routerLink="/limpeza" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
             <mat-icon>checklist</mat-icon>
@@ -154,6 +159,11 @@ import { AuthService } from './services/auth.service';
                   <span class="font-bold text-stone-900 text-sm text-center">Estoque</span>
                 </a>
               }
+
+              <a routerLink="/requisicoes" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
+                <mat-icon class="text-[32px] w-8 h-8 text-rose-600">shopping_cart</mat-icon>
+                <span class="font-bold text-stone-900 text-sm text-center">Requisições</span>
+              </a>
               
               <a routerLink="/limpeza" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
                 <mat-icon class="text-[32px] w-8 h-8 text-cyan-600">checklist</mat-icon>

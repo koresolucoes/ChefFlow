@@ -95,23 +95,23 @@ import autoTable from 'jspdf-autotable';
           <form (ngSubmit)="onSubmit()" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-stone-700 mb-1">
+                <label for="task-title" class="block text-sm font-medium text-stone-700 mb-1">
                   Título da Tarefa / Equipamento
                 </label>
-                <input type="text" [(ngModel)]="newTask.title" name="title" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
+                <input id="task-title" type="text" [(ngModel)]="newTask.title" name="title" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-stone-700 mb-1">Categoria</label>
-                <select [(ngModel)]="newTask.category" name="category" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900 bg-white">
+                <label for="task-category" class="block text-sm font-medium text-stone-700 mb-1">Categoria</label>
+                <select id="task-category" [(ngModel)]="newTask.category" name="category" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900 bg-white">
                   <option value="checklist">Checklist</option>
                   <option value="termometria">Termometria</option>
                 </select>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-stone-700 mb-1">Momentos do Plantão</label>
-                <div class="flex flex-wrap gap-3 mt-2">
+                <span id="task-moments-label" class="block text-sm font-medium text-stone-700 mb-1">Momentos do Plantão</span>
+                <div class="flex flex-wrap gap-3 mt-2" aria-labelledby="task-moments-label">
                   <label class="flex items-center gap-2 text-sm text-stone-700">
                     <input type="checkbox" [checked]="newTaskShiftMoments.includes('abertura')" (change)="toggleShiftMoment('abertura')" class="rounded border-stone-300 text-stone-900 focus:ring-stone-900">
                     Abertura
@@ -129,19 +129,19 @@ import autoTable from 'jspdf-autotable';
 
               @if (newTask.category === 'termometria') {
                 <div>
-                  <label class="block text-sm font-medium text-stone-700 mb-1">Temp. Mínima (°C)</label>
-                  <input type="number" [(ngModel)]="newTaskMinTemp" name="min_temp" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
+                  <label for="task-min-temp" class="block text-sm font-medium text-stone-700 mb-1">Temp. Mínima (°C)</label>
+                  <input id="task-min-temp" type="number" [(ngModel)]="newTaskMinTemp" name="min_temp" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-stone-700 mb-1">Temp. Máxima (°C)</label>
-                  <input type="number" [(ngModel)]="newTaskMaxTemp" name="max_temp" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
+                  <label for="task-max-temp" class="block text-sm font-medium text-stone-700 mb-1">Temp. Máxima (°C)</label>
+                  <input id="task-max-temp" type="number" [(ngModel)]="newTaskMaxTemp" name="max_temp" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
                 </div>
               }
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-stone-700 mb-1">Descrição (Opcional)</label>
-              <textarea [(ngModel)]="newTask.description" name="description" rows="2" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900"></textarea>
+              <label for="task-description" class="block text-sm font-medium text-stone-700 mb-1">Descrição (Opcional)</label>
+              <textarea id="task-description" [(ngModel)]="newTask.description" name="description" rows="2" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900"></textarea>
             </div>
             
             <div class="flex justify-end gap-3 pt-4">
@@ -319,7 +319,7 @@ import autoTable from 'jspdf-autotable';
                       {{ task.updated_at ? ('Última leitura: ' + (task.updated_at | date:'HH:mm')) : 'Sem leitura' }}
                     </span>
                     @if (task.value) {
-                      <span 
+                      <button 
                         [class.bg-emerald-100]="task.status !== 'nao_conforme'"
                         [class.text-emerald-800]="task.status !== 'nao_conforme'"
                         [class.bg-rose-100]="task.status === 'nao_conforme'"
@@ -332,7 +332,7 @@ import autoTable from 'jspdf-autotable';
                         } @else {
                           Normal
                         }
-                      </span>
+                      </button>
                     }
                   </div>
                   @if (task.status === 'nao_conforme') {
@@ -468,7 +468,7 @@ export class LimpezaComponent implements OnInit {
         description: '',
         target_value: ''
       };
-    } catch (e) {
+    } catch {
       // Error is handled by service
     }
   }
@@ -492,7 +492,7 @@ export class LimpezaComponent implements OnInit {
           this.generateReport();
           alert('Plantão encerrado e relatório gerado com sucesso!');
         }
-      } catch (e) {
+      } catch {
         alert('Erro ao encerrar plantão. Tente novamente.');
       }
     }
@@ -598,7 +598,7 @@ export class LimpezaComponent implements OnInit {
       body: checklistData,
     });
     
-    const finalY1 = (doc as any).lastAutoTable.finalY || 40;
+    const finalY1 = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY || 40;
     
     doc.text('Termometria (Equipamentos)', 14, finalY1 + 15);
     
@@ -616,7 +616,7 @@ export class LimpezaComponent implements OnInit {
       body: termometriaData,
     });
     
-    const finalY2 = (doc as any).lastAutoTable.finalY || finalY1 + 20;
+    const finalY2 = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY || finalY1 + 20;
     
     if (this.shiftAnalysis()) {
       doc.text('Análise Geral do Plantão', 14, finalY2 + 15);

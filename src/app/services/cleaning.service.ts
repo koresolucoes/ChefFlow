@@ -46,9 +46,9 @@ export class CleaningService {
       
       const data = await firstValueFrom(this.http.get<CleaningTask[]>(url));
       this.tasks.set(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error loading cleaning tasks:', err);
-      this.error.set(err.error?.error || 'Failed to load cleaning tasks');
+      this.error.set((err as { error?: { error?: string } })?.error?.error || 'Failed to load cleaning tasks');
     } finally {
       this.loading.set(false);
     }
@@ -61,9 +61,9 @@ export class CleaningService {
       const newTasks = await firstValueFrom(this.http.post<CleaningTask[]>(this.apiUrl, task));
       this.tasks.update(tasks => [...newTasks, ...tasks]);
       return newTasks;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error adding cleaning task:', err);
-      this.error.set(err.error?.error || 'Failed to add cleaning task');
+      this.error.set((err as { error?: { error?: string } })?.error?.error || 'Failed to add cleaning task');
       throw err;
     } finally {
       this.loading.set(false);
@@ -77,14 +77,14 @@ export class CleaningService {
       // Optimistic update
       this.tasks.update(tasks => tasks.map(t => {
         if (t.id === id) {
-          return { ...t, status: status as any, reason: reason !== undefined ? reason : t.reason, value: value !== undefined ? value : t.value };
+          return { ...t, status: status as CleaningTask['status'], reason: reason !== undefined ? reason : t.reason, value: value !== undefined ? value : t.value };
         }
         return t;
       }));
 
-      const body: any = { id, category, status };
-      if (reason !== undefined) body.reason = reason;
-      if (value !== undefined) body.value = value;
+      const body: Record<string, unknown> = { id, category, status };
+      if (reason !== undefined) body['reason'] = reason;
+      if (value !== undefined) body['value'] = value;
       
       const updatedTask = await firstValueFrom(this.http.put<CleaningTask>(this.apiUrl, body));
       this.tasks.update(tasks => tasks.map(t => {
@@ -98,9 +98,9 @@ export class CleaningService {
         }
         return t;
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error updating cleaning task:', err);
-      this.error.set(err.error?.error || 'Failed to update cleaning task');
+      this.error.set((err as { error?: { error?: string } })?.error?.error || 'Failed to update cleaning task');
       // Revert optimistic update by reloading tasks
       this.loadTasks(undefined, new Date().toISOString().split('T')[0]);
       throw err;
@@ -115,9 +115,9 @@ export class CleaningService {
     try {
       await firstValueFrom(this.http.delete(`${this.apiUrl}?id=${id}&category=${category}`));
       this.tasks.update(tasks => tasks.filter(t => t.id !== id));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error removing cleaning task:', err);
-      this.error.set(err.error?.error || 'Failed to remove cleaning task');
+      this.error.set((err as { error?: { error?: string } })?.error?.error || 'Failed to remove cleaning task');
       throw err;
     } finally {
       this.updatingTaskId.set(null);

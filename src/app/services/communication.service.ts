@@ -33,9 +33,9 @@ export class CommunicationService {
     try {
       const data = await firstValueFrom(this.http.get<Announcement[]>(this.apiUrl));
       this.announcements.set(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error loading announcements:', err);
-      this.error.set(err.error?.error || 'Failed to load announcements');
+      this.error.set((err as { error?: { error?: string } })?.error?.error || 'Failed to load announcements');
     } finally {
       this.loading.set(false);
     }
@@ -48,9 +48,9 @@ export class CommunicationService {
       const newAnnouncement = await firstValueFrom(this.http.post<Announcement>(this.apiUrl, announcement));
       this.announcements.update(list => [newAnnouncement, ...list]);
       return newAnnouncement;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error adding announcement:', err);
-      this.error.set(err.error?.error || 'Failed to add announcement');
+      this.error.set((err as { error?: { error?: string } })?.error?.error || 'Failed to add announcement');
       throw err;
     } finally {
       this.loading.set(false);
@@ -63,9 +63,9 @@ export class CommunicationService {
     try {
       await firstValueFrom(this.http.delete(`${this.apiUrl}?id=${id}`));
       this.announcements.update(list => list.filter(a => a.id !== id));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error removing announcement:', err);
-      this.error.set(err.error?.error || 'Failed to remove announcement');
+      this.error.set((err as { error?: { error?: string } })?.error?.error || 'Failed to remove announcement');
       throw err;
     } finally {
       this.loading.set(false);

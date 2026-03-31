@@ -291,8 +291,8 @@ import { AuthService } from '../services/auth.service';
             </p>
             
             <div>
-              <label class="block text-sm font-medium text-stone-700 mb-1">Tipo de Turno</label>
-              <select [(ngModel)]="modalType" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <label for="modal-type" class="block text-sm font-medium text-stone-700 mb-1">Tipo de Turno</label>
+              <select id="modal-type" [(ngModel)]="modalType" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 <option value="regular">Regular (Trabalho)</option>
                 <option value="folga">Folga</option>
                 <option value="extra">Extra</option>
@@ -302,12 +302,12 @@ import { AuthService } from '../services/auth.service';
             @if (modalType() !== 'folga') {
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-stone-700 mb-1">Entrada</label>
-                  <input type="time" [(ngModel)]="modalStart" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                  <label for="modal-start" class="block text-sm font-medium text-stone-700 mb-1">Entrada</label>
+                  <input id="modal-start" type="time" [(ngModel)]="modalStart" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-stone-700 mb-1">Saída</label>
-                  <input type="time" [(ngModel)]="modalEnd" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                  <label for="modal-end" class="block text-sm font-medium text-stone-700 mb-1">Saída</label>
+                  <input id="modal-end" type="time" [(ngModel)]="modalEnd" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 </div>
               </div>
             }
@@ -340,20 +340,20 @@ import { AuthService } from '../services/auth.service';
           </div>
           <div class="p-6 space-y-4">
             <div>
-              <label class="block text-sm font-medium text-stone-700 mb-1">Nome Completo</label>
-              <input type="text" [(ngModel)]="novoFreelancerNome" placeholder="Ex: João Silva" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <label for="freelancer-nome" class="block text-sm font-medium text-stone-700 mb-1">Nome Completo</label>
+              <input id="freelancer-nome" type="text" [(ngModel)]="novoFreelancerNome" placeholder="Ex: João Silva" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
             </div>
             <div>
-              <label class="block text-sm font-medium text-stone-700 mb-1">Email (Opcional)</label>
-              <input type="email" [(ngModel)]="novoFreelancerEmail" placeholder="joao@email.com" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <label for="freelancer-email" class="block text-sm font-medium text-stone-700 mb-1">Email (Opcional)</label>
+              <input id="freelancer-email" type="email" [(ngModel)]="novoFreelancerEmail" placeholder="joao@email.com" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
             </div>
             <div>
-              <label class="block text-sm font-medium text-stone-700 mb-1">Telefone</label>
-              <input type="text" [(ngModel)]="novoFreelancerTelefone" placeholder="(11) 99999-9999" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <label for="freelancer-telefone" class="block text-sm font-medium text-stone-700 mb-1">Telefone</label>
+              <input id="freelancer-telefone" type="text" [(ngModel)]="novoFreelancerTelefone" placeholder="(11) 99999-9999" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
             </div>
             <div>
-              <label class="block text-sm font-medium text-stone-700 mb-1">Valor da Diária (R$)</label>
-              <input type="number" [(ngModel)]="novoFreelancerDiaria" placeholder="150" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <label for="freelancer-diaria" class="block text-sm font-medium text-stone-700 mb-1">Valor da Diária (R$)</label>
+              <input id="freelancer-diaria" type="number" [(ngModel)]="novoFreelancerDiaria" placeholder="150" class="w-full border border-stone-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
             </div>
           </div>
           <div class="p-6 bg-stone-50 border-t border-stone-100 flex justify-end gap-3">
@@ -528,7 +528,7 @@ export class EscalasComponent implements OnInit {
     const success = await this.teamService.addMember({
       name: nome,
       email: this.novoFreelancerEmail() || `${nome.toLowerCase().replace(/\s+/g, '')}@freelancer.local`,
-      role: 'freelancer' as any, // Cast to any if 'freelancer' is not in the strict type yet
+      role: 'freelancer' as unknown as 'cook', // Cast to bypass strict type
       password: 'freelancer123' // Default password
     });
 
