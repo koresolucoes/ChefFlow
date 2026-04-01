@@ -34,12 +34,14 @@ import { AuthService } from './services/auth.service';
             </a>
           }
 
-          @if (!authService.isEstoque()) {
+          @if (!authService.isEstoque() && !authService.isAuditor()) {
             <a routerLink="/escalas" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
               <mat-icon>groups</mat-icon>
               <span class="font-medium">Escalas & Pessoal</span>
             </a>
+          }
             
+          @if (!authService.isEstoque()) {
             <a routerLink="/producao" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
               <mat-icon>receipt_long</mat-icon>
               <span class="font-medium">Produção (Prep)</span>
@@ -53,10 +55,12 @@ import { AuthService } from './services/auth.service';
             </a>
           }
 
-          <a routerLink="/requisicoes" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
-            <mat-icon>shopping_cart</mat-icon>
-            <span class="font-medium">Requisições</span>
-          </a>
+          @if (!authService.isAuditor()) {
+            <a routerLink="/requisicoes" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+              <mat-icon>shopping_cart</mat-icon>
+              <span class="font-medium">Requisições</span>
+            </a>
+          }
           
           <a routerLink="/limpeza" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
             <mat-icon>checklist</mat-icon>
@@ -88,24 +92,60 @@ import { AuthService } from './services/auth.service';
       </aside>
 
       <!-- Main Content -->
-      <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <!-- Top Header (Mobile) -->
         <header class="bg-white border-b border-stone-200 h-16 flex items-center justify-between px-4 md:hidden shrink-0">
           <div class="flex items-center gap-2">
             <mat-icon class="text-emerald-600">restaurant_menu</mat-icon>
             <span class="text-lg font-bold text-stone-900">ChefFlow</span>
           </div>
-          <button (click)="toggleSidebar()" class="p-2 text-stone-500 hover:bg-stone-100 rounded-lg transition-colors">
-            <mat-icon>apps</mat-icon>
-          </button>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
+              {{ authService.currentUser()?.name?.charAt(0) || 'U' }}
+            </div>
+          </div>
         </header>
 
         <!-- Content Area -->
-        <div class="flex-1 overflow-auto p-4 md:p-8">
+        <div class="flex-1 overflow-auto p-4 md:p-8 pb-24 md:pb-8">
           <div class="max-w-7xl mx-auto">
             <router-outlet></router-outlet>
           </div>
         </div>
+
+        <!-- Bottom Navigation (Mobile Only) -->
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 flex items-center justify-around pb-2 pt-1 px-2 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <a routerLink="/dashboard" routerLinkActive="text-emerald-600" [routerLinkActiveOptions]="{exact: true}" class="flex flex-col items-center p-2 text-stone-500 hover:text-emerald-600 transition-colors">
+            <mat-icon>dashboard</mat-icon>
+            <span class="text-[10px] font-medium mt-1">Início</span>
+          </a>
+
+          @if (!authService.isEstoque()) {
+            <a routerLink="/producao" routerLinkActive="text-emerald-600" class="flex flex-col items-center p-2 text-stone-500 hover:text-emerald-600 transition-colors">
+              <mat-icon>receipt_long</mat-icon>
+              <span class="text-[10px] font-medium mt-1">Produção</span>
+            </a>
+          }
+
+          @if (authService.isEstoque() || authService.isAdmin() || authService.isChef() || authService.isAuditor()) {
+            <a routerLink="/estoque" routerLinkActive="text-emerald-600" class="flex flex-col items-center p-2 text-stone-500 hover:text-emerald-600 transition-colors">
+              <mat-icon>inventory_2</mat-icon>
+              <span class="text-[10px] font-medium mt-1">Estoque</span>
+            </a>
+          }
+
+          @if (authService.isCook()) {
+            <a routerLink="/limpeza" routerLinkActive="text-emerald-600" class="flex flex-col items-center p-2 text-stone-500 hover:text-emerald-600 transition-colors">
+              <mat-icon>checklist</mat-icon>
+              <span class="text-[10px] font-medium mt-1">Checklist</span>
+            </a>
+          }
+
+          <button (click)="toggleSidebar()" class="flex flex-col items-center p-2 text-stone-500 hover:text-emerald-600 transition-colors" [class.text-emerald-600]="isSidebarOpen()">
+            <mat-icon>menu</mat-icon>
+            <span class="text-[10px] font-medium mt-1">Menu</span>
+          </button>
+        </nav>
       </main>
       
       <!-- Mobile App Drawer Overlay -->
@@ -141,12 +181,14 @@ import { AuthService } from './services/auth.service';
                 </a>
               }
 
-              @if (!authService.isEstoque()) {
+              @if (!authService.isEstoque() && !authService.isAuditor()) {
                 <a routerLink="/escalas" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
                   <mat-icon class="text-[32px] w-8 h-8 text-indigo-600">groups</mat-icon>
                   <span class="font-bold text-stone-900 text-sm text-center">Escalas</span>
                 </a>
+              }
                 
+              @if (!authService.isEstoque()) {
                 <a routerLink="/producao" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
                   <mat-icon class="text-[32px] w-8 h-8 text-amber-600">receipt_long</mat-icon>
                   <span class="font-bold text-stone-900 text-sm text-center">Produção</span>
@@ -160,10 +202,12 @@ import { AuthService } from './services/auth.service';
                 </a>
               }
 
-              <a routerLink="/requisicoes" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
-                <mat-icon class="text-[32px] w-8 h-8 text-rose-600">shopping_cart</mat-icon>
-                <span class="font-bold text-stone-900 text-sm text-center">Requisições</span>
-              </a>
+              @if (!authService.isAuditor()) {
+                <a routerLink="/requisicoes" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
+                  <mat-icon class="text-[32px] w-8 h-8 text-rose-600">shopping_cart</mat-icon>
+                  <span class="font-bold text-stone-900 text-sm text-center">Requisições</span>
+                </a>
+              }
               
               <a routerLink="/limpeza" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
                 <mat-icon class="text-[32px] w-8 h-8 text-cyan-600">checklist</mat-icon>

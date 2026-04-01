@@ -9,7 +9,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'chef' | 'cook' | 'freelancer' | 'estoque';
+  role: 'admin' | 'chef' | 'cook' | 'freelancer' | 'estoque' | 'auditor';
   tenant_id?: string;
   team_id?: string;
 }
@@ -36,6 +36,10 @@ export class AuthService {
 
   isEstoque() {
     return this.currentUser()?.role === 'estoque';
+  }
+
+  isAuditor() {
+    return this.currentUser()?.role === 'auditor';
   }
 
   canManageTeam() {
