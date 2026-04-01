@@ -164,7 +164,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .select('id')
           .eq('template_id', id)
           .eq('log_date', logDate)
-          .single();
+          .maybeSingle();
 
         let resultData;
         let error;
