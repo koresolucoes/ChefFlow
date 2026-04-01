@@ -92,64 +92,91 @@ import { AuthService } from '../services/auth.service';
 
       <!-- Prep List -->
       <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden relative" [class.opacity-60]="prepTaskService.isLoading() && prepTaskService.tasks().length > 0">
-        <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
-          <h2 class="font-bold text-stone-900">Prep List de Hoje</h2>
-          <div class="text-sm font-medium text-stone-500">{{ completionPercentage() }}% Concluído</div>
+        <div class="p-4 md:p-6 border-b border-stone-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50">
+          <div>
+            <h2 class="text-lg font-bold text-stone-900">Prep List de Hoje</h2>
+            <p class="text-sm text-stone-500 mt-1">Acompanhe o progresso da produção</p>
+          </div>
+          <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-stone-200 shadow-sm">
+            <div class="w-12 h-2 bg-stone-100 rounded-full overflow-hidden">
+              <div class="h-full bg-emerald-500 transition-all duration-500" [style.width.%]="completionPercentage()"></div>
+            </div>
+            <span class="text-sm font-bold text-stone-700">{{ completionPercentage() }}% Concluído</span>
+          </div>
         </div>
         
-        <div class="divide-y divide-stone-100">
+        <div class="p-4 md:p-6 bg-stone-50/50">
           @if (prepTaskService.isLoading() && prepTaskService.tasks().length === 0) {
-            <div class="p-8 text-center text-stone-500">
-              <mat-icon class="animate-spin text-emerald-600 mb-2">refresh</mat-icon>
-              <p>Carregando tarefas...</p>
+            <div class="p-12 text-center text-stone-500 flex flex-col items-center">
+              <mat-icon class="animate-spin text-emerald-600 text-4xl mb-4">refresh</mat-icon>
+              <p class="font-medium">Carregando tarefas de produção...</p>
             </div>
           } @else if (prepTaskService.tasks().length === 0) {
-            <div class="p-8 text-center text-stone-500">
-              <p>Nenhuma tarefa encontrada para esta praça.</p>
+            <div class="p-12 text-center text-stone-500 bg-white rounded-2xl border border-stone-200 border-dashed">
+              <mat-icon class="text-4xl mb-3 opacity-50">receipt_long</mat-icon>
+              <p class="font-medium">Nenhuma tarefa encontrada para esta praça.</p>
             </div>
           } @else {
-            @for (task of prepTaskService.tasks(); track task.id) {
-              <div class="p-4 flex items-start gap-4 hover:bg-stone-50 transition-colors group" [ngClass]="{'bg-amber-50/30': task.status === 'in-progress'}">
-                
-                <button (click)="canManageTasks() && toggleTaskStatus(task)" [class.cursor-not-allowed]="!canManageTasks()" class="mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors"
-                  [ngClass]="{
-                    'border-emerald-500 text-emerald-500 bg-emerald-50': task.status === 'completed',
-                    'border-amber-500': task.status === 'in-progress',
-                    'border-stone-300': task.status === 'pending'
-                  }">
-                  @if (task.status === 'completed') {
-                    <mat-icon class="text-[16px] w-4 h-4">check</mat-icon>
-                  } @else if (task.status === 'in-progress') {
-                    <div class="w-2 h-2 bg-amber-500 rounded-full"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              @for (task of prepTaskService.tasks(); track task.id) {
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-5 relative overflow-hidden group transition-all hover:shadow-md flex flex-col" 
+                     [ngClass]="{
+                       'border-amber-300 bg-amber-50/30': task.status === 'in-progress',
+                       'border-emerald-200 bg-emerald-50/30 opacity-75': task.status === 'completed'
+                     }">
+                  
+                  @if (task.status === 'in-progress') {
+                    <div class="absolute top-0 left-0 w-full h-1.5 bg-amber-500"></div>
+                  } @else if (task.status === 'completed') {
+                    <div class="absolute top-0 left-0 w-full h-1.5 bg-emerald-500"></div>
                   }
-                </button>
-                
-                <div class="flex-1 min-w-0">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <h3 class="text-base font-bold text-stone-900" [class.line-through]="task.status === 'completed'" [class.opacity-50]="task.status === 'completed'">
-                      {{ task.name }}
-                    </h3>
-                    @if (task.teams?.name) {
-                      <span class="px-2 py-0.5 bg-stone-100 text-stone-600 text-[10px] uppercase font-bold tracking-wider rounded">{{ task.teams?.name }}</span>
-                    }
-                    @if (task.status === 'in-progress') {
-                      <span class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] uppercase font-bold tracking-wider rounded">Em Produção</span>
+
+                  <div class="flex justify-between items-start mb-3 mt-1">
+                    <div class="flex flex-wrap gap-2">
+                      @if (task.teams?.name) {
+                        <span class="px-2.5 py-1 bg-stone-100 text-stone-700 text-[10px] uppercase font-bold tracking-wider rounded-md">{{ task.teams?.name }}</span>
+                      }
+                      @if (task.status === 'in-progress') {
+                        <span class="px-2.5 py-1 bg-amber-100 text-amber-800 text-[10px] uppercase font-bold tracking-wider rounded-md animate-pulse">Em Produção</span>
+                      }
+                    </div>
+                    @if (canManageTasks()) {
+                      <button (click)="removeTask(task.id)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-white rounded-full shadow-sm">
+                        <mat-icon class="text-[18px] w-4.5 h-4.5">delete</mat-icon>
+                      </button>
                     }
                   </div>
-                  @if (task.description) {
-                    <p class="text-sm text-stone-500 mt-1">{{ task.description }}</p>
-                  }
+                  
+                  <div class="flex-1 mb-5">
+                    <h3 class="text-lg font-bold text-stone-900 leading-tight" [class.line-through]="task.status === 'completed'">
+                      {{ task.name }}
+                    </h3>
+                    @if (task.description) {
+                      <p class="text-sm text-stone-500 mt-2 line-clamp-3">{{ task.description }}</p>
+                    }
+                  </div>
+                  
+                  <div class="mt-auto pt-4 border-t border-stone-100">
+                    @if (task.status === 'pending') {
+                      <button (click)="toggleTaskStatus(task)" [disabled]="!canEditTasks()" class="w-full py-3 bg-stone-900 text-white rounded-xl font-bold hover:bg-stone-800 transition-colors flex items-center justify-center gap-2 active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                        <mat-icon>play_arrow</mat-icon>
+                        Iniciar Produção
+                      </button>
+                    } @else if (task.status === 'in-progress') {
+                      <button (click)="toggleTaskStatus(task)" [disabled]="!canEditTasks()" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                        <mat-icon>check</mat-icon>
+                        Concluir Tarefa
+                      </button>
+                    } @else {
+                      <button (click)="toggleTaskStatus(task)" [disabled]="!canEditTasks()" class="w-full py-3 bg-stone-100 text-stone-600 rounded-xl font-bold hover:bg-stone-200 transition-colors flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed">
+                        <mat-icon>undo</mat-icon>
+                        Reabrir Tarefa
+                      </button>
+                    }
+                  </div>
                 </div>
-                
-                <div class="flex items-center gap-2 shrink-0">
-                  @if (canManageTasks()) {
-                    <button (click)="removeTask(task.id)" class="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="Remover Tarefa">
-                      <mat-icon class="text-[20px] w-5 h-5">delete_outline</mat-icon>
-                    </button>
-                  }
-                </div>
-              </div>
-            }
+              }
+            </div>
           }
         </div>
       </div>
@@ -188,6 +215,11 @@ export class ProducaoComponent implements OnInit {
   canManageTasks(): boolean {
     const user = this.authService.currentUser();
     return user?.role === 'admin' || user?.role === 'chef';
+  }
+
+  canEditTasks(): boolean {
+    const user = this.authService.currentUser();
+    return user?.role !== 'auditor';
   }
 
   toggleForm() {

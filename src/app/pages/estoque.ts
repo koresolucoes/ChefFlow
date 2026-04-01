@@ -26,10 +26,10 @@ import { AuthService } from '../services/auth.service';
         </div>
       </header>
 
-      <!-- Formulário de Novo Item -->
+      <!-- Formulário de Novo/Editar Item -->
       @if (showForm()) {
         <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
-          <h2 class="text-lg font-semibold text-stone-900 mb-4">Adicionar Novo Item</h2>
+          <h2 class="text-lg font-semibold text-stone-900 mb-4">{{ editingItem() ? 'Editar Item' : 'Adicionar Novo Item' }}</h2>
           
           <form [formGroup]="itemForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="space-y-1.5 md:col-span-2">
@@ -86,28 +86,39 @@ import { AuthService } from '../services/auth.service';
         </div>
       }
 
-      <!-- Filtros -->
-      <div class="flex gap-2 overflow-x-auto pb-2">
-        <button 
-          (click)="activeCategory.set('Todas')"
-          [class.bg-stone-900]="activeCategory() === 'Todas'"
-          [class.text-white]="activeCategory() === 'Todas'"
-          [class.bg-white]="activeCategory() !== 'Todas'"
-          [class.text-stone-600]="activeCategory() !== 'Todas'"
-          class="px-4 py-2 rounded-full text-sm font-medium border border-stone-200 whitespace-nowrap transition-colors">
-          Todas as Categorias
-        </button>
-        @for (category of categories(); track category) {
+      <!-- Filtros e Busca -->
+      <div class="flex flex-col sm:flex-row gap-4 mb-2">
+        <div class="relative flex-1">
+          <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">search</mat-icon>
+          <input 
+            type="text" 
+            [ngModel]="searchQuery()" 
+            (ngModelChange)="searchQuery.set($event)" 
+            placeholder="Buscar itens..." 
+            class="w-full pl-10 pr-4 py-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors shadow-sm">
+        </div>
+        <div class="flex gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
           <button 
-            (click)="activeCategory.set(category)"
-            [class.bg-stone-900]="activeCategory() === category"
-            [class.text-white]="activeCategory() === category"
-            [class.bg-white]="activeCategory() !== category"
-            [class.text-stone-600]="activeCategory() !== category"
-            class="px-4 py-2 rounded-full text-sm font-medium border border-stone-200 whitespace-nowrap transition-colors">
-            {{ category }}
+            (click)="activeCategory.set('Todas')"
+            [class.bg-stone-900]="activeCategory() === 'Todas'"
+            [class.text-white]="activeCategory() === 'Todas'"
+            [class.bg-white]="activeCategory() !== 'Todas'"
+            [class.text-stone-600]="activeCategory() !== 'Todas'"
+            class="px-4 py-2 rounded-full text-sm font-medium border border-stone-200 whitespace-nowrap transition-colors shadow-sm">
+            Todas as Categorias
           </button>
-        }
+          @for (category of categories(); track category) {
+            <button 
+              (click)="activeCategory.set(category)"
+              [class.bg-stone-900]="activeCategory() === category"
+              [class.text-white]="activeCategory() === category"
+              [class.bg-white]="activeCategory() !== category"
+              [class.text-stone-600]="activeCategory() !== category"
+              class="px-4 py-2 rounded-full text-sm font-medium border border-stone-200 whitespace-nowrap transition-colors shadow-sm">
+              {{ category }}
+            </button>
+          }
+        </div>
       </div>
 
       <!-- Inventory List -->
@@ -177,7 +188,10 @@ import { AuthService } from '../services/auth.service';
                           <mat-icon class="text-[18px] w-4.5 h-4.5">add</mat-icon>
                         </button>
                         @if (canManageInventory()) {
-                          <button (click)="removeItem(item.id)" class="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-2" title="Remover Item">
+                          <button (click)="editItem(item)" class="p-1.5 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors ml-2" title="Editar Item">
+                            <mat-icon class="text-[18px] w-4.5 h-4.5">edit</mat-icon>
+                          </button>
+                          <button (click)="removeItem(item.id)" class="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Remover Item">
                             <mat-icon class="text-[18px] w-4.5 h-4.5">delete_outline</mat-icon>
                           </button>
                         }
@@ -239,7 +253,10 @@ import { AuthService } from '../services/auth.service';
                       <mat-icon class="text-[20px] w-5 h-5">add</mat-icon>
                     </button>
                     @if (canManageInventory()) {
-                      <button (click)="removeItem(item.id)" class="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-1" title="Remover Item">
+                      <button (click)="editItem(item)" class="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors ml-1" title="Editar Item">
+                        <mat-icon class="text-[20px] w-5 h-5">edit</mat-icon>
+                      </button>
+                      <button (click)="removeItem(item.id)" class="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Remover Item">
                         <mat-icon class="text-[20px] w-5 h-5">delete_outline</mat-icon>
                       </button>
                     }
@@ -260,8 +277,10 @@ export class EstoqueComponent implements OnInit {
   private fb = inject(FormBuilder);
 
   activeCategory = signal<string>('Todas');
+  searchQuery = signal<string>('');
   showForm = signal(false);
   isSubmitting = signal(false);
+  editingItem = signal<InventoryItem | null>(null);
 
   itemForm = this.fb.group({
     name: ['', Validators.required],
@@ -278,10 +297,17 @@ export class EstoqueComponent implements OnInit {
   });
 
   filteredItems = computed(() => {
-    const items = this.inventoryService.items();
+    let items = this.inventoryService.items();
     const category = this.activeCategory();
-    if (category === 'Todas') return items;
-    return items.filter(i => i.category === category);
+    const query = this.searchQuery().toLowerCase();
+    
+    if (category !== 'Todas') {
+      items = items.filter(i => i.category === category);
+    }
+    if (query) {
+      items = items.filter(i => i.name.toLowerCase().includes(query));
+    }
+    return items;
   });
 
   ngOnInit() {
@@ -290,14 +316,28 @@ export class EstoqueComponent implements OnInit {
 
   canManageInventory(): boolean {
     const user = this.authService.currentUser();
-    return user?.role === 'admin' || user?.role === 'chef';
+    return user?.role === 'admin' || user?.role === 'chef' || user?.role === 'estoque';
   }
 
   toggleForm() {
     this.showForm.update(v => !v);
     if (!this.showForm()) {
       this.itemForm.reset({ category: 'Secos', unit: 'kg', quantity: 0, min_quantity: 0 });
+      this.editingItem.set(null);
     }
+  }
+
+  editItem(item: InventoryItem) {
+    this.editingItem.set(item);
+    this.itemForm.patchValue({
+      name: item.name,
+      category: item.category,
+      unit: item.unit,
+      quantity: item.quantity,
+      min_quantity: item.min_quantity
+    });
+    this.showForm.set(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async updateQuantity(item: InventoryItem, change: number) {
@@ -315,14 +355,28 @@ export class EstoqueComponent implements OnInit {
       this.isSubmitting.set(true);
       const formValue = this.itemForm.value;
       
-      const success = await this.inventoryService.addItem({
-        name: formValue.name || '',
-        category: formValue.category || 'Geral',
-        unit: formValue.unit || 'un',
-        quantity: formValue.quantity || 0,
-        min_quantity: formValue.min_quantity || 0,
-        cost_per_unit: 0
-      });
+      let success = false;
+      const editing = this.editingItem();
+      
+      if (editing) {
+        success = await this.inventoryService.updateItem({
+          id: editing.id,
+          name: formValue.name || '',
+          category: formValue.category || 'Geral',
+          unit: formValue.unit || 'un',
+          quantity: formValue.quantity || 0,
+          min_quantity: formValue.min_quantity || 0
+        });
+      } else {
+        success = await this.inventoryService.addItem({
+          name: formValue.name || '',
+          category: formValue.category || 'Geral',
+          unit: formValue.unit || 'un',
+          quantity: formValue.quantity || 0,
+          min_quantity: formValue.min_quantity || 0,
+          cost_per_unit: 0
+        });
+      }
       
       this.isSubmitting.set(false);
       

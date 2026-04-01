@@ -69,80 +69,135 @@ import { AuthService } from '../services/auth.service';
       <div class="mt-6">
         @if (activeTab() === 'escala') {
           <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-            <div class="p-4 border-b border-stone-200 flex justify-between items-center bg-stone-50">
-              <div class="flex items-center gap-4">
-                <button (click)="mudarSemana(-1)" class="p-1 hover:bg-stone-200 rounded text-stone-600"><mat-icon>chevron_left</mat-icon></button>
-                <span class="font-bold text-stone-900">
+            <div class="p-4 border-b border-stone-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50">
+              <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-start">
+                <button (click)="mudarSemana(-1)" class="p-2 hover:bg-stone-200 rounded-lg text-stone-600 transition-colors"><mat-icon>chevron_left</mat-icon></button>
+                <span class="font-bold text-stone-900 text-sm sm:text-base text-center flex-1 sm:flex-none">
                   {{ weekDates()[0] | date:'dd MMM' }} - {{ weekDates()[6] | date:'dd MMM yyyy' }}
                 </span>
-                <button (click)="mudarSemana(1)" class="p-1 hover:bg-stone-200 rounded text-stone-600"><mat-icon>chevron_right</mat-icon></button>
+                <button (click)="mudarSemana(1)" class="p-2 hover:bg-stone-200 rounded-lg text-stone-600 transition-colors"><mat-icon>chevron_right</mat-icon></button>
               </div>
-              <div class="flex gap-2 text-sm">
-                <span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded font-medium">Regular</span>
-                <span class="px-2 py-1 bg-stone-100 text-stone-800 rounded font-medium">Folga</span>
+              <div class="flex gap-2 text-xs sm:text-sm w-full sm:w-auto justify-center sm:justify-end">
+                <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-md font-medium">Regular</span>
+                <span class="px-2.5 py-1 bg-stone-100 text-stone-800 rounded-md font-medium">Folga</span>
               </div>
             </div>
             
-            <div class="overflow-x-auto relative" [class.opacity-60]="(teamService.isLoading() || scheduleService.isLoading()) && teamService.teamMembers().length > 0">
-              <table class="min-w-full divide-y divide-stone-200">
-                <thead class="bg-stone-50">
-                  <tr>
-                    <th scope="col" class="px-4 md:px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider sticky left-0 bg-stone-50 z-10 shadow-[1px_0_0_0_#e7e5e4]">Colaborador</th>
-                    @for (date of weekDates(); track date) {
-                      <th scope="col" class="px-4 md:px-6 py-3 text-center text-xs font-medium text-stone-500 uppercase tracking-wider min-w-[100px]">
-                        {{ date | date:'EEE (dd)' }}
-                      </th>
-                    }
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-stone-200">
-                  @if ((teamService.isLoading() || scheduleService.isLoading()) && teamService.teamMembers().length === 0) {
-                    <tr>
-                      <td colspan="8" class="px-6 py-8 text-center text-stone-500">
-                        <mat-icon class="animate-spin mb-2">refresh</mat-icon>
-                        <p>Carregando escalas...</p>
-                      </td>
-                    </tr>
-                  } @else if (teamService.teamMembers().length === 0) {
-                    <tr>
-                      <td colspan="8" class="px-6 py-8 text-center text-stone-500">
-                        Nenhum membro na equipe. Cadastre na aba Equipe primeiro.
-                      </td>
-                    </tr>
-                  } @else {
-                    @for (member of teamService.teamMembers(); track member.id) {
-                      <tr>
-                        <td class="px-4 md:px-6 py-4 whitespace-nowrap sticky left-0 bg-white z-10 shadow-[1px_0_0_0_#e7e5e4]">
-                          <div class="flex items-center">
-                            <div class="h-8 w-8 md:h-10 md:w-10 rounded-full bg-stone-200 flex items-center justify-center text-stone-600 font-bold text-xs md:text-sm shrink-0">
-                              {{ member.name.charAt(0) | uppercase }}
-                            </div>
-                            <div class="ml-3 md:ml-4">
-                              <div class="text-xs md:text-sm font-medium text-stone-900 truncate max-w-[100px] md:max-w-[150px]">{{ member.name }}</div>
-                              <div class="text-[10px] md:text-xs text-stone-500 truncate max-w-[100px] md:max-w-[150px]">{{ member.role | uppercase }}</div>
-                            </div>
-                          </div>
-                        </td>
+            <div class="relative" [class.opacity-60]="(teamService.isLoading() || scheduleService.isLoading()) && teamService.teamMembers().length > 0">
+              
+              <!-- Mobile View (Cards) -->
+              <div class="block md:hidden p-4 space-y-4 bg-stone-50/50">
+                @if ((teamService.isLoading() || scheduleService.isLoading()) && teamService.teamMembers().length === 0) {
+                  <div class="p-8 text-center text-stone-500 flex flex-col items-center">
+                    <mat-icon class="animate-spin text-emerald-600 text-4xl mb-4">refresh</mat-icon>
+                    <p class="font-medium">Carregando escalas...</p>
+                  </div>
+                } @else if (teamService.teamMembers().length === 0) {
+                  <div class="p-8 text-center text-stone-500 bg-white rounded-2xl border border-stone-200 border-dashed">
+                    <p class="font-medium">Nenhum membro na equipe. Cadastre na aba Equipe primeiro.</p>
+                  </div>
+                } @else {
+                  @for (member of teamService.teamMembers(); track member.id) {
+                    <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                      <div class="p-4 border-b border-stone-100 flex items-center gap-3 bg-stone-50/50">
+                        <div class="h-10 w-10 rounded-full bg-stone-200 flex items-center justify-center text-stone-600 font-bold text-sm shrink-0">
+                          {{ member.name.charAt(0) | uppercase }}
+                        </div>
+                        <div>
+                          <div class="text-sm font-bold text-stone-900">{{ member.name }}</div>
+                          <div class="text-xs text-stone-500 uppercase tracking-wider font-medium">{{ member.role }}</div>
+                        </div>
+                      </div>
+                      <div class="divide-y divide-stone-100">
                         @for (date of weekDates(); track date) {
-                          <td class="px-2 py-4 whitespace-nowrap text-center hover:bg-stone-50" [class.cursor-pointer]="canManage()" (click)="canManage() && abrirModalEdicao(member.id, date)">
-                            @if (getSchedule(member.id, date); as schedule) {
-                              @if (schedule.type === 'folga') {
-                                <span class="px-2 py-1 inline-flex text-[10px] md:text-xs leading-5 font-semibold rounded-full bg-stone-100 text-stone-800">FOLGA</span>
+                          <div class="p-3 flex justify-between items-center hover:bg-stone-50 transition-colors" [class.cursor-pointer]="canManage()" (click)="canManage() && abrirModalEdicao(member.id, date)">
+                            <span class="text-sm font-medium text-stone-700 w-24">{{ date | date:'EEE (dd)' }}</span>
+                            <div class="flex-1 flex justify-end">
+                              @if (getSchedule(member.id, date); as schedule) {
+                                @if (schedule.type === 'folga') {
+                                  <span class="px-2.5 py-1 inline-flex text-xs font-bold rounded-md bg-stone-100 text-stone-500 uppercase tracking-wider">Folga</span>
+                                } @else {
+                                  <span class="px-2.5 py-1 inline-flex text-xs font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                    {{ schedule.shift_start?.substring(0, 5) }} - {{ schedule.shift_end?.substring(0, 5) }}
+                                  </span>
+                                }
                               } @else {
-                                <span class="px-2 py-1 inline-flex text-[10px] md:text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">
-                                  {{ schedule.shift_start?.substring(0, 5) }} - {{ schedule.shift_end?.substring(0, 5) }}
-                                </span>
+                                <span class="text-stone-300 text-sm font-medium">Sem turno</span>
                               }
-                            } @else {
-                              <span class="text-stone-300 text-xs">-</span>
+                            </div>
+                            @if (canManage()) {
+                              <mat-icon class="text-stone-400 text-[18px] w-[18px] h-[18px] ml-2">edit</mat-icon>
                             }
-                          </td>
+                          </div>
                         }
-                      </tr>
-                    }
+                      </div>
+                    </div>
                   }
-                </tbody>
-              </table>
+                }
+              </div>
+
+              <!-- Desktop View (Table) -->
+              <div class="hidden md:block overflow-x-auto">
+                <table class="min-w-full divide-y divide-stone-200">
+                  <thead class="bg-stone-50">
+                    <tr>
+                      <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-stone-500 uppercase tracking-wider sticky left-0 bg-stone-50 z-10 shadow-[1px_0_0_0_#e7e5e4]">Colaborador</th>
+                      @for (date of weekDates(); track date) {
+                        <th scope="col" class="px-6 py-4 text-center text-xs font-bold text-stone-500 uppercase tracking-wider min-w-[120px]">
+                          {{ date | date:'EEE (dd)' }}
+                        </th>
+                      }
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-stone-200">
+                    @if ((teamService.isLoading() || scheduleService.isLoading()) && teamService.teamMembers().length === 0) {
+                      <tr>
+                        <td colspan="8" class="px-6 py-12 text-center text-stone-500">
+                          <mat-icon class="animate-spin text-emerald-600 text-4xl mb-4">refresh</mat-icon>
+                          <p class="font-medium">Carregando escalas...</p>
+                        </td>
+                      </tr>
+                    } @else if (teamService.teamMembers().length === 0) {
+                      <tr>
+                        <td colspan="8" class="px-6 py-12 text-center text-stone-500">
+                          <p class="font-medium">Nenhum membro na equipe. Cadastre na aba Equipe primeiro.</p>
+                        </td>
+                      </tr>
+                    } @else {
+                      @for (member of teamService.teamMembers(); track member.id) {
+                        <tr class="hover:bg-stone-50/50 transition-colors group">
+                          <td class="px-6 py-4 whitespace-nowrap sticky left-0 bg-white group-hover:bg-stone-50/50 transition-colors z-10 shadow-[1px_0_0_0_#e7e5e4]">
+                            <div class="flex items-center">
+                              <div class="h-10 w-10 rounded-full bg-stone-200 flex items-center justify-center text-stone-600 font-bold text-sm shrink-0">
+                                {{ member.name.charAt(0) | uppercase }}
+                              </div>
+                              <div class="ml-4">
+                                <div class="text-sm font-bold text-stone-900 truncate max-w-[150px]">{{ member.name }}</div>
+                                <div class="text-xs text-stone-500 uppercase tracking-wider font-medium truncate max-w-[150px]">{{ member.role }}</div>
+                              </div>
+                            </div>
+                          </td>
+                          @for (date of weekDates(); track date) {
+                            <td class="px-3 py-4 whitespace-nowrap text-center transition-colors" [class.cursor-pointer]="canManage()" [class.hover:bg-stone-100]="canManage()" (click)="canManage() && abrirModalEdicao(member.id, date)">
+                              @if (getSchedule(member.id, date); as schedule) {
+                                @if (schedule.type === 'folga') {
+                                  <span class="px-2.5 py-1 inline-flex text-xs font-bold rounded-md bg-stone-100 text-stone-500 uppercase tracking-wider">Folga</span>
+                                } @else {
+                                  <span class="px-2.5 py-1 inline-flex text-xs font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                    {{ schedule.shift_start?.substring(0, 5) }} - {{ schedule.shift_end?.substring(0, 5) }}
+                                  </span>
+                                }
+                              } @else {
+                                <span class="text-stone-300 text-sm font-medium">-</span>
+                              }
+                            </td>
+                          }
+                        </tr>
+                      }
+                    }
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         }
@@ -199,76 +254,122 @@ import { AuthService } from '../services/auth.service';
 
         @if (activeTab() === 'ponto') {
           <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-            <div class="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+            <div class="p-4 md:p-6 border-b border-stone-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-stone-50">
               <div>
                 <h2 class="text-lg font-bold text-stone-900">Ponto Digital (Hoje)</h2>
                 <p class="text-sm text-stone-500">Registro de entradas e saídas.</p>
               </div>
-              <div class="flex gap-3">
-                <select #pontoUser (change)="0" class="border border-stone-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <select #pontoUser (change)="0" class="w-full sm:w-auto border border-stone-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
                   <option value="">Selecione o Freelancer</option>
                   @for (member of getFreelancers(); track member.id) {
                     <option [value]="member.id">{{ member.name }}</option>
                   }
                 </select>
-                <button (click)="registrarEntrada(pontoUser.value)" [disabled]="!pontoUser.value" class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50">
-                  Entrada
-                </button>
-                <button (click)="registrarSaida(pontoUser.value)" [disabled]="!pontoUser.value" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors disabled:opacity-50">
-                  Saída
-                </button>
+                <div class="flex gap-2 w-full sm:w-auto">
+                  <button (click)="registrarEntrada(pontoUser.value)" [disabled]="!pontoUser.value || !canManage()" class="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Entrada
+                  </button>
+                  <button (click)="registrarSaida(pontoUser.value)" [disabled]="!pontoUser.value || !canManage()" class="flex-1 sm:flex-none px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Saída
+                  </button>
+                </div>
               </div>
             </div>
             
-            <div class="overflow-x-auto relative" [class.opacity-60]="timeTrackingService.isLoading() && timeTrackingService.entries().length > 0">
-              <table class="min-w-full divide-y divide-stone-200">
-                <thead class="bg-white">
-                  <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Colaborador</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Entrada</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Saída</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-stone-500 uppercase tracking-wider">Status</th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-stone-200">
-                  @if (timeTrackingService.isLoading() && timeTrackingService.entries().length === 0) {
+            <div class="relative" [class.opacity-60]="timeTrackingService.isLoading() && timeTrackingService.entries().length > 0">
+              
+              <!-- Mobile View (Cards) -->
+              <div class="block md:hidden p-4 space-y-4 bg-stone-50/50">
+                @if (timeTrackingService.isLoading() && timeTrackingService.entries().length === 0) {
+                  <div class="p-8 text-center text-stone-500 flex flex-col items-center">
+                    <mat-icon class="animate-spin text-emerald-600 text-4xl mb-4">refresh</mat-icon>
+                    <p class="font-medium">Carregando registros...</p>
+                  </div>
+                } @else if (timeTrackingService.entries().length === 0) {
+                  <div class="p-8 text-center text-stone-500 bg-white rounded-2xl border border-stone-200 border-dashed">
+                    <p class="font-medium">Nenhum registro de ponto para hoje.</p>
+                  </div>
+                } @else {
+                  @for (entry of timeTrackingService.entries(); track entry.id) {
+                    <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-4">
+                      <div class="flex justify-between items-start mb-3">
+                        <div>
+                          <div class="text-sm font-bold text-stone-900">{{ entry.users?.name || 'Usuário Desconhecido' }}</div>
+                          <div class="text-xs text-stone-500 uppercase tracking-wider font-medium">{{ entry.users?.role || 'N/A' }}</div>
+                        </div>
+                        @if (entry.clock_out) {
+                          <span class="px-2.5 py-1 inline-flex text-[10px] font-bold rounded-md bg-stone-100 text-stone-500 uppercase tracking-wider">Finalizado</span>
+                        } @else {
+                          <span class="px-2.5 py-1 inline-flex text-[10px] font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-wider animate-pulse">Em Turno</span>
+                        }
+                      </div>
+                      <div class="grid grid-cols-2 gap-2 bg-stone-50 rounded-lg p-3">
+                        <div>
+                          <p class="text-[10px] text-stone-500 uppercase font-bold tracking-wider mb-1">Entrada</p>
+                          <p class="text-sm font-medium text-stone-900">{{ entry.clock_in | date:'HH:mm' }}</p>
+                        </div>
+                        <div>
+                          <p class="text-[10px] text-stone-500 uppercase font-bold tracking-wider mb-1">Saída</p>
+                          <p class="text-sm font-medium text-stone-900">{{ entry.clock_out ? (entry.clock_out | date:'HH:mm') : '--:--' }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+
+              <!-- Desktop View (Table) -->
+              <div class="hidden md:block overflow-x-auto">
+                <table class="min-w-full divide-y divide-stone-200">
+                  <thead class="bg-stone-50">
                     <tr>
-                      <td colspan="4" class="px-6 py-8 text-center text-stone-500">
-                        <mat-icon class="animate-spin mb-2">refresh</mat-icon>
-                        <p>Carregando registros...</p>
-                      </td>
+                      <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">Colaborador</th>
+                      <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">Entrada</th>
+                      <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">Saída</th>
+                      <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">Status</th>
                     </tr>
-                  } @else if (timeTrackingService.entries().length === 0) {
-                    <tr>
-                      <td colspan="4" class="px-6 py-8 text-center text-stone-500">
-                        Nenhum registro de ponto para hoje.
-                      </td>
-                    </tr>
-                  } @else {
-                    @for (entry of timeTrackingService.entries(); track entry.id) {
+                  </thead>
+                  <tbody class="bg-white divide-y divide-stone-200">
+                    @if (timeTrackingService.isLoading() && timeTrackingService.entries().length === 0) {
                       <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                          <div class="text-sm font-medium text-stone-900">{{ entry.users?.name || 'Usuário Desconhecido' }}</div>
-                          <div class="text-xs text-stone-500">{{ entry.users?.role || 'N/A' | uppercase }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-600">
-                          {{ entry.clock_in | date:'HH:mm' }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-600">
-                          {{ entry.clock_out ? (entry.clock_out | date:'HH:mm') : '--:--' }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                          @if (entry.clock_out) {
-                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-stone-100 text-stone-800">Finalizado</span>
-                          } @else {
-                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">Em Turno</span>
-                          }
+                        <td colspan="4" class="px-6 py-12 text-center text-stone-500">
+                          <mat-icon class="animate-spin text-emerald-600 text-4xl mb-4">refresh</mat-icon>
+                          <p class="font-medium">Carregando registros...</p>
                         </td>
                       </tr>
+                    } @else if (timeTrackingService.entries().length === 0) {
+                      <tr>
+                        <td colspan="4" class="px-6 py-12 text-center text-stone-500">
+                          <p class="font-medium">Nenhum registro de ponto para hoje.</p>
+                        </td>
+                      </tr>
+                    } @else {
+                      @for (entry of timeTrackingService.entries(); track entry.id) {
+                        <tr class="hover:bg-stone-50/50 transition-colors">
+                          <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-bold text-stone-900">{{ entry.users?.name || 'Usuário Desconhecido' }}</div>
+                            <div class="text-xs text-stone-500 uppercase tracking-wider font-medium">{{ entry.users?.role || 'N/A' }}</div>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-stone-700">
+                            {{ entry.clock_in | date:'HH:mm' }}
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-stone-700">
+                            {{ entry.clock_out ? (entry.clock_out | date:'HH:mm') : '--:--' }}
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap">
+                            @if (entry.clock_out) {
+                              <span class="px-2.5 py-1 inline-flex text-xs font-bold rounded-md bg-stone-100 text-stone-500 uppercase tracking-wider">Finalizado</span>
+                            } @else {
+                              <span class="px-2.5 py-1 inline-flex text-xs font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-wider animate-pulse">Em Turno</span>
+                            }
+                          </td>
+                        </tr>
+                      }
                     }
-                  }
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         }

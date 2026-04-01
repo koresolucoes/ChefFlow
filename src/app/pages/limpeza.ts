@@ -214,6 +214,7 @@ import autoTable from 'jspdf-autotable';
                       
                       <div class="grid grid-cols-2 gap-2 mt-auto">
                         <button type="button"
+                          [disabled]="!canEditTasks()"
                           (click)="setStatus(task, 'conforme')"
                           [class.bg-emerald-500]="task.status === 'conforme' || task.status === 'completed'"
                           [class.text-white]="task.status === 'conforme' || task.status === 'completed'"
@@ -221,12 +222,13 @@ import autoTable from 'jspdf-autotable';
                           [class.bg-white]="task.status !== 'conforme' && task.status !== 'completed'"
                           [class.text-stone-600]="task.status !== 'conforme' && task.status !== 'completed'"
                           [class.border-stone-200]="task.status !== 'conforme' && task.status !== 'completed'"
-                          class="col-span-1 flex flex-col items-center justify-center py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm">
+                          class="col-span-1 flex flex-col items-center justify-center py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
                           <mat-icon class="mb-1">check_circle</mat-icon>
                           <span>Conforme</span>
                         </button>
                         
                         <button type="button"
+                          [disabled]="!canEditTasks()"
                           (click)="setStatus(task, 'nao_conforme')"
                           [class.bg-rose-500]="task.status === 'nao_conforme'"
                           [class.text-white]="task.status === 'nao_conforme'"
@@ -234,7 +236,7 @@ import autoTable from 'jspdf-autotable';
                           [class.bg-white]="task.status !== 'nao_conforme'"
                           [class.text-stone-600]="task.status !== 'nao_conforme'"
                           [class.border-stone-200]="task.status !== 'nao_conforme'"
-                          class="col-span-1 flex flex-col items-center justify-center py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm">
+                          class="col-span-1 flex flex-col items-center justify-center py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
                           <mat-icon class="mb-1">cancel</mat-icon>
                           <span>Problema</span>
                         </button>
@@ -250,8 +252,9 @@ import autoTable from 'jspdf-autotable';
                         <textarea 
                           [id]="'reason-chk-' + task.id"
                           [(ngModel)]="task.reason"
+                          [disabled]="!canEditTasks()"
                           (blur)="updateReason(task, $any($event.target).value)"
-                          class="w-full p-3 bg-white border border-rose-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none shadow-inner" 
+                          class="w-full p-3 bg-white border border-rose-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none shadow-inner disabled:opacity-70 disabled:bg-stone-50" 
                           rows="2" 
                           placeholder="Descreva o problema ou ação tomada..."></textarea>
                       </div>
@@ -305,7 +308,7 @@ import autoTable from 'jspdf-autotable';
                   }
                   
                   <div class="mt-5">
-                    @if (editingTaskId() === task.id || !task.value) {
+                    @if (editingTaskId() === task.id || (!task.value && canEditTasks())) {
                       <div class="flex items-center gap-2">
                         <div class="flex-1 flex items-center bg-white border-2 border-stone-300 rounded-xl overflow-hidden focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20 transition-all shadow-inner">
                           <input 
@@ -323,14 +326,16 @@ import autoTable from 'jspdf-autotable';
                         </button>
                       </div>
                     } @else {
-                      <div class="flex items-center justify-between bg-white border border-stone-200 rounded-xl p-3 shadow-sm cursor-pointer hover:border-stone-300 transition-colors" (click)="editTemperature(task.id)" (keydown.enter)="editTemperature(task.id)" tabindex="0" role="button">
+                      <div class="flex items-center justify-between bg-white border border-stone-200 rounded-xl p-3 shadow-sm transition-colors" [class.cursor-pointer]="canEditTasks()" [class.hover:border-stone-300]="canEditTasks()" (click)="canEditTasks() ? editTemperature(task.id) : null" (keydown.enter)="canEditTasks() ? editTemperature(task.id) : null" [attr.tabindex]="canEditTasks() ? 0 : -1" [attr.role]="canEditTasks() ? 'button' : null">
                         <div class="flex items-center gap-2">
-                          <span class="font-black text-3xl" [class.text-rose-600]="task.status === 'nao_conforme'" [class.text-emerald-600]="task.status === 'conforme'">{{ task.value }}</span>
+                          <span class="font-black text-3xl" [class.text-rose-600]="task.status === 'nao_conforme'" [class.text-emerald-600]="task.status === 'conforme'">{{ task.value || '--' }}</span>
                           <span class="text-stone-500 font-bold text-lg">°C</span>
                         </div>
-                        <div class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-500">
-                          <mat-icon>edit</mat-icon>
-                        </div>
+                        @if (canEditTasks()) {
+                          <div class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-500">
+                            <mat-icon>edit</mat-icon>
+                          </div>
+                        }
                       </div>
                     }
                   </div>
@@ -367,8 +372,9 @@ import autoTable from 'jspdf-autotable';
                       <textarea 
                         [id]="'reason-term-' + task.id"
                         [(ngModel)]="task.reason"
+                        [disabled]="!canEditTasks()"
                         (blur)="updateReason(task, $any($event.target).value)"
-                        class="w-full p-3 bg-white border-2 border-rose-300 rounded-xl text-sm focus:ring-4 focus:ring-rose-500/20 focus:border-rose-500 outline-none resize-none shadow-inner" 
+                        class="w-full p-3 bg-white border-2 border-rose-300 rounded-xl text-sm focus:ring-4 focus:ring-rose-500/20 focus:border-rose-500 outline-none resize-none shadow-inner disabled:opacity-70 disabled:bg-stone-50" 
                         rows="2" 
                         placeholder="O que foi feito para corrigir? (Ex: Ajustado termostato)"></textarea>
                     </div>
@@ -383,14 +389,16 @@ import autoTable from 'jspdf-autotable';
               <!-- Análise e Assinatura -->
               <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
                 <h3 class="text-lg font-bold text-stone-900 mb-4">Análise Geral do Plantão</h3>
-                <textarea [(ngModel)]="shiftAnalysis" class="w-full h-32 p-3 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none" placeholder="Registre ocorrências gerais, quebras de equipamento, faltas ou observações sobre o serviço de hoje..." aria-label="Análise do plantão"></textarea>
+                <textarea [(ngModel)]="shiftAnalysis" [disabled]="!canEditTasks()" class="w-full h-32 p-3 border border-stone-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none disabled:opacity-70 disabled:bg-stone-50" placeholder="Registre ocorrências gerais, quebras de equipamento, faltas ou observações sobre o serviço de hoje..." aria-label="Análise do plantão"></textarea>
                 
-                <div class="mt-6 pt-6 border-t border-stone-100">
-                  <button type="button" (click)="encerrarPlantao()" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
-                    <mat-icon>verified</mat-icon>
-                    Assinar e Encerrar Plantão
-                  </button>
-                </div>
+                @if (canEditTasks()) {
+                  <div class="mt-6 pt-6 border-t border-stone-100">
+                    <button type="button" (click)="encerrarPlantao()" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
+                      <mat-icon>verified</mat-icon>
+                      Assinar e Encerrar Plantão
+                    </button>
+                  </div>
+                }
               </div>
             </div>
           }
@@ -461,6 +469,11 @@ export class LimpezaComponent implements OnInit {
   canManageTasks() {
     const role = this.authService.currentUser()?.role;
     return role === 'admin' || role === 'chef';
+  }
+
+  canEditTasks() {
+    const role = this.authService.currentUser()?.role;
+    return role !== 'auditor';
   }
 
   async onSubmit() {

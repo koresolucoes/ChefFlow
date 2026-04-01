@@ -28,7 +28,8 @@ import { AuthService } from '../services/auth.service';
 
       <!-- Lista de Requisições -->
       <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-        <div class="overflow-x-auto">
+        <!-- Desktop View -->
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-stone-50 border-b border-stone-200 text-sm text-stone-500">
@@ -68,43 +69,95 @@ import { AuthService } from '../services/auth.service';
             </tbody>
           </table>
         </div>
+
+        <!-- Mobile View -->
+        <div class="md:hidden divide-y divide-stone-100">
+          @for (req of requisitions(); track req.id) {
+            <div class="p-4 bg-white hover:bg-stone-50 transition-colors cursor-pointer" (click)="viewDetails(req)" (keydown.enter)="viewDetails(req)" tabindex="0" role="button">
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <div class="text-sm font-bold text-stone-900">Req #{{ req.id.substring(0, 8) }}</div>
+                  <div class="text-xs text-stone-500 mt-0.5">{{ req.created_at | date:'dd/MM HH:mm' }}</div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                  [ngClass]="{
+                    'bg-amber-100 text-amber-800': req.status === 'pending',
+                    'bg-blue-100 text-blue-800': req.status === 'partial',
+                    'bg-emerald-100 text-emerald-800': req.status === 'completed',
+                    'bg-rose-100 text-rose-800': req.status === 'cancelled'
+                  }">
+                  {{ getStatusLabel(req.status) }}
+                </span>
+              </div>
+              <div class="flex justify-between items-center mt-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center text-[10px] font-bold">
+                    {{ req.requester?.name?.charAt(0) || 'U' }}
+                  </div>
+                  <span class="text-sm text-stone-700">{{ req.requester?.name || 'N/A' }}</span>
+                </div>
+                <mat-icon class="text-stone-400 text-[20px] w-5 h-5">chevron_right</mat-icon>
+              </div>
+            </div>
+          }
+          @if (requisitions().length === 0) {
+            <div class="p-8 text-center text-stone-500">Nenhuma requisição encontrada.</div>
+          }
+        </div>
       </div>
 
       <!-- Modal Nova Requisição (Para Cozinheiros/Chefs) -->
       @if (showNewModal()) {
         <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-            <div class="p-6 border-b border-stone-100 flex justify-between items-center">
-              <h2 class="text-xl font-bold text-stone-800">Nova Requisição</h2>
-              <button (click)="closeNewModal()" class="text-stone-400 hover:text-stone-600"><mat-icon>close</mat-icon></button>
+          <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div class="p-4 md:p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50 rounded-t-2xl">
+              <h2 class="text-lg md:text-xl font-bold text-stone-800 flex items-center gap-2">
+                <mat-icon class="text-emerald-600">add_shopping_cart</mat-icon>
+                Nova Requisição
+              </h2>
+              <button (click)="closeNewModal()" class="text-stone-400 hover:text-stone-600 p-2 rounded-full hover:bg-stone-200 transition-colors"><mat-icon>close</mat-icon></button>
             </div>
             
-            <div class="p-6 overflow-y-auto flex-1">
-              <div class="mb-4">
-                <label for="req-product" class="block text-sm font-medium text-stone-700 mb-1">Adicionar Item</label>
-                <div class="flex gap-2">
-                  <select id="req-product" [(ngModel)]="selectedProductId" class="flex-1 border border-stone-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-emerald-500 outline-none">
+            <div class="p-4 md:p-6 overflow-y-auto flex-1">
+              <div class="mb-6 bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+                <label for="req-product" class="block text-sm font-bold text-stone-700 mb-2 uppercase tracking-wider">Adicionar Item</label>
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <select id="req-product" [(ngModel)]="selectedProductId" class="flex-1 border-2 border-stone-200 rounded-xl px-4 py-3 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all text-stone-800 font-medium bg-stone-50">
                     <option value="">Selecione um produto...</option>
                     @for (item of inventory(); track item.id) {
                       <option [value]="item.id">{{ item.name }} ({{ item.unit }}) - Estoque: {{ item.quantity }}</option>
                     }
                   </select>
-                  <input type="number" [(ngModel)]="selectedQuantity" placeholder="Qtd" class="w-24 border border-stone-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-emerald-500 outline-none">
-                  <button (click)="addDraftItem()" class="bg-stone-800 text-white px-4 py-2 rounded-xl hover:bg-stone-700">Add</button>
+                  <div class="flex gap-2">
+                    <input type="number" [(ngModel)]="selectedQuantity" placeholder="Qtd" min="0.1" step="0.1" class="w-full sm:w-24 border-2 border-stone-200 rounded-xl px-4 py-3 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all text-center font-bold text-stone-800 bg-stone-50">
+                    <button (click)="addDraftItem()" class="bg-stone-900 text-white px-4 py-3 rounded-xl hover:bg-stone-800 transition-colors shadow-sm flex items-center justify-center shrink-0 active:scale-95">
+                      <mat-icon>add</mat-icon>
+                    </button>
+                  </div>
                 </div>
               </div>
 
               @if (draftItems().length > 0) {
                 <div class="mt-6">
-                  <h3 class="text-sm font-medium text-stone-700 mb-2">Itens Solicitados</h3>
-                  <ul class="divide-y divide-stone-100 border border-stone-200 rounded-xl">
+                  <h3 class="text-sm font-bold text-stone-700 mb-3 uppercase tracking-wider flex items-center gap-2">
+                    <mat-icon class="text-[18px] w-4.5 h-4.5 text-emerald-600">list_alt</mat-icon>
+                    Itens Solicitados ({{ draftItems().length }})
+                  </h3>
+                  <ul class="divide-y divide-stone-100 border border-stone-200 rounded-xl bg-white shadow-sm overflow-hidden">
                     @for (item of draftItems(); track item.product_id; let i = $index) {
-                      <li class="p-3 flex justify-between items-center">
-                        <div>
-                          <span class="font-medium text-stone-800">{{ getProductName(item.product_id) }}</span>
-                          <span class="text-stone-500 text-sm ml-2">{{ item.quantity_requested }} {{ getProductUnit(item.product_id) }}</span>
+                      <li class="p-4 flex justify-between items-center hover:bg-stone-50 transition-colors">
+                        <div class="flex items-center gap-3">
+                          <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                            {{ item.quantity_requested }}
+                          </div>
+                          <div>
+                            <span class="font-bold text-stone-800 block">{{ getProductName(item.product_id) }}</span>
+                            <span class="text-stone-500 text-xs font-medium uppercase tracking-wider">{{ getProductUnit(item.product_id) }}</span>
+                          </div>
                         </div>
-                        <button (click)="removeDraftItem(i)" class="text-rose-500 hover:text-rose-700"><mat-icon class="text-[18px] w-4.5 h-4.5">delete</mat-icon></button>
+                        <button (click)="removeDraftItem(i)" class="p-2 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors">
+                          <mat-icon>delete</mat-icon>
+                        </button>
                       </li>
                     }
                   </ul>
@@ -112,15 +165,21 @@ import { AuthService } from '../services/auth.service';
               }
 
               <div class="mt-6">
-                <label for="req-notes" class="block text-sm font-medium text-stone-700 mb-1">Observações</label>
-                <textarea id="req-notes" [(ngModel)]="draftNotes" rows="3" class="w-full border border-stone-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Ex: Urgente para o jantar..."></textarea>
+                <label for="req-notes" class="block text-sm font-bold text-stone-700 mb-2 uppercase tracking-wider">Observações (Opcional)</label>
+                <textarea id="req-notes" [(ngModel)]="draftNotes" rows="3" class="w-full border-2 border-stone-200 rounded-xl px-4 py-3 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none bg-stone-50" placeholder="Ex: Urgente para o jantar, precisamos para a praça de grelhados..."></textarea>
               </div>
             </div>
 
-            <div class="p-6 border-t border-stone-100 bg-stone-50 rounded-b-2xl flex justify-end gap-3">
-              <button (click)="closeNewModal()" class="px-4 py-2 text-stone-600 font-medium hover:bg-stone-200 rounded-xl transition-colors">Cancelar</button>
-              <button (click)="submitRequisition()" [disabled]="draftItems().length === 0 || isSubmitting()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl font-medium disabled:opacity-50 transition-colors">
-                Enviar Pedido
+            <div class="p-4 md:p-6 border-t border-stone-100 bg-stone-50 rounded-b-2xl flex flex-col-reverse sm:flex-row justify-end gap-3">
+              <button (click)="closeNewModal()" class="w-full sm:w-auto px-6 py-3 text-stone-600 font-bold hover:bg-stone-200 rounded-xl transition-colors text-center">Cancelar</button>
+              <button (click)="submitRequisition()" [disabled]="draftItems().length === 0 || isSubmitting()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-bold disabled:opacity-50 transition-colors shadow-sm flex items-center justify-center gap-2 active:scale-95">
+                @if (isSubmitting()) {
+                  <mat-icon class="animate-spin">autorenew</mat-icon>
+                  Enviando...
+                } @else {
+                  <mat-icon>send</mat-icon>
+                  Enviar Pedido
+                }
               </button>
             </div>
           </div>
@@ -130,60 +189,114 @@ import { AuthService } from '../services/auth.service';
       <!-- Modal Detalhes / Atendimento (Para Estoque/Admin) -->
       @if (selectedReq()) {
         <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
-            <div class="p-6 border-b border-stone-100 flex justify-between items-center">
+          <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div class="p-4 md:p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50 rounded-t-2xl">
               <div>
-                <h2 class="text-xl font-bold text-stone-800">Requisição #{{ selectedReq()!.id.substring(0, 8) }}</h2>
-                <p class="text-sm text-stone-500">Solicitado por {{ selectedReq()!.requester?.name }}</p>
+                <h2 class="text-lg md:text-xl font-bold text-stone-800 flex items-center gap-2">
+                  <mat-icon class="text-emerald-600">receipt_long</mat-icon>
+                  Requisição #{{ selectedReq()!.id.substring(0, 8) }}
+                </h2>
+                <p class="text-sm text-stone-500 mt-1 flex items-center gap-1">
+                  <mat-icon class="text-[16px] w-4 h-4">person</mat-icon>
+                  Solicitado por <span class="font-bold">{{ selectedReq()!.requester?.name }}</span>
+                </p>
               </div>
-              <button (click)="closeDetails()" class="text-stone-400 hover:text-stone-600"><mat-icon>close</mat-icon></button>
+              <button (click)="closeDetails()" class="text-stone-400 hover:text-stone-600 p-2 rounded-full hover:bg-stone-200 transition-colors"><mat-icon>close</mat-icon></button>
             </div>
             
-            <div class="p-6 overflow-y-auto flex-1">
+            <div class="p-4 md:p-6 overflow-y-auto flex-1">
               @if (selectedReq()!.notes) {
-                <div class="mb-6 p-4 bg-amber-50 rounded-xl border border-amber-100">
-                  <h4 class="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Observações</h4>
-                  <p class="text-amber-900 text-sm">{{ selectedReq()!.notes }}</p>
+                <div class="mb-6 p-4 bg-amber-50 rounded-xl border border-amber-200 shadow-sm">
+                  <h4 class="text-xs font-bold text-amber-800 uppercase tracking-wider mb-2 flex items-center gap-1">
+                    <mat-icon class="text-[16px] w-4 h-4">speaker_notes</mat-icon>
+                    Observações do Solicitante
+                  </h4>
+                  <p class="text-amber-900 text-sm font-medium">{{ selectedReq()!.notes }}</p>
                 </div>
               }
 
-              <table class="w-full text-left border-collapse">
-                <thead>
-                  <tr class="bg-stone-50 border-b border-stone-200 text-sm text-stone-500">
-                    <th class="p-3 font-medium">Produto</th>
-                    <th class="p-3 font-medium text-center">Solicitado</th>
-                    <th class="p-3 font-medium text-center">Atendido</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-100">
+              <div class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm">
+                <!-- Desktop Table -->
+                <div class="hidden md:block">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="bg-stone-50 border-b border-stone-200 text-xs font-bold text-stone-500 uppercase tracking-wider">
+                        <th class="p-4">Produto</th>
+                        <th class="p-4 text-center">Solicitado</th>
+                        <th class="p-4 text-center">Atendido</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-stone-100">
+                      @for (item of selectedReq()!.items; track item.id) {
+                        <tr class="hover:bg-stone-50 transition-colors">
+                          <td class="p-4 text-stone-800 font-bold">{{ item.inventory?.item_name }}</td>
+                          <td class="p-4 text-center">
+                            <span class="inline-flex items-center justify-center px-3 py-1 bg-stone-100 text-stone-700 rounded-full font-bold text-sm">
+                              {{ item.quantity_requested }} <span class="text-xs ml-1 font-medium">{{ item.inventory?.unit }}</span>
+                            </span>
+                          </td>
+                          <td class="p-4 text-center">
+                            @if (canFulfill() && selectedReq()!.status === 'pending') {
+                              <div class="flex items-center justify-center gap-2">
+                                <input type="number" [(ngModel)]="item.quantity_fulfilled" min="0" step="0.1" class="w-24 text-center border-2 border-stone-200 rounded-xl px-3 py-2 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none font-bold text-stone-800 transition-all">
+                                <span class="text-stone-500 text-sm font-medium">{{ item.inventory?.unit }}</span>
+                              </div>
+                            } @else {
+                              <span class="inline-flex items-center justify-center px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold text-sm">
+                                {{ item.quantity_fulfilled || 0 }} <span class="text-xs ml-1 font-medium">{{ item.inventory?.unit }}</span>
+                              </span>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Mobile List -->
+                <div class="md:hidden divide-y divide-stone-100">
                   @for (item of selectedReq()!.items; track item.id) {
-                    <tr>
-                      <td class="p-3 text-stone-800 font-medium">{{ item.inventory?.item_name }}</td>
-                      <td class="p-3 text-center text-stone-600">{{ item.quantity_requested }} {{ item.inventory?.unit }}</td>
-                      <td class="p-3 text-center">
-                        @if (canFulfill() && selectedReq()!.status === 'pending') {
-                          <div class="flex items-center justify-center gap-2">
-                            <input type="number" [(ngModel)]="item.quantity_fulfilled" class="w-20 text-center border border-stone-200 rounded-lg px-2 py-1 focus:ring-2 focus:ring-emerald-500 outline-none">
-                            <span class="text-stone-500 text-sm">{{ item.inventory?.unit }}</span>
+                    <div class="p-4">
+                      <div class="font-bold text-stone-800 mb-3">{{ item.inventory?.item_name }}</div>
+                      <div class="flex items-center justify-between gap-4">
+                        <div class="flex-1">
+                          <div class="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Solicitado</div>
+                          <div class="inline-flex items-center justify-center px-3 py-1 bg-stone-100 text-stone-700 rounded-full font-bold text-sm">
+                            {{ item.quantity_requested }} <span class="text-xs ml-1 font-medium">{{ item.inventory?.unit }}</span>
                           </div>
-                        } @else {
-                          <span class="font-medium text-emerald-600">
-                            {{ item.quantity_fulfilled || 0 }} {{ item.inventory?.unit }}
-                          </span>
-                        }
-                      </td>
-                    </tr>
+                        </div>
+                        <div class="flex-1 text-right">
+                          <div class="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Atendido</div>
+                          @if (canFulfill() && selectedReq()!.status === 'pending') {
+                            <div class="flex items-center justify-end gap-1">
+                              <input type="number" [(ngModel)]="item.quantity_fulfilled" min="0" step="0.1" class="w-20 text-center border-2 border-stone-200 rounded-xl px-2 py-1.5 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none font-bold text-stone-800 transition-all">
+                              <span class="text-stone-500 text-xs font-medium">{{ item.inventory?.unit }}</span>
+                            </div>
+                          } @else {
+                            <span class="inline-flex items-center justify-center px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold text-sm">
+                              {{ item.quantity_fulfilled || 0 }} <span class="text-xs ml-1 font-medium">{{ item.inventory?.unit }}</span>
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    </div>
                   }
-                </tbody>
-              </table>
+                </div>
+              </div>
             </div>
 
-            <div class="p-6 border-t border-stone-100 bg-stone-50 rounded-b-2xl flex justify-end gap-3">
-              <button (click)="closeDetails()" class="px-4 py-2 text-stone-600 font-medium hover:bg-stone-200 rounded-xl transition-colors">Fechar</button>
+            <div class="p-4 md:p-6 border-t border-stone-100 bg-stone-50 rounded-b-2xl flex flex-col-reverse sm:flex-row justify-end gap-3">
+              <button (click)="closeDetails()" class="w-full sm:w-auto px-6 py-3 text-stone-600 font-bold hover:bg-stone-200 rounded-xl transition-colors text-center">Fechar</button>
               
               @if (canFulfill() && selectedReq()!.status === 'pending') {
-                <button (click)="fulfillRequisition()" [disabled]="isSubmitting()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl font-medium disabled:opacity-50 transition-colors">
-                  Finalizar Atendimento
+                <button (click)="fulfillRequisition()" [disabled]="isSubmitting()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-bold disabled:opacity-50 transition-colors shadow-sm flex items-center justify-center gap-2 active:scale-95">
+                  @if (isSubmitting()) {
+                    <mat-icon class="animate-spin">autorenew</mat-icon>
+                    Processando...
+                  } @else {
+                    <mat-icon>check_circle</mat-icon>
+                    Finalizar Atendimento
+                  }
                 </button>
               }
             </div>
