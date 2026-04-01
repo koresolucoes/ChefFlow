@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommunicationService, Announcement } from '../services/communication.service';
 import { AuthService } from '../services/auth.service';
+import { ExportService } from '../services/export.service';
 
 @Component({
   selector: 'app-comunicacao',
@@ -167,12 +168,48 @@ import { AuthService } from '../services/auth.service';
           }
 
           @if (activeTab() === 'bi') {
+            <div class="mb-6 flex justify-end">
+              <button (click)="exportarRelatorioBI()" class="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2 shadow-sm">
+                <mat-icon>download</mat-icon>
+                Baixar Relatório Gerencial
+              </button>
+            </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Custo Mão de Obra -->
+              <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
+                <h3 class="text-lg font-bold text-stone-900 mb-4">Custo de Mão de Obra (Semana)</h3>
+                <div class="space-y-4">
+                  <div>
+                    <div class="flex justify-between text-sm mb-1">
+                      <span class="text-stone-500">Equipe Fixa</span>
+                      <span class="font-medium text-stone-900">R$ 8.450</span>
+                    </div>
+                    <div class="w-full bg-stone-100 rounded-full h-2">
+                      <div class="bg-blue-500 h-2 rounded-full" style="width: 75%"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-sm mb-1">
+                      <span class="text-stone-500">Freelancers (Extras)</span>
+                      <span class="font-medium text-stone-900">R$ 2.100</span>
+                    </div>
+                    <div class="w-full bg-stone-100 rounded-full h-2">
+                      <div class="bg-amber-500 h-2 rounded-full" style="width: 25%"></div>
+                    </div>
+                  </div>
+                  <div class="pt-4 border-t border-stone-100 flex justify-between items-center">
+                    <span class="font-bold text-stone-900">Total</span>
+                    <span class="text-xl font-bold text-stone-900">R$ 10.550</span>
+                  </div>
+                </div>
+              </div>
+
               <!-- Conformidade -->
               <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-                <h3 class="text-lg font-bold text-stone-900 mb-4">Índice de Conformidade (Checklists)</h3>
+                <h3 class="text-lg font-bold text-stone-900 mb-4">Índice de Conformidade (Mês)</h3>
                 <div class="flex items-center justify-center h-40">
                   <div class="relative w-32 h-32">
+                    <!-- Placeholder for a donut chart -->
                     <svg viewBox="0 0 36 36" class="w-full h-full transform -rotate-90">
                       <path
                         class="text-stone-100"
@@ -182,8 +219,8 @@ import { AuthService } from '../services/auth.service';
                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                       />
                       <path
-                        class="text-emerald-500 transition-all duration-1000"
-                        [attr.stroke-dasharray]="complianceRate() + ', 100'"
+                        class="text-emerald-500"
+                        stroke-dasharray="92, 100"
                         stroke-width="3"
                         stroke-linecap="round"
                         stroke="currentColor"
@@ -192,72 +229,18 @@ import { AuthService } from '../services/auth.service';
                       />
                     </svg>
                     <div class="absolute inset-0 flex items-center justify-center flex-col">
-                      <span class="text-2xl font-bold text-stone-900">{{ complianceRate() }}%</span>
+                      <span class="text-2xl font-bold text-stone-900">92%</span>
                     </div>
                   </div>
                 </div>
                 <div class="mt-4 flex justify-center gap-4 text-sm">
                   <div class="flex items-center gap-2">
                     <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
-                    <span class="text-stone-600">Conforme ({{ complianceStats().conforme }})</span>
+                    <span class="text-stone-600">Concluído</span>
                   </div>
                   <div class="flex items-center gap-2">
                     <div class="w-3 h-3 rounded-full bg-stone-200"></div>
-                    <span class="text-stone-600">Não Conforme ({{ complianceStats().naoConforme }})</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Status do Estoque -->
-              <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
-                <h3 class="text-lg font-bold text-stone-900 mb-4">Saúde do Estoque</h3>
-                <div class="space-y-4 mt-8">
-                  <div>
-                    <div class="flex justify-between text-sm mb-1">
-                      <span class="text-stone-500">Nível Adequado</span>
-                      <span class="font-medium text-stone-900">{{ stockStats().normal }} itens</span>
-                    </div>
-                    <div class="w-full bg-stone-100 rounded-full h-2">
-                      <div class="bg-emerald-500 h-2 rounded-full transition-all duration-1000" [style.width.%]="stockStats().normalPct"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between text-sm mb-1">
-                      <span class="text-stone-500">Abaixo do Mínimo</span>
-                      <span class="font-medium text-stone-900">{{ stockStats().low }} itens</span>
-                    </div>
-                    <div class="w-full bg-stone-100 rounded-full h-2">
-                      <div class="bg-rose-500 h-2 rounded-full transition-all duration-1000" [style.width.%]="stockStats().lowPct"></div>
-                    </div>
-                  </div>
-                  <div class="pt-4 border-t border-stone-100 flex justify-between items-center">
-                    <span class="font-bold text-stone-900">Total de Itens</span>
-                    <span class="text-xl font-bold text-stone-900">{{ stockStats().total }}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Progresso da Produção -->
-              <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 lg:col-span-2">
-                <h3 class="text-lg font-bold text-stone-900 mb-4">Progresso da Produção (Prep List)</h3>
-                <div class="space-y-4">
-                  <div>
-                    <div class="flex justify-between text-sm mb-1">
-                      <span class="text-stone-500">Concluído</span>
-                      <span class="font-medium text-stone-900">{{ prepStats().completed }} tarefas</span>
-                    </div>
-                    <div class="w-full bg-stone-100 rounded-full h-3">
-                      <div class="bg-blue-500 h-3 rounded-full transition-all duration-1000" [style.width.%]="prepStats().completedPct"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between text-sm mb-1">
-                      <span class="text-stone-500">Em Andamento / Pendente</span>
-                      <span class="font-medium text-stone-900">{{ prepStats().pending }} tarefas</span>
-                    </div>
-                    <div class="w-full bg-stone-100 rounded-full h-3">
-                      <div class="bg-amber-500 h-3 rounded-full transition-all duration-1000" [style.width.%]="prepStats().pendingPct"></div>
-                    </div>
+                    <span class="text-stone-600">Pendente/Falha</span>
                   </div>
                 </div>
               </div>
@@ -272,6 +255,7 @@ import { AuthService } from '../services/auth.service';
 export class ComunicacaoComponent implements OnInit {
   communicationService = inject(CommunicationService);
   authService = inject(AuthService);
+  exportService = inject(ExportService);
 
   activeTab = signal<'mural' | 'bi'>('mural');
   showNewAnnouncementForm = signal(false);
@@ -319,6 +303,29 @@ export class ComunicacaoComponent implements OnInit {
     if (confirm('Tem certeza que deseja excluir este aviso?')) {
       await this.communicationService.removeAnnouncement(id);
     }
+  }
+
+  exportarRelatorioBI() {
+    // Mock data for BI report
+    const data = [
+      { metrica: 'Custo de Mão de Obra (Equipe Fixa)', valor: 'R$ 8.450', periodo: 'Semana Atual' },
+      { metrica: 'Custo de Mão de Obra (Freelancers)', valor: 'R$ 2.100', periodo: 'Semana Atual' },
+      { metrica: 'Custo Total de Mão de Obra', valor: 'R$ 10.550', periodo: 'Semana Atual' },
+      { metrica: 'Conformidade Sanitária', valor: '92%', periodo: 'Mês Atual' },
+      { metrica: 'Itens Não Conformes', valor: '8%', periodo: 'Mês Atual' },
+      { metrica: 'Requisições Atendidas', valor: '85%', periodo: 'Semana Atual' },
+      { metrica: 'Requisições Pendentes', valor: '15%', periodo: 'Semana Atual' },
+      { metrica: 'Desperdício Estimado', valor: '4.2%', periodo: 'Semana Atual' },
+      { metrica: 'Meta de Desperdício', valor: '< 5%', periodo: 'Semana Atual' }
+    ];
+
+    const headers = [
+      { key: 'metrica', label: 'Métrica' },
+      { key: 'valor', label: 'Valor' },
+      { key: 'periodo', label: 'Período' }
+    ];
+
+    this.exportService.exportToCsv('Relatorio_Gerencial_BI', data, headers);
   }
 }
 

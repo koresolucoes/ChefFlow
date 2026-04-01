@@ -5,6 +5,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { PrepTaskService, PrepTask } from '../services/prep-task.service';
 import { TeamService } from '../services/team.service';
 import { AuthService } from '../services/auth.service';
+import { ExportService } from '../services/export.service';
 
 @Component({
   selector: 'app-producao',
@@ -18,9 +19,14 @@ import { AuthService } from '../services/auth.service';
           <p class="text-stone-500 mt-1">Prep list inteligente e fichas técnicas.</p>
         </div>
         <div class="flex gap-3">
+          <button (click)="exportarRelatorio()" class="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2">
+            <mat-icon>download</mat-icon>
+            <span class="hidden sm:inline">Exportar CSV</span>
+          </button>
           <button (click)="toggleForm()" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
             <mat-icon>{{ showForm() ? 'close' : 'add' }}</mat-icon>
-            {{ showForm() ? 'Cancelar' : 'Nova Tarefa' }}
+            <span class="hidden sm:inline">{{ showForm() ? 'Cancelar' : 'Nova Tarefa' }}</span>
+            <span class="sm:hidden">{{ showForm() ? 'Cancelar' : 'Nova' }}</span>
           </button>
         </div>
       </header>
@@ -188,6 +194,7 @@ export class ProducaoComponent implements OnInit {
   prepTaskService = inject(PrepTaskService);
   teamService = inject(TeamService);
   authService = inject(AuthService);
+  exportService = inject(ExportService);
   private fb = inject(FormBuilder);
 
   activePraca = signal<string>('todas');
@@ -271,5 +278,25 @@ export class ProducaoComponent implements OnInit {
     if (confirm('Tem certeza que deseja remover esta tarefa?')) {
       await this.prepTaskService.removeTask(id);
     }
+  }
+
+  exportarRelatorio() {
+    const data = this.prepTaskService.tasks().map((task: PrepTask) => ({
+      tarefa: task.name,
+      descricao: task.description || '',
+      praca: task.teams?.name || 'Geral',
+      status: task.status === 'completed' ? 'Concluído' : (task.status === 'in-progress' ? 'Em Progresso' : 'Pendente'),
+      criado_em: task.created_at ? new Date(task.created_at).toLocaleDateString('pt-BR') : '-'
+    }));
+
+    const headers = [
+      { key: 'tarefa', label: 'Tarefa' },
+      { key: 'descricao', label: 'Descrição' },
+      { key: 'praca', label: 'Praça' },
+      { key: 'status', label: 'Status' },
+      { key: 'criado_em', label: 'Criado Em' }
+    ];
+
+    this.exportService.exportToCsv('Relatorio_Producao', data, headers);
   }
 }

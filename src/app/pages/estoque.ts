@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
 import { InventoryService, InventoryItem } from '../services/inventory.service';
 import { AuthService } from '../services/auth.service';
+import { ExportService } from '../services/export.service';
 
 @Component({
   selector: 'app-estoque',
@@ -17,6 +18,10 @@ import { AuthService } from '../services/auth.service';
           <p class="text-stone-500 mt-1">Controle de ingredientes e alertas de baixo estoque.</p>
         </div>
         <div class="flex gap-3">
+          <button (click)="exportarRelatorio()" class="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2">
+            <mat-icon>download</mat-icon>
+            Exportar CSV
+          </button>
           @if (canManageInventory()) {
             <button (click)="toggleForm()" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
               <mat-icon>{{ showForm() ? 'close' : 'add' }}</mat-icon>
@@ -274,6 +279,7 @@ import { AuthService } from '../services/auth.service';
 export class EstoqueComponent implements OnInit {
   inventoryService = inject(InventoryService);
   authService = inject(AuthService);
+  exportService = inject(ExportService);
   private fb = inject(FormBuilder);
 
   activeCategory = signal<string>('Todas');
@@ -317,6 +323,30 @@ export class EstoqueComponent implements OnInit {
   canManageInventory(): boolean {
     const user = this.authService.currentUser();
     return user?.role === 'admin' || user?.role === 'chef' || user?.role === 'estoque';
+  }
+
+  exportarRelatorio() {
+    const data = this.filteredItems().map(item => ({
+      nome: item.name,
+      categoria: item.category,
+      quantidade: item.quantity,
+      unidade: item.unit,
+      estoque_minimo: item.min_quantity,
+      status: item.quantity <= item.min_quantity ? 'Baixo Estoque' : 'Normal',
+      criado_em: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '-'
+    }));
+
+    const headers = [
+      { key: 'nome', label: 'Nome do Item' },
+      { key: 'categoria', label: 'Categoria' },
+      { key: 'quantidade', label: 'Quantidade Atual' },
+      { key: 'unidade', label: 'Unidade' },
+      { key: 'estoque_minimo', label: 'Estoque Mínimo' },
+      { key: 'status', label: 'Status' },
+      { key: 'criado_em', label: 'Criado Em' }
+    ];
+
+    this.exportService.exportToCsv('Relatorio_Estoque', data, headers);
   }
 
   toggleForm() {

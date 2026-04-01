@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { RequisitionService, Requisition, RequisitionItem } from '../services/requisition.service';
 import { InventoryService, InventoryItem } from '../services/inventory.service';
 import { AuthService } from '../services/auth.service';
+import { ExportService } from '../services/export.service';
 
 @Component({
   selector: 'app-requisicoes',
@@ -18,12 +19,19 @@ import { AuthService } from '../services/auth.service';
           <p class="text-stone-500">Gerencie os pedidos de insumos para a cozinha</p>
         </div>
         
-        @if (canRequest()) {
-          <button (click)="openNewModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors">
-            <mat-icon>add</mat-icon>
-            Nova Requisição
+        <div class="flex gap-3">
+          <button (click)="exportarRelatorio()" class="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2">
+            <mat-icon>download</mat-icon>
+            <span class="hidden sm:inline">Exportar CSV</span>
           </button>
-        }
+          @if (canRequest()) {
+            <button (click)="openNewModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors">
+              <mat-icon>add</mat-icon>
+              <span class="hidden sm:inline">Nova Requisição</span>
+              <span class="sm:hidden">Nova</span>
+            </button>
+          }
+        </div>
       </div>
 
       <!-- Lista de Requisições -->
@@ -310,6 +318,7 @@ export class RequisicoesComponent implements OnInit {
   private reqService = inject(RequisitionService);
   private invService = inject(InventoryService);
   private authService = inject(AuthService);
+  private exportService = inject(ExportService);
 
   requisitions = signal<Requisition[]>([]);
   inventory = signal<InventoryItem[]>([]);
@@ -340,6 +349,28 @@ export class RequisicoesComponent implements OnInit {
   getStatusLabel(status: string) {
     const map: Record<string, string> = { 'pending': 'Pendente', 'partial': 'Parcial', 'completed': 'Atendido', 'cancelled': 'Cancelado' };
     return map[status] || status;
+  }
+
+  exportarRelatorio() {
+    const data = this.requisitions().map(req => ({
+      id: req.id.substring(0, 8),
+      data: new Date(req.created_at).toLocaleDateString('pt-BR') + ' ' + new Date(req.created_at).toLocaleTimeString('pt-BR'),
+      solicitante: req.requester?.name || 'N/A',
+      status: this.getStatusLabel(req.status),
+      itens_solicitados: req.items?.length || 0,
+      observacoes: req.notes || ''
+    }));
+
+    const headers = [
+      { key: 'id', label: 'ID' },
+      { key: 'data', label: 'Data da Solicitação' },
+      { key: 'solicitante', label: 'Solicitante' },
+      { key: 'status', label: 'Status' },
+      { key: 'itens_solicitados', label: 'Qtd. Itens' },
+      { key: 'observacoes', label: 'Observações' }
+    ];
+
+    this.exportService.exportToCsv('Relatorio_Requisicoes', data, headers);
   }
 
   openNewModal() {

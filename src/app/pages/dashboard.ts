@@ -8,6 +8,7 @@ import { PrepTaskService } from '../services/prep-task.service';
 import { CleaningService } from '../services/cleaning.service';
 import { CommunicationService } from '../services/communication.service';
 import { InventoryService } from '../services/inventory.service';
+import { ExportService } from '../services/export.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,14 +16,21 @@ import { InventoryService } from '../services/inventory.service';
   imports: [MatIconModule, CommonModule, RouterModule],
   template: `
     <div class="space-y-6">
-      <header class="flex flex-col md:flex-row md:justify-between md:items-end gap-2">
+      <header class="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
         <div>
           <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">Visão Geral</h1>
           <p class="text-sm md:text-base text-stone-500 mt-1">Bem-vindo ao ChefFlow. Selecione um módulo abaixo.</p>
         </div>
-        <div class="text-left md:text-right">
-          <p class="text-xs md:text-sm font-medium text-stone-500 uppercase tracking-wider">Data</p>
-          <p class="text-base md:text-lg font-semibold text-stone-900">{{ today | date:'dd MMM yyyy':'':'pt-BR' }}</p>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div class="text-left md:text-right">
+            <p class="text-xs md:text-sm font-medium text-stone-500 uppercase tracking-wider">Data</p>
+            <p class="text-base md:text-lg font-semibold text-stone-900">{{ today | date:'dd MMM yyyy':'':'pt-BR' }}</p>
+          </div>
+          <button (click)="exportarVisaoGeral()" class="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
+            <mat-icon>download</mat-icon>
+            <span class="hidden sm:inline">Exportar Visão Geral</span>
+            <span class="sm:hidden">Exportar</span>
+          </button>
         </div>
       </header>
 
@@ -197,6 +205,7 @@ export class DashboardComponent implements OnInit {
   cleaningService = inject(CleaningService);
   communicationService = inject(CommunicationService);
   inventoryService = inject(InventoryService);
+  exportService = inject(ExportService);
 
   today = new Date();
   todayStr = this.today.toISOString().split('T')[0];
@@ -241,5 +250,21 @@ export class DashboardComponent implements OnInit {
     this.cleaningService.loadTasks(undefined, this.todayStr);
     this.communicationService.loadAnnouncements();
     this.inventoryService.loadItems();
+  }
+
+  exportarVisaoGeral() {
+    const data = [
+      { metrica: 'Equipe Presente', valor: `${this.teamPresent()} / ${this.teamTotal()}` },
+      { metrica: 'Progresso Prep List', valor: `${this.prepProgress()}%` },
+      { metrica: 'Limpeza Fechamento', valor: `${this.cleaningFechamento().completed} / ${this.cleaningFechamento().total} tarefas (${this.cleaningFechamento().isDone ? 'Concluído' : 'Pendente'})` },
+      { metrica: 'Itens Estoque Baixo', valor: `${this.lowStockItems().length} itens` }
+    ];
+
+    const headers = [
+      { key: 'metrica', label: 'Métrica (Visão Geral)' },
+      { key: 'valor', label: 'Valor Atual' }
+    ];
+
+    this.exportService.exportToCsv('Visao_Geral_Dashboard', data, headers);
   }
 }

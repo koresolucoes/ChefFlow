@@ -6,6 +6,7 @@ import { TeamService } from '../services/team.service';
 import { ScheduleService, Schedule } from '../services/schedule.service';
 import { TimeTrackingService } from '../services/time-tracking.service';
 import { AuthService } from '../services/auth.service';
+import { ExportService } from '../services/export.service';
 
 @Component({
   selector: 'app-escalas',
@@ -260,6 +261,10 @@ import { AuthService } from '../services/auth.service';
                 <p class="text-sm text-stone-500">Registro de entradas e saídas.</p>
               </div>
               <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <button (click)="exportarPonto()" class="w-full sm:w-auto px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                  <mat-icon>download</mat-icon>
+                  <span class="hidden sm:inline">Exportar CSV</span>
+                </button>
                 <select #pontoUser (change)="0" class="w-full sm:w-auto border border-stone-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
                   <option value="">Selecione o Freelancer</option>
                   @for (member of getFreelancers(); track member.id) {
@@ -472,6 +477,7 @@ export class EscalasComponent implements OnInit {
   scheduleService = inject(ScheduleService);
   timeTrackingService = inject(TimeTrackingService);
   authService = inject(AuthService);
+  exportService = inject(ExportService);
 
   activeTab = signal<'escala' | 'freelancers' | 'ponto'>('escala');
   
@@ -687,5 +693,34 @@ export class EscalasComponent implements OnInit {
         await this.scheduleService.saveSchedule(schedule);
       }
     }
+  }
+
+  exportarPonto() {
+    const data = this.timeTrackingService.entries().map(entry => ({
+      nome: entry.users?.name || 'Desconhecido',
+      funcao: entry.users?.role || 'N/A',
+      data: new Date(entry.clock_in).toLocaleDateString('pt-BR'),
+      entrada: new Date(entry.clock_in).toLocaleTimeString('pt-BR'),
+      saida: entry.clock_out ? new Date(entry.clock_out).toLocaleTimeString('pt-BR') : 'Em andamento',
+      horas_trabalhadas: entry.clock_out ? this.calcularHoras(entry.clock_in, entry.clock_out) : '-'
+    }));
+
+    const headers = [
+      { key: 'nome', label: 'Nome' },
+      { key: 'funcao', label: 'Função' },
+      { key: 'data', label: 'Data' },
+      { key: 'entrada', label: 'Entrada' },
+      { key: 'saida', label: 'Saída' },
+      { key: 'horas_trabalhadas', label: 'Horas Trabalhadas' }
+    ];
+
+    this.exportService.exportToCsv('Relatorio_Ponto_Digital', data, headers);
+  }
+
+  calcularHoras(inTime: string, outTime: string): string {
+    const diff = new Date(outTime).getTime() - new Date(inTime).getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${minutes}m`;
   }
 }
