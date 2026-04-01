@@ -30,10 +30,15 @@ import autoTable from 'jspdf-autotable';
               <span class="sm:hidden">Relatório</span>
             </button>
             @if (canManageTasks()) {
-              <button type="button" (click)="showNewTaskForm.set(true)" class="flex-1 sm:flex-none justify-center px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
-                <mat-icon>add</mat-icon>
-                <span class="hidden sm:inline">Novo Registro</span>
-                <span class="sm:hidden">Novo</span>
+              <button type="button" (click)="openNewChecklistForm()" class="flex-1 sm:flex-none justify-center px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
+                <mat-icon>add_task</mat-icon>
+                <span class="hidden sm:inline">Novo Item Checklist</span>
+                <span class="sm:hidden">Checklist</span>
+              </button>
+              <button type="button" (click)="openNewEquipmentForm()" class="flex-1 sm:flex-none justify-center px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
+                <mat-icon>kitchen</mat-icon>
+                <span class="hidden sm:inline">Novo Equipamento</span>
+                <span class="sm:hidden">Equip.</span>
               </button>
             }
           </div>
@@ -85,7 +90,7 @@ import autoTable from 'jspdf-autotable';
         <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold text-stone-900">
-              Novo Registro
+              {{ newTask.category === 'checklist' ? 'Novo Item de Checklist' : 'Novo Equipamento (Termometria)' }}
             </h2>
             <button type="button" (click)="showNewTaskForm.set(false)" class="text-stone-400 hover:text-stone-600">
               <mat-icon>close</mat-icon>
@@ -96,20 +101,12 @@ import autoTable from 'jspdf-autotable';
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="md:col-span-2">
                 <label for="task-title" class="block text-sm font-medium text-stone-700 mb-1">
-                  Título da Tarefa / Equipamento
+                  {{ newTask.category === 'checklist' ? 'Título da Tarefa' : 'Nome do Equipamento' }}
                 </label>
                 <input id="task-title" type="text" [(ngModel)]="newTask.title" name="title" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
               </div>
-              
-              <div>
-                <label for="task-category" class="block text-sm font-medium text-stone-700 mb-1">Categoria</label>
-                <select id="task-category" [(ngModel)]="newTask.category" name="category" required class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900 bg-white">
-                  <option value="checklist">Checklist</option>
-                  <option value="termometria">Termometria</option>
-                </select>
-              </div>
 
-              <div>
+              <div class="md:col-span-2">
                 <span id="task-moments-label" class="block text-sm font-medium text-stone-700 mb-1">Momentos do Plantão</span>
                 <div class="flex flex-wrap gap-3 mt-2" aria-labelledby="task-moments-label">
                   <label class="flex items-center gap-2 text-sm text-stone-700">
@@ -448,6 +445,32 @@ export class LimpezaComponent implements OnInit {
     }, { allowSignalWrites: true });
   }
 
+  openNewChecklistForm() {
+    this.newTask = {
+      title: '',
+      category: 'checklist',
+      description: '',
+      target_value: ''
+    };
+    this.newTaskMinTemp = null;
+    this.newTaskMaxTemp = null;
+    this.newTaskShiftMoments = [this.activeTab()];
+    this.showNewTaskForm.set(true);
+  }
+
+  openNewEquipmentForm() {
+    this.newTask = {
+      title: '',
+      category: 'termometria',
+      description: '',
+      target_value: ''
+    };
+    this.newTaskMinTemp = null;
+    this.newTaskMaxTemp = null;
+    this.newTaskShiftMoments = [this.activeTab()];
+    this.showNewTaskForm.set(true);
+  }
+
   ngOnInit() {
     this.cleaningService.loadTasks(undefined, this.selectedDate());
   }
@@ -468,12 +491,12 @@ export class LimpezaComponent implements OnInit {
 
   canManageTasks() {
     const role = this.authService.currentUser()?.role;
-    return role === 'admin' || role === 'chef';
+    return role === 'admin' || role === 'chef' || role === 'auditor';
   }
 
   canEditTasks() {
     const role = this.authService.currentUser()?.role;
-    return role !== 'auditor';
+    return role === 'admin' || role === 'chef' || role === 'auditor' || role === 'cook';
   }
 
   async onSubmit() {

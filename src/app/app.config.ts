@@ -3,7 +3,7 @@ import {
   provideBrowserGlobalErrorListeners,
   LOCALE_ID
 } from '@angular/core';
-import {provideRouter} from '@angular/router';
+import {provideRouter, withHashLocation} from '@angular/router';
 import {provideHttpClient, withFetch, withInterceptors} from '@angular/common/http';
 import { registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
@@ -17,7 +17,7 @@ import {ssrInterceptor} from './interceptors/ssr.interceptor';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(), 
-    provideRouter(routes),
+    provideRouter(routes, withHashLocation()),
     provideHttpClient(
       withFetch(),
       withInterceptors([ssrInterceptor, authInterceptor])

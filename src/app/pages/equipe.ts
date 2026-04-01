@@ -84,6 +84,8 @@ import { TeamService } from '../services/team.service';
               <select id="member-role" formControlName="role" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
                 <option value="cook">Cozinheiro / Auxiliar</option>
                 <option value="chef">Chef de Praça</option>
+                <option value="estoque">Estoquista</option>
+                <option value="auditor">Nutricionista / Auditor</option>
                 <option value="admin">Chef Executivo / Admin</option>
               </select>
             </div>
@@ -183,6 +185,8 @@ import { TeamService } from '../services/team.service';
                           [ngClass]="{
                             'bg-emerald-100 text-emerald-800': member.role === 'admin',
                             'bg-amber-100 text-amber-800': member.role === 'chef',
+                            'bg-blue-100 text-blue-800': member.role === 'estoque',
+                            'bg-purple-100 text-purple-800': member.role === 'auditor',
                             'bg-stone-100 text-stone-800': member.role === 'cook'
                           }">
                       {{ getRoleLabel(member.role) }}
@@ -241,6 +245,8 @@ import { TeamService } from '../services/team.service';
                                 [ngClass]="{
                                   'bg-emerald-100 text-emerald-800': member.role === 'admin',
                                   'bg-amber-100 text-amber-800': member.role === 'chef',
+                                  'bg-blue-100 text-blue-800': member.role === 'estoque',
+                                  'bg-purple-100 text-purple-800': member.role === 'auditor',
                                   'bg-stone-100 text-stone-800': member.role === 'cook'
                                 }">
                             {{ getRoleLabel(member.role) }}
@@ -318,7 +324,9 @@ export class EquipeComponent implements OnInit {
     const roles: Record<string, string> = {
       'admin': 'Admin / Executivo',
       'chef': 'Chef de Praça',
-      'cook': 'Cozinheiro'
+      'cook': 'Cozinheiro',
+      'estoque': 'Estoquista',
+      'auditor': 'Nutricionista'
     };
     return roles[role] || role;
   }
@@ -331,7 +339,7 @@ export class EquipeComponent implements OnInit {
         name: formValue.name || '',
         email: formValue.email || '',
         password: formValue.password || '',
-        role: (formValue.role || 'cook') as 'admin' | 'chef' | 'cook',
+        role: (formValue.role || 'cook') as 'admin' | 'chef' | 'cook' | 'estoque' | 'auditor',
         team_id: formValue.team_id || undefined
       };
       
