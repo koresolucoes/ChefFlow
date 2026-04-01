@@ -110,7 +110,7 @@ import { AuthService } from '../services/auth.service';
                       </div>
                       <div class="divide-y divide-stone-100">
                         @for (date of weekDates(); track date) {
-                          <div class="p-3 flex justify-between items-center hover:bg-stone-50 transition-colors" [class.cursor-pointer]="canManage()" (click)="canManage() && abrirModalEdicao(member.id, date)">
+                          <div class="p-3 flex justify-between items-center hover:bg-stone-50 transition-colors" [class.cursor-pointer]="canManage()" (click)="canManage() && abrirModalEdicao(member.id, date)" (keydown.enter)="canManage() && abrirModalEdicao(member.id, date)" [attr.tabindex]="canManage() ? 0 : -1" [attr.role]="canManage() ? 'button' : null">
                             <span class="text-sm font-medium text-stone-700 w-24">{{ date | date:'EEE (dd)' }}</span>
                             <div class="flex-1 flex justify-end">
                               @if (getSchedule(member.id, date); as schedule) {

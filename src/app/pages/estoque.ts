@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
 import { InventoryService, InventoryItem } from '../services/inventory.service';
 import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-estoque',
   standalone: true,
-  imports: [MatIconModule, CommonModule, ReactiveFormsModule],
+  imports: [MatIconModule, CommonModule, ReactiveFormsModule, FormsModule],
   template: `
     <div class="space-y-6">
       <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
