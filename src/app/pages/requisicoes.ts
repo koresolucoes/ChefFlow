@@ -158,77 +158,71 @@ import { TeamService } from '../services/team.service';
 
       <!-- Modal Nova Requisição (Para Cozinheiros/Chefs) -->
       @if (showNewModal()) {
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
-            <div class="p-4 md:p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50 rounded-t-2xl">
-              <h2 class="text-lg md:text-xl font-bold text-stone-800 flex items-center gap-2">
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-0 sm:p-4">
+          <div class="bg-white sm:rounded-2xl shadow-xl w-full h-full sm:h-[90vh] max-w-3xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <!-- Header -->
+            <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50 sm:rounded-t-2xl shrink-0">
+              <h2 class="text-lg font-bold text-stone-800 flex items-center gap-2">
                 <mat-icon class="text-emerald-600">add_shopping_cart</mat-icon>
                 Nova Requisição
               </h2>
               <button (click)="closeNewModal()" class="text-stone-400 hover:text-stone-600 p-2 rounded-full hover:bg-stone-200 transition-colors"><mat-icon>close</mat-icon></button>
             </div>
             
-            <div class="p-4 md:p-6 overflow-y-auto flex-1">
-              <div class="mb-6 bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
-                <label for="req-product" class="block text-sm font-bold text-stone-700 mb-2 uppercase tracking-wider">Adicionar Item</label>
-                <div class="flex flex-col sm:flex-row gap-3">
-                  <select id="req-product" [(ngModel)]="selectedProductId" class="flex-1 border-2 border-stone-200 rounded-xl px-4 py-3 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all text-stone-800 font-medium bg-stone-50">
-                    <option value="">Selecione um produto...</option>
-                    @for (item of inventory(); track item.id) {
-                      <option [value]="item.id">{{ item.name }} ({{ item.unit }}) - Estoque: {{ item.quantity }}</option>
-                    }
-                  </select>
-                  <div class="flex gap-2">
-                    <input type="number" [(ngModel)]="selectedQuantity" placeholder="Qtd" min="0.1" step="0.1" class="w-full sm:w-24 border-2 border-stone-200 rounded-xl px-4 py-3 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all text-center font-bold text-stone-800 bg-stone-50">
-                    <button (click)="addDraftItem()" class="bg-stone-900 text-white px-4 py-3 rounded-xl hover:bg-stone-800 transition-colors shadow-sm flex items-center justify-center shrink-0 active:scale-95">
-                      <mat-icon>add</mat-icon>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              @if (draftItems().length > 0) {
-                <div class="mt-6">
-                  <h3 class="text-sm font-bold text-stone-700 mb-3 uppercase tracking-wider flex items-center gap-2">
-                    <mat-icon class="text-[18px] w-4.5 h-4.5 text-emerald-600">list_alt</mat-icon>
-                    Itens Solicitados ({{ draftItems().length }})
-                  </h3>
-                  <ul class="divide-y divide-stone-100 border border-stone-200 rounded-xl bg-white shadow-sm overflow-hidden">
-                    @for (item of draftItems(); track item.product_id; let i = $index) {
-                      <li class="p-4 flex justify-between items-center hover:bg-stone-50 transition-colors">
-                        <div class="flex items-center gap-3">
-                          <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                            {{ item.quantity_requested }}
-                          </div>
-                          <div>
-                            <span class="font-bold text-stone-800 block">{{ getProductName(item.product_id) }}</span>
-                            <span class="text-stone-500 text-xs font-medium uppercase tracking-wider">{{ getProductUnit(item.product_id) }}</span>
-                          </div>
-                        </div>
-                        <button (click)="removeDraftItem(i)" class="p-2 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors">
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </li>
-                    }
-                  </ul>
-                </div>
-              }
-
-              <div class="mt-6">
-                <label for="req-notes" class="block text-sm font-bold text-stone-700 mb-2 uppercase tracking-wider">Observações (Opcional)</label>
-                <textarea id="req-notes" [(ngModel)]="draftNotes" rows="3" class="w-full border-2 border-stone-200 rounded-xl px-4 py-3 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none bg-stone-50" placeholder="Ex: Urgente para o jantar, precisamos para a praça de grelhados..."></textarea>
+            <!-- Search -->
+            <div class="p-4 border-b border-stone-100 shrink-0">
+              <div class="relative">
+                <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">search</mat-icon>
+                <input type="text" [ngModel]="modalSearchQuery()" (ngModelChange)="modalSearchQuery.set($event)" placeholder="Buscar ingredientes..." class="w-full pl-10 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors text-base">
               </div>
             </div>
 
-            <div class="p-4 md:p-6 border-t border-stone-100 bg-stone-50 rounded-b-2xl flex flex-col-reverse sm:flex-row justify-end gap-3">
-              <button (click)="closeNewModal()" class="w-full sm:w-auto px-6 py-3 text-stone-600 font-bold hover:bg-stone-200 rounded-xl transition-colors text-center">Cancelar</button>
-              <button (click)="submitRequisition()" [disabled]="draftItems().length === 0 || isSubmitting()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-bold disabled:opacity-50 transition-colors shadow-sm flex items-center justify-center gap-2 active:scale-95">
+            <!-- List -->
+            <div class="overflow-y-auto flex-1 bg-stone-50/50">
+              @for (category of modalCategories(); track category) {
+                <div class="sticky top-0 bg-stone-100/95 backdrop-blur px-4 py-2 border-y border-stone-200 z-10">
+                  <h3 class="text-xs font-bold text-stone-600 uppercase tracking-wider">{{ category }}</h3>
+                </div>
+                <div class="divide-y divide-stone-100 bg-white">
+                  @for (item of getItemsByCategory(category); track item.id) {
+                    <div class="p-4 flex items-center justify-between hover:bg-stone-50 transition-colors">
+                      <div class="flex-1 pr-4">
+                        <div class="font-bold text-stone-800 text-base">{{ item.name }}</div>
+                        <div class="text-xs text-stone-500 mt-0.5">Estoque Central: {{ item.quantity }} {{ item.unit }}</div>
+                      </div>
+                      <div class="flex items-center gap-1 sm:gap-3 bg-stone-50 rounded-xl border border-stone-200 p-1">
+                        <button (click)="updateReqQty(item.id, -1)" class="w-10 h-10 flex items-center justify-center text-stone-500 hover:text-stone-800 hover:bg-stone-200 rounded-lg transition-colors active:scale-95" [disabled]="!requestedQuantities()[item.id]">
+                          <mat-icon>remove</mat-icon>
+                        </button>
+                        <input type="number" [value]="requestedQuantities()[item.id] || ''" (input)="setReqQty(item.id, $event)" placeholder="0" min="0" step="0.5" class="w-12 text-center bg-transparent border-none focus:ring-0 p-0 font-bold text-stone-800 text-lg">
+                        <button (click)="updateReqQty(item.id, 1)" class="w-10 h-10 flex items-center justify-center text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors active:scale-95">
+                          <mat-icon>add</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+              @if (modalCategories().length === 0) {
+                <div class="p-8 text-center text-stone-500">Nenhum ingrediente encontrado.</div>
+              }
+              
+              <div class="p-4 border-t border-stone-200 bg-white mt-4">
+                <label for="req-notes" class="block text-sm font-bold text-stone-700 mb-2 uppercase tracking-wider">Observações (Opcional)</label>
+                <textarea id="req-notes" [(ngModel)]="draftNotes" rows="2" class="w-full border-2 border-stone-200 rounded-xl px-4 py-3 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none bg-stone-50" placeholder="Ex: Urgente para o jantar..."></textarea>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-stone-200 bg-white sm:rounded-b-2xl shrink-0 flex gap-3">
+              <button (click)="closeNewModal()" class="flex-1 py-3.5 text-stone-600 font-bold hover:bg-stone-100 rounded-xl transition-colors text-center">Cancelar</button>
+              <button (click)="submitRequisition()" [disabled]="draftItemsCount() === 0 || isSubmitting()" class="flex-[2] bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold disabled:opacity-50 transition-colors shadow-sm flex items-center justify-center gap-2 active:scale-95 text-lg">
                 @if (isSubmitting()) {
                   <mat-icon class="animate-spin">autorenew</mat-icon>
                   Enviando...
                 } @else {
                   <mat-icon>send</mat-icon>
-                  Enviar Pedido
+                  Pedir {{ draftItemsCount() }} {{ draftItemsCount() === 1 ? 'item' : 'itens' }}
                 }
               </button>
             </div>
@@ -370,15 +364,28 @@ export class RequisicoesComponent implements OnInit {
   isSubmitting = signal(false);
   activeTeamId = signal<string>('all');
 
-  selectedProductId = signal('');
-  selectedQuantity = signal<number | null>(null);
-  draftItems = signal<RequisitionItem[]>([]);
+  requestedQuantities = signal<Record<string, number>>({});
+  modalSearchQuery = signal('');
   draftNotes = signal('');
 
   currentUser = this.authService.currentUser;
 
   canRequest = computed(() => ['chef', 'cook', 'admin'].includes(this.currentUser()?.role || ''));
   canFulfill = computed(() => ['estoque', 'admin'].includes(this.currentUser()?.role || ''));
+
+  modalFilteredInventory = computed(() => {
+    const query = this.modalSearchQuery().toLowerCase();
+    return this.inventory().filter(i => i.name.toLowerCase().includes(query));
+  });
+
+  modalCategories = computed(() => {
+    const items = this.modalFilteredInventory();
+    return Array.from(new Set(items.map(i => i.category))).sort();
+  });
+
+  draftItemsCount = computed(() => {
+    return Object.values(this.requestedQuantities()).filter(q => q > 0).length;
+  });
 
   constructor() {
     effect(() => {
@@ -445,33 +452,41 @@ export class RequisicoesComponent implements OnInit {
   }
 
   openNewModal() {
-    this.draftItems.set([]); this.draftNotes.set(''); this.selectedProductId.set(''); this.selectedQuantity.set(null);
+    this.requestedQuantities.set({});
+    this.modalSearchQuery.set('');
+    this.draftNotes.set('');
     this.showNewModal.set(true);
   }
   closeNewModal() { this.showNewModal.set(false); }
 
-  addDraftItem() {
-    const pid = this.selectedProductId(); const qty = this.selectedQuantity();
-    if (!pid || !qty || qty <= 0) return;
-    const current = this.draftItems();
-    const existing = current.find(i => i.product_id === pid);
-    if (existing) { existing.quantity_requested += qty; this.draftItems.set([...current]); } 
-    else { this.draftItems.set([...current, { product_id: pid, quantity_requested: qty }]); }
-    this.selectedProductId.set(''); this.selectedQuantity.set(null);
+  getItemsByCategory(category: string) {
+    return this.modalFilteredInventory().filter(i => i.category === category);
   }
 
-  removeDraftItem(index: number) {
-    const current = [...this.draftItems()]; current.splice(index, 1); this.draftItems.set(current);
+  updateReqQty(productId: string, delta: number) {
+    this.requestedQuantities.update(prev => {
+      const current = prev[productId] || 0;
+      const next = Math.max(0, current + delta);
+      return { ...prev, [productId]: next };
+    });
   }
 
-  getProductName(id: string) { return this.inventory().find(i => i.id === id)?.name || 'Desconhecido'; }
-  getProductUnit(id: string) { return this.inventory().find(i => i.id === id)?.unit || ''; }
+  setReqQty(productId: string, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const val = parseFloat(input.value) || 0;
+    this.requestedQuantities.update(prev => ({ ...prev, [productId]: Math.max(0, val) }));
+  }
 
   async submitRequisition() {
-    if (this.draftItems().length === 0) return;
+    const itemsToRequest = Object.entries(this.requestedQuantities())
+      .filter(([_, qty]) => qty > 0)
+      .map(([product_id, quantity_requested]) => ({ product_id, quantity_requested }));
+      
+    if (itemsToRequest.length === 0) return;
+    
     this.isSubmitting.set(true);
     try {
-      await this.reqService.createRequisition({ notes: this.draftNotes(), items: this.draftItems() });
+      await this.reqService.createRequisition({ notes: this.draftNotes(), items: itemsToRequest });
       await this.loadData(this.activeTeamId() === 'all' ? undefined : this.activeTeamId());
       this.closeNewModal();
     } catch { alert('Erro ao criar requisição'); } 
