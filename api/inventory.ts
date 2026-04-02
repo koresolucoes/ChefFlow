@@ -66,13 +66,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         query = query.eq('team_id', team_id);
       }
 
-      const { data, error } = await query.order('name', { ascending: true });
+      const { data, error } = await query.order('item_name', { ascending: true });
 
       if (error) {
         return res.status(400).json({ error: error.message });
       }
 
-      return res.status(200).json(data);
+      const mappedData = data.map(item => ({
+        ...item,
+        name: item.item_name || item.name
+      }));
+
+      return res.status(200).json(mappedData);
     }
 
     // POST: Create a new inventory item
@@ -90,7 +95,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data, error } = await supabase
         .from('inventory')
         .insert({
-          name: name,
+          item_name: name,
           category: category || 'Geral',
           unit,
           quantity: quantity || 0,
@@ -122,7 +127,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       
       if (userRole === 'admin' || userRole === 'chef' || userRole === 'estoque') {
         if (name !== undefined) {
-          updateData.name = name;
+          updateData.item_name = name;
         }
         if (category !== undefined) updateData.category = category;
         if (unit !== undefined) updateData.unit = unit;

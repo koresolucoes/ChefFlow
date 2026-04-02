@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           team:teams(name),
           items:requisition_items(
             *,
-            inventory:inventory!product_id(name, unit)
+            inventory:inventory!product_id(item_name, unit)
           )
         `);
 
@@ -68,7 +68,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
-      return res.status(200).json(data);
+
+      const mappedData = data.map((req: any) => ({
+        ...req,
+        items: req.items ? req.items.map((item: any) => ({
+          ...item,
+          inventory: item.inventory ? {
+            ...item.inventory,
+            name: item.inventory.item_name || item.inventory.name
+          } : null
+        })) : []
+      }));
+
+      return res.status(200).json(mappedData);
     }
 
     // POST: Criar nova requisição
@@ -145,7 +157,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               const { data: pracaItem } = await supabase.from('inventory')
                 .select('*')
                 .eq('team_id', targetTeamId)
-                .eq('name', invItem.name)
+                .eq('item_name', invItem.item_name || invItem.name)
                 .single();
                 
               if (pracaItem) {
@@ -154,7 +166,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 }).eq('id', pracaItem.id);
               } else {
                 await supabase.from('inventory').insert({
-                  name: invItem.name,
+                  item_name: invItem.item_name || invItem.name,
                   category: invItem.category,
                   unit: invItem.unit,
                   quantity: Number(item.quantity_fulfilled),
