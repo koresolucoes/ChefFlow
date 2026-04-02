@@ -25,8 +25,8 @@ import { TeamService } from '../services/team.service';
           </button>
           @if (canManageInventory()) {
             <button (click)="toggleForm()" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
-              <mat-icon>{{ showForm() ? 'close' : 'add' }}</mat-icon>
-              {{ showForm() ? 'Cancelar' : 'Novo Item' }}
+              <mat-icon>{{ showForm() ? 'close' : (activeTab() === 'praca' ? 'link' : 'add') }}</mat-icon>
+              {{ showForm() ? 'Cancelar' : (activeTab() === 'praca' ? 'Vincular Item' : 'Novo Item') }}
             </button>
           }
         </div>
@@ -59,37 +59,58 @@ import { TeamService } from '../services/team.service';
       <!-- Formulário de Novo/Editar Item -->
       @if (showForm()) {
         <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
-          <h2 class="text-lg font-semibold text-stone-900 mb-4">{{ editingItem() ? 'Editar Item' : 'Adicionar Novo Item' }}</h2>
+          <h2 class="text-lg font-semibold text-stone-900 mb-4">{{ editingItem() ? 'Editar Item' : (activeTab() === 'praca' ? 'Vincular Item do Estoque Central' : 'Adicionar Novo Item') }}</h2>
           
           <form [formGroup]="itemForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="space-y-1.5 md:col-span-2">
-              <label for="item-name" class="text-sm font-medium text-stone-700">Nome do Item</label>
-              <input id="item-name" type="text" formControlName="name" placeholder="Ex: Farinha de Trigo" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
-            </div>
-            
-            <div class="space-y-1.5">
-              <label for="item-category" class="text-sm font-medium text-stone-700">Categoria</label>
-              <select id="item-category" formControlName="category" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
-                <option value="Secos">Secos</option>
-                <option value="Frios">Frios / Laticínios</option>
-                <option value="Carnes">Carnes</option>
-                <option value="Hortifruti">Hortifruti</option>
-                <option value="Bebidas">Bebidas</option>
-                <option value="Geral">Geral</option>
-              </select>
-            </div>
+            @if (activeTab() === 'praca') {
+              @if (!editingItem()) {
+                <div class="space-y-1.5 md:col-span-3">
+                  <label for="central-item" class="text-sm font-medium text-stone-700">Item do Estoque Central</label>
+                  <select id="central-item" formControlName="central_item_id" (change)="onCentralItemSelect($event)" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+                    <option value="">Selecione um item...</option>
+                    @for (cItem of availableCentralItems(); track cItem.id) {
+                      <option [value]="cItem.id">{{ cItem.name }} ({{ cItem.category }} - {{ cItem.unit }})</option>
+                    }
+                  </select>
+                </div>
+              } @else {
+                <div class="space-y-1.5 md:col-span-3">
+                  <span class="text-sm font-medium text-stone-700">Item</span>
+                  <div class="w-full px-3 py-2 bg-stone-100 border border-stone-200 rounded-lg text-stone-700 font-medium">
+                    {{ itemForm.get('name')?.value }} ({{ itemForm.get('unit')?.value }})
+                  </div>
+                </div>
+              }
+            } @else {
+              <div class="space-y-1.5 md:col-span-2">
+                <label for="item-name" class="text-sm font-medium text-stone-700">Nome do Item</label>
+                <input id="item-name" type="text" formControlName="name" placeholder="Ex: Farinha de Trigo" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              </div>
+              
+              <div class="space-y-1.5">
+                <label for="item-category" class="text-sm font-medium text-stone-700">Categoria</label>
+                <select id="item-category" formControlName="category" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+                  <option value="Secos">Secos</option>
+                  <option value="Frios">Frios / Laticínios</option>
+                  <option value="Carnes">Carnes</option>
+                  <option value="Hortifruti">Hortifruti</option>
+                  <option value="Bebidas">Bebidas</option>
+                  <option value="Geral">Geral</option>
+                </select>
+              </div>
 
-            <div class="space-y-1.5">
-              <label for="item-unit" class="text-sm font-medium text-stone-700">Unidade de Medida</label>
-              <select id="item-unit" formControlName="unit" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
-                <option value="kg">Quilograma (kg)</option>
-                <option value="g">Grama (g)</option>
-                <option value="l">Litro (L)</option>
-                <option value="ml">Mililitro (ml)</option>
-                <option value="un">Unidade (un)</option>
-                <option value="cx">Caixa (cx)</option>
-              </select>
-            </div>
+              <div class="space-y-1.5">
+                <label for="item-unit" class="text-sm font-medium text-stone-700">Unidade de Medida</label>
+                <select id="item-unit" formControlName="unit" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+                  <option value="kg">Quilograma (kg)</option>
+                  <option value="g">Grama (g)</option>
+                  <option value="l">Litro (L)</option>
+                  <option value="ml">Mililitro (ml)</option>
+                  <option value="un">Unidade (un)</option>
+                  <option value="cx">Caixa (cx)</option>
+                </select>
+              </div>
+            }
 
             <div class="space-y-1.5">
               <label for="item-quantity" class="text-sm font-medium text-stone-700">Quantidade Atual</label>
@@ -314,8 +335,10 @@ export class EstoqueComponent {
   showForm = signal(false);
   isSubmitting = signal(false);
   editingItem = signal<InventoryItem | null>(null);
+  centralItems = signal<InventoryItem[]>([]);
 
   itemForm = this.fb.group({
+    central_item_id: [''],
     name: ['', Validators.required],
     category: ['Secos', Validators.required],
     unit: ['kg', Validators.required],
@@ -327,6 +350,11 @@ export class EstoqueComponent {
     const items = this.inventoryService.items();
     const cats = new Set(items.map(i => i.category));
     return Array.from(cats).sort();
+  });
+
+  availableCentralItems = computed(() => {
+    const pracaItemNames = new Set(this.inventoryService.items().map(i => i.name.toLowerCase().trim()));
+    return this.centralItems().filter(i => !pracaItemNames.has(i.name.toLowerCase().trim()));
   });
 
   filteredItems = computed(() => {
@@ -392,11 +420,31 @@ export class EstoqueComponent {
     this.exportService.exportToCsv('Relatorio_Estoque', data, headers);
   }
 
-  toggleForm() {
+  async toggleForm() {
     this.showForm.update(v => !v);
-    if (!this.showForm()) {
-      this.itemForm.reset({ category: 'Secos', unit: 'kg', quantity: 0, min_quantity: 0 });
+    if (this.showForm()) {
+      if (this.activeTab() === 'praca') {
+        const items = await this.inventoryService.getItems('central');
+        this.centralItems.set(items);
+      }
+    } else {
+      this.itemForm.reset({ category: 'Secos', unit: 'kg', quantity: 0, min_quantity: 0, central_item_id: '' });
       this.editingItem.set(null);
+    }
+  }
+
+  onCentralItemSelect(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const id = select.value;
+    const item = this.centralItems().find(i => i.id === id);
+    if (item) {
+      this.itemForm.patchValue({
+        name: item.name,
+        category: item.category,
+        unit: item.unit
+      });
+    } else {
+      this.itemForm.patchValue({ name: '', category: 'Secos', unit: 'kg' });
     }
   }
 
@@ -424,6 +472,11 @@ export class EstoqueComponent {
   }
 
   async onSubmit() {
+    if (this.activeTab() === 'praca' && !this.editingItem() && !this.itemForm.value.central_item_id) {
+      alert('Por favor, selecione um item do estoque central para vincular.');
+      return;
+    }
+
     if (this.itemForm.valid) {
       this.isSubmitting.set(true);
       const formValue = this.itemForm.value;
