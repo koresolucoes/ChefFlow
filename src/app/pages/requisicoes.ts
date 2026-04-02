@@ -420,6 +420,7 @@ export class RequisicoesComponent implements OnInit {
     try {
       const [reqs, inv] = await Promise.all([this.reqService.getRequisitions(teamId), this.invService.getItems('central')]);
       this.requisitions.set(reqs);
+      inv.sort((a, b) => a.name.localeCompare(b.name));
       this.inventory.set(inv);
     } catch (error) { console.error(error); }
   }

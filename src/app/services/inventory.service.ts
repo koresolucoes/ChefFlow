@@ -6,6 +6,10 @@ import { firstValueFrom } from 'rxjs';
 export interface InventoryItem {
   id: string;
   name: string;
+  item_name?: string;
+  title?: string;
+  product_name?: string;
+  ingredient?: string;
   category: string;
   unit: string;
   quantity: number;
@@ -26,6 +30,7 @@ export class InventoryService {
     this.isLoading.set(true);
     try {
       const items = await this.getItems(teamId);
+      items.sort((a, b) => a.name.localeCompare(b.name));
       this.items.set(items);
     } catch (error) {
       console.error('Erro ao carregar estoque:', error);

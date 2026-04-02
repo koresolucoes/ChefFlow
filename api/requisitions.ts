@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           team:teams(name),
           items:requisition_items(
             *,
-            inventory:inventory!product_id(name, unit)
+            inventory:inventory!product_id(*)
           )
         `);
 
@@ -68,7 +68,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
-      return res.status(200).json(data);
+      
+      // Map inventory names
+      const mappedData = data.map((req: any) => ({
+        ...req,
+        items: req.items?.map((item: any) => ({
+          ...item,
+          inventory: item.inventory ? {
+            ...item.inventory,
+            name: item.inventory.name || item.inventory.title || item.inventory.item_name || item.inventory.product_name || item.inventory.ingredient || 'Desconhecido'
+          } : null
+        }))
+      }));
+
+      return res.status(200).json(mappedData);
     }
 
     // POST: Criar nova requisição
@@ -142,10 +155,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
             // Add to praça's inventory
             if (targetTeamId) {
+              const actualName = invItem.name || invItem.title || invItem.item_name || invItem.product_name || invItem.ingredient;
+              
+              // Find the correct name column
+              let nameColumn = 'name';
+              if ('title' in invItem) nameColumn = 'title';
+              else if ('item_name' in invItem) nameColumn = 'item_name';
+              else if ('product_name' in invItem) nameColumn = 'product_name';
+              else if ('ingredient' in invItem) nameColumn = 'ingredient';
+
               const { data: pracaItem } = await supabase.from('inventory')
                 .select('*')
                 .eq('team_id', targetTeamId)
-                .eq('name', invItem.name)
+                .eq(nameColumn, actualName)
                 .single();
                 
               if (pracaItem) {
@@ -153,16 +175,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                   quantity: Number(pracaItem.quantity) + Number(item.quantity_fulfilled)
                 }).eq('id', pracaItem.id);
               } else {
-                await supabase.from('inventory').insert({
-                  name: invItem.name,
-                  category: invItem.category,
-                  unit: invItem.unit,
-                  quantity: Number(item.quantity_fulfilled),
-                  min_quantity: 0,
-                  cost_per_unit: invItem.cost_per_unit,
-                  team_id: targetTeamId,
-                  tenant_id: invItem.tenant_id
-                });
+                const newItem = { ...invItem };
+                delete newItem.id;
+                delete newItem.created_at;
+                newItem.team_id = targetTeamId;
+                newItem.quantity = Number(item.quantity_fulfilled);
+                newItem.min_quantity = 0;
+                await supabase.from('inventory').insert(newItem);
               }
             }
           }
