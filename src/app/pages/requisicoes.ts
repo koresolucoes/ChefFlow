@@ -1,8 +1,8 @@
-import { Component, inject, signal, OnInit, computed, effect } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { RequisitionService, Requisition, RequisitionItem } from '../services/requisition.service';
+import { RequisitionService, Requisition } from '../services/requisition.service';
 import { InventoryService, InventoryItem } from '../services/inventory.service';
 import { AuthService } from '../services/auth.service';
 import { ExportService } from '../services/export.service';
@@ -350,7 +350,7 @@ import { TeamService } from '../services/team.service';
     </div>
   `
 })
-export class RequisicoesComponent implements OnInit {
+export class RequisicoesComponent {
   private reqService = inject(RequisitionService);
   private invService = inject(InventoryService);
   private authService = inject(AuthService);
@@ -400,10 +400,6 @@ export class RequisicoesComponent implements OnInit {
         }
       }
     });
-  }
-
-  ngOnInit() { 
-    // Handled by effect
   }
 
   canViewAllTeams(): boolean {
@@ -480,7 +476,7 @@ export class RequisicoesComponent implements OnInit {
 
   async submitRequisition() {
     const itemsToRequest = Object.entries(this.requestedQuantities())
-      .filter(([_, qty]) => qty > 0)
+      .filter(([, qty]) => qty > 0)
       .map(([product_id, quantity_requested]) => ({ product_id, quantity_requested }));
       
     if (itemsToRequest.length === 0) return;

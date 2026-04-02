@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, effect } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -313,7 +313,7 @@ import { TeamService } from '../services/team.service';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EstoqueComponent implements OnInit {
+export class EstoqueComponent {
   inventoryService = inject(InventoryService);
   authService = inject(AuthService);
   exportService = inject(ExportService);
@@ -368,10 +368,6 @@ export class EstoqueComponent implements OnInit {
         }
       }
     });
-  }
-
-  ngOnInit() {
-    // Handled by effect
   }
 
   canViewAllTeams(): boolean {

@@ -6,10 +6,6 @@ import { firstValueFrom } from 'rxjs';
 export interface InventoryItem {
   id: string;
   name: string;
-  item_name?: string;
-  title?: string;
-  product_name?: string;
-  ingredient?: string;
   category: string;
   unit: string;
   quantity: number;

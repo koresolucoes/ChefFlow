@@ -25,13 +25,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // TEMPORARY: Bypass auth to fetch schema
-    if (req.method === 'GET' && req.query.debug === 'schema') {
-      const { data: schemaData, error: schemaError } = await supabase.from('inventory').select('*').limit(1);
-      const columns = schemaData && schemaData.length > 0 ? Object.keys(schemaData[0]) : ['no_data'];
-      return res.status(200).json({ columns, schemaError });
-    }
-
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       return res.status(401).json({ error: 'Missing Authorization header' });
@@ -75,21 +68,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         query = query.eq('team_id', team_id);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query.order('name', { ascending: true });
 
       if (error) {
-        // Fetch schema to help debug
-        const { data: schemaData } = await supabase.from('inventory').select('*').limit(1);
-        const columns = schemaData && schemaData.length > 0 ? Object.keys(schemaData[0]) : ['no_data'];
-        return res.status(400).json({ error: error.message, columns });
+        return res.status(400).json({ error: error.message });
       }
 
-      const mappedData = data.map(item => ({
-        ...item,
-        name: item.name || item.title || item.item_name || item.product_name || item.ingredient || 'Desconhecido'
-      }));
-
-      return res.status(200).json(mappedData);
+      return res.status(200).json(data);
     }
 
     // POST: Create a new inventory item
@@ -104,21 +89,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Name and unit are required' });
       }
 
-      // Find the correct name column
-      const { data: schemaData } = await supabase.from('inventory').select('*').limit(1);
-      let nameColumn = 'name';
-      if (schemaData && schemaData.length > 0) {
-        const invItem = schemaData[0];
-        if ('title' in invItem) nameColumn = 'title';
-        else if ('item_name' in invItem) nameColumn = 'item_name';
-        else if ('product_name' in invItem) nameColumn = 'product_name';
-        else if ('ingredient' in invItem) nameColumn = 'ingredient';
-      }
-
       const { data, error } = await supabase
         .from('inventory')
         .insert({
-          [nameColumn]: name,
+          name: name,
           category: category || 'Geral',
           unit,
           quantity: quantity || 0,
@@ -150,17 +124,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       
       if (userRole === 'admin' || userRole === 'chef' || userRole === 'estoque') {
         if (name !== undefined) {
-          // Find the correct name column
-          const { data: schemaData } = await supabase.from('inventory').select('*').limit(1);
-          let nameColumn = 'name';
-          if (schemaData && schemaData.length > 0) {
-            const invItem = schemaData[0];
-            if ('title' in invItem) nameColumn = 'title';
-            else if ('item_name' in invItem) nameColumn = 'item_name';
-            else if ('product_name' in invItem) nameColumn = 'product_name';
-            else if ('ingredient' in invItem) nameColumn = 'ingredient';
-          }
-          updateData[nameColumn] = name;
+          updateData.name = name;
         }
         if (category !== undefined) updateData.category = category;
         if (unit !== undefined) updateData.unit = unit;
