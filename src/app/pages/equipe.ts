@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { TeamService } from '../services/team.service';
+import { TeamService, UserWithTeam } from '../services/team.service';
 
 @Component({
   selector: 'app-equipe',
@@ -61,7 +61,7 @@ import { TeamService } from '../services/team.service';
       <!-- Formulário de Membro -->
       @if (showForm()) {
         <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
-          <h2 class="text-lg font-semibold text-stone-900 mb-4">Adicionar Novo Membro</h2>
+          <h2 class="text-lg font-semibold text-stone-900 mb-4">{{ editingMember() ? 'Editar Membro' : 'Adicionar Novo Membro' }}</h2>
           
           <form [formGroup]="teamForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-1.5">
@@ -75,8 +75,8 @@ import { TeamService } from '../services/team.service';
             </div>
             
             <div class="space-y-1.5">
-              <label for="member-password" class="text-sm font-medium text-stone-700">Senha Temporária</label>
-              <input id="member-password" type="password" formControlName="password" placeholder="Mínimo 6 caracteres" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              <label for="member-password" class="text-sm font-medium text-stone-700">{{ editingMember() ? 'Nova Senha (Opcional)' : 'Senha Temporária' }}</label>
+              <input id="member-password" type="password" formControlName="password" [placeholder]="editingMember() ? 'Deixe em branco para não alterar' : 'Mínimo 6 caracteres'" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
             </div>
             
             <div class="space-y-1.5">
@@ -176,6 +176,9 @@ import { TeamService } from '../services/team.service';
                         <div class="text-xs text-stone-500">{{ member.email }}</div>
                       </div>
                     </div>
+                    <button (click)="editMember(member)" class="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar">
+                      <mat-icon class="text-[20px] w-5 h-5">edit</mat-icon>
+                    </button>
                     <button (click)="removeMember(member.id)" class="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Remover">
                       <mat-icon class="text-[20px] w-5 h-5">delete_outline</mat-icon>
                     </button>
@@ -259,6 +262,9 @@ import { TeamService } from '../services/team.service';
                         </div>
                       </td>
                       <td class="px-6 py-4 text-right">
+                        <button (click)="editMember(member)" class="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar">
+                          <mat-icon class="text-[20px] w-5 h-5">edit</mat-icon>
+                        </button>
                         <button (click)="removeMember(member.id)" class="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Remover">
                           <mat-icon class="text-[20px] w-5 h-5">delete_outline</mat-icon>
                         </button>
@@ -283,6 +289,7 @@ export class EquipeComponent implements OnInit {
   showTeamForm = signal(false);
   isSubmitting = signal(false);
   isSubmittingTeam = signal(false);
+  editingMember = signal<UserWithTeam | null>(null);
 
   teamForm = this.fb.group({
     name: ['', Validators.required],
@@ -308,7 +315,27 @@ export class EquipeComponent implements OnInit {
       this.showTeamForm.set(false);
     } else {
       this.teamForm.reset({ role: 'cook', team_id: '' });
+      this.editingMember.set(null);
+      this.teamForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
+      this.teamForm.get('password')?.updateValueAndValidity();
     }
+  }
+
+  editMember(member: UserWithTeam) {
+    this.editingMember.set(member);
+    this.teamForm.patchValue({
+      name: member.name,
+      email: member.email,
+      role: member.role,
+      team_id: member.team_id || '',
+      password: ''
+    });
+    this.teamForm.get('password')?.clearValidators();
+    this.teamForm.get('password')?.setValidators([Validators.minLength(6)]);
+    this.teamForm.get('password')?.updateValueAndValidity();
+    this.showForm.set(true);
+    this.showTeamForm.set(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   toggleTeamForm() {
@@ -335,15 +362,26 @@ export class EquipeComponent implements OnInit {
     if (this.teamForm.valid) {
       this.isSubmitting.set(true);
       const formValue = this.teamForm.value;
-      const memberData = {
+      const memberData: Partial<UserWithTeam> & { password?: string } = {
         name: formValue.name || '',
         email: formValue.email || '',
-        password: formValue.password || '',
         role: (formValue.role || 'cook') as 'admin' | 'chef' | 'cook' | 'estoque' | 'auditor',
         team_id: formValue.team_id || undefined
       };
       
-      const success = await this.teamService.addMember(memberData);
+      if (formValue.password) {
+        memberData.password = formValue.password;
+      }
+      
+      let success = false;
+      const editing = this.editingMember();
+      if (editing) {
+        memberData.id = editing.id;
+        success = await this.teamService.updateMember(memberData);
+      } else {
+        success = await this.teamService.addMember(memberData);
+      }
+      
       this.isSubmitting.set(false);
       
       if (success) {

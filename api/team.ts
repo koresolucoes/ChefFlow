@@ -102,6 +102,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(201).json(newUser?.[0]);
     }
 
+    // ATUALIZAR USUÁRIO
+    if (req.method === 'PUT') {
+      const { id, name, email, password, role, team_id } = req.body;
+
+      if (!id) {
+        return res.status(400).json({ message: 'ID do usuário é obrigatório' });
+      }
+
+      // Atualiza no Auth se tiver email ou senha
+      if (email || password) {
+        const updateData: any = {};
+        if (email) updateData.email = email;
+        if (password) updateData.password = password;
+
+        const { error: authUpdateError } = await supabase.auth.admin.updateUserById(id, updateData);
+        if (authUpdateError) {
+          return res.status(400).json({ message: authUpdateError.message });
+        }
+      }
+
+      // Atualiza na tabela users
+      const { data: updatedUser, error: updateError } = await supabase
+        .from('users')
+        .update({
+          name,
+          email,
+          role,
+          team_id: team_id || null
+        })
+        .eq('id', id)
+        .select(`
+          id, name, email, role, created_at, team_id, tenant_id,
+          teams:team_id (id, name)
+        `)
+        .single();
+
+      if (updateError) throw updateError;
+
+      return res.status(200).json(updatedUser);
+    }
+
     // DELETAR USUÁRIO
     if (req.method === 'DELETE') {
       const { id } = req.query;

@@ -68,6 +68,19 @@ export class TeamService {
     }
   }
 
+  async updateMember(member: Partial<UserWithTeam> & { password?: string }) {
+    try {
+      const updatedMember = await firstValueFrom(
+        this.http.put<UserWithTeam>(`${environment.apiUrl}/team`, member)
+      );
+      this.teamMembers.update(members => members.map(m => m.id === updatedMember.id ? updatedMember : m));
+      return true;
+    } catch (error) {
+      console.error('Erro ao atualizar membro:', error);
+      return false;
+    }
+  }
+
   async removeMember(id: string) {
     try {
       await firstValueFrom(
