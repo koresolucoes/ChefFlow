@@ -32,6 +32,30 @@ import { TeamService } from '../services/team.service';
         </div>
       </header>
 
+      <!-- Tabs -->
+      <div class="flex border-b border-stone-200 mb-6">
+        <button 
+          (click)="setTab('central')"
+          [class.border-emerald-600]="activeTab() === 'central'"
+          [class.text-emerald-600]="activeTab() === 'central'"
+          [class.border-transparent]="activeTab() !== 'central'"
+          [class.text-stone-500]="activeTab() !== 'central'"
+          class="px-6 py-3 border-b-2 font-medium text-sm transition-colors hover:text-emerald-600">
+          Estoque Central
+        </button>
+        @if (authService.currentUser()?.team_id) {
+          <button 
+            (click)="setTab('praca')"
+            [class.border-emerald-600]="activeTab() === 'praca'"
+            [class.text-emerald-600]="activeTab() === 'praca'"
+            [class.border-transparent]="activeTab() !== 'praca'"
+            [class.text-stone-500]="activeTab() !== 'praca'"
+            class="px-6 py-3 border-b-2 font-medium text-sm transition-colors hover:text-emerald-600">
+            Estoque da Praça
+          </button>
+        }
+      </div>
+
       <!-- Formulário de Novo/Editar Item -->
       @if (showForm()) {
         <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
@@ -284,6 +308,7 @@ export class EstoqueComponent {
   teamService = inject(TeamService);
   private fb = inject(FormBuilder);
 
+  activeTab = signal<'central' | 'praca'>('central');
   activeCategory = signal<string>('Todas');
   searchQuery = signal<string>('');
   showForm = signal(false);
@@ -321,10 +346,19 @@ export class EstoqueComponent {
   constructor() {
     effect(() => {
       const user = this.authService.currentUser();
+      const tab = this.activeTab();
       if (user) {
-        this.inventoryService.loadItems();
+        if (tab === 'central') {
+          this.inventoryService.loadItems('central');
+        } else if (tab === 'praca' && user.team_id) {
+          this.inventoryService.loadItems(user.team_id);
+        }
       }
     });
+  }
+
+  setTab(tab: 'central' | 'praca') {
+    this.activeTab.set(tab);
   }
 
   canManageInventory(): boolean {
@@ -404,7 +438,8 @@ export class EstoqueComponent {
           category: formValue.category || 'Geral',
           unit: formValue.unit || 'un',
           quantity: formValue.quantity || 0,
-          min_quantity: formValue.min_quantity || 0
+          min_quantity: formValue.min_quantity || 0,
+          team_id: this.activeTab() === 'central' ? 'central' : this.authService.currentUser()?.team_id
         });
       } else {
         success = await this.inventoryService.addItem({
@@ -413,7 +448,8 @@ export class EstoqueComponent {
           unit: formValue.unit || 'un',
           quantity: formValue.quantity || 0,
           min_quantity: formValue.min_quantity || 0,
-          cost_per_unit: 0
+          cost_per_unit: 0,
+          team_id: this.activeTab() === 'central' ? 'central' : this.authService.currentUser()?.team_id
         });
       }
       

@@ -414,7 +414,7 @@ export class RequisicoesComponent {
 
   async loadData(teamId?: string) {
     try {
-      const [reqs, inv] = await Promise.all([this.reqService.getRequisitions(teamId), this.invService.getItems()]);
+      const [reqs, inv] = await Promise.all([this.reqService.getRequisitions(teamId), this.invService.getItems('central')]);
       this.requisitions.set(reqs);
       inv.sort((a, b) => a.name.localeCompare(b.name));
       this.inventory.set(inv);

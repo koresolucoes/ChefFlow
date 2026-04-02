@@ -56,8 +56,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // GET: List inventory items
     if (req.method === 'GET') {
+      const { team_id } = req.query;
       let query = supabase.from('inventory').select('*');
       
+      if (team_id === 'central') {
+        query = query.is('team_id', null);
+      } else if (team_id) {
+        query = query.eq('team_id', team_id);
+      }
+
       const { data, error } = await query.order('name', { ascending: true });
 
       if (error) {
@@ -73,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(403).json({ error: 'Only admins, chefs and estoque can add inventory items' });
       }
 
-      const { name, category, unit, quantity, min_quantity, cost_per_unit } = req.body;
+      const { name, category, unit, quantity, min_quantity, cost_per_unit, team_id } = req.body;
 
       if (!name || !unit) {
         return res.status(400).json({ error: 'Name and unit are required' });
@@ -88,7 +95,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           quantity: quantity || 0,
           min_quantity: min_quantity || 0,
           cost_per_unit: cost_per_unit || 0,
-          tenant_id: userTenantId
+          tenant_id: userTenantId,
+          team_id: team_id === 'central' ? null : (team_id || null)
         })
         .select()
         .single();
@@ -119,6 +127,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (unit !== undefined) updateData.unit = unit;
         if (min_quantity !== undefined) updateData.min_quantity = min_quantity;
         if (cost_per_unit !== undefined) updateData.cost_per_unit = cost_per_unit;
+        if (team_id !== undefined) updateData.team_id = team_id === 'central' ? null : team_id;
       }
       
       if (quantity !== undefined) updateData.quantity = quantity;

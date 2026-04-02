@@ -132,14 +132,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           status: status
         }).eq('id', item.id);
           
-        // Desconta do estoque
+        // Desconta do estoque central e adiciona ao estoque da praça
         if (item.quantity_fulfilled > 0) {
-          const { data: invItem } = await supabase.from('inventory').select('*').eq('id', item.product_id).single();
-          if (invItem) {
-            // Subtract from inventory
+          const { data: centralInvItem } = await supabase.from('inventory').select('*').eq('id', item.product_id).single();
+          if (centralInvItem) {
+            // Subtract from central inventory
             await supabase.from('inventory').update({
-              quantity: Math.max(0, Number(invItem.quantity) - Number(item.quantity_fulfilled))
+              quantity: Math.max(0, Number(centralInvItem.quantity) - Number(item.quantity_fulfilled))
             }).eq('id', item.product_id);
+
+            // Add to team inventory
+            if (targetTeamId) {
+              const { data: teamInvItem } = await supabase
+                .from('inventory')
+                .select('*')
+                .eq('name', centralInvItem.name)
+                .eq('team_id', targetTeamId)
+                .single();
+
+              if (teamInvItem) {
+                await supabase.from('inventory').update({
+                  quantity: Number(teamInvItem.quantity) + Number(item.quantity_fulfilled)
+                }).eq('id', teamInvItem.id);
+              } else {
+                await supabase.from('inventory').insert({
+                  name: centralInvItem.name,
+                  category: centralInvItem.category,
+                  unit: centralInvItem.unit,
+                  quantity: Number(item.quantity_fulfilled),
+                  min_quantity: 0,
+                  cost_per_unit: centralInvItem.cost_per_unit,
+                  tenant_id: centralInvItem.tenant_id,
+                  team_id: targetTeamId
+                });
+              }
+            }
           }
         }
       }

@@ -48,6 +48,10 @@ export const routes: Routes = [
       {
         path: 'requisicoes',
         loadComponent: () => import('./pages/requisicoes').then(m => m.RequisicoesComponent)
+      },
+      {
+        path: 'contagem',
+        loadComponent: () => import('./pages/contagem').then(m => m.ContagemComponent)
       }
     ]
   },
