@@ -32,8 +32,12 @@ export class RequisitionService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl + '/requisitions';
 
-  getRequisitions() {
-    return firstValueFrom(this.http.get<Requisition[]>(this.apiUrl));
+  getRequisitions(teamId?: string) {
+    let url = this.apiUrl;
+    if (teamId) {
+      url += `?team_id=${teamId}`;
+    }
+    return firstValueFrom(this.http.get<Requisition[]>(url));
   }
 
   createRequisition(data: { notes?: string; items: RequisitionItem[] }) {

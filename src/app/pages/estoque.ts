@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed, effect } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
 import { InventoryService, InventoryItem } from '../services/inventory.service';
 import { AuthService } from '../services/auth.service';
 import { ExportService } from '../services/export.service';
+import { TeamService } from '../services/team.service';
 
 @Component({
   selector: 'app-estoque',
@@ -30,6 +31,42 @@ import { ExportService } from '../services/export.service';
           }
         </div>
       </header>
+
+      <!-- Abas de Praças (Apenas para Admin/Estoque) -->
+      @if (canViewAllTeams()) {
+        <div class="flex gap-2 overflow-x-auto pb-2 hide-scrollbar border-b border-stone-200">
+          <button 
+            (click)="setActiveTeam('central')"
+            [class.border-b-2]="activeTeamId() === 'central'"
+            [class.border-emerald-600]="activeTeamId() === 'central'"
+            [class.text-emerald-700]="activeTeamId() === 'central'"
+            [class.text-stone-500]="activeTeamId() !== 'central'"
+            [class.border-transparent]="activeTeamId() !== 'central'"
+            class="px-4 py-3 text-sm font-bold uppercase tracking-wider whitespace-nowrap transition-colors hover:text-emerald-600">
+            Estoque Central
+          </button>
+          @for (team of teamService.teams(); track team.id) {
+            <button 
+              (click)="setActiveTeam(team.id)"
+              [class.border-b-2]="activeTeamId() === team.id"
+              [class.border-emerald-600]="activeTeamId() === team.id"
+              [class.text-emerald-700]="activeTeamId() === team.id"
+              [class.text-stone-500]="activeTeamId() !== team.id"
+              [class.border-transparent]="activeTeamId() !== team.id"
+              class="px-4 py-3 text-sm font-bold uppercase tracking-wider whitespace-nowrap transition-colors hover:text-emerald-600">
+              {{ team.name }}
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center gap-3">
+          <mat-icon class="text-emerald-600">kitchen</mat-icon>
+          <div>
+            <h3 class="font-bold text-emerald-800">Estoque da Praça</h3>
+            <p class="text-sm text-emerald-600">Você está visualizando o estoque local da sua estação.</p>
+          </div>
+        </div>
+      }
 
       <!-- Formulário de Novo/Editar Item -->
       @if (showForm()) {
@@ -280,6 +317,7 @@ export class EstoqueComponent implements OnInit {
   inventoryService = inject(InventoryService);
   authService = inject(AuthService);
   exportService = inject(ExportService);
+  teamService = inject(TeamService);
   private fb = inject(FormBuilder);
 
   activeCategory = signal<string>('Todas');
@@ -287,6 +325,7 @@ export class EstoqueComponent implements OnInit {
   showForm = signal(false);
   isSubmitting = signal(false);
   editingItem = signal<InventoryItem | null>(null);
+  activeTeamId = signal<string>('central');
 
   itemForm = this.fb.group({
     name: ['', Validators.required],
@@ -316,13 +355,41 @@ export class EstoqueComponent implements OnInit {
     return items;
   });
 
+  constructor() {
+    effect(() => {
+      const user = this.authService.currentUser();
+      if (user) {
+        if (this.canViewAllTeams()) {
+          this.teamService.loadTeams();
+          this.inventoryService.loadItems(this.activeTeamId());
+        } else {
+          this.activeTeamId.set(user.team_id || 'central');
+          this.inventoryService.loadItems(user.team_id || 'central');
+        }
+      }
+    });
+  }
+
   ngOnInit() {
-    this.inventoryService.loadItems();
+    // Handled by effect
+  }
+
+  canViewAllTeams(): boolean {
+    const user = this.authService.currentUser();
+    return user?.role === 'admin' || user?.role === 'estoque';
   }
 
   canManageInventory(): boolean {
     const user = this.authService.currentUser();
-    return user?.role === 'admin' || user?.role === 'chef' || user?.role === 'estoque';
+    // Admin and Estoque can manage everything. Chefs can manage their own team's inventory.
+    if (user?.role === 'admin' || user?.role === 'estoque') return true;
+    if (user?.role === 'chef') return true;
+    return false;
+  }
+
+  setActiveTeam(teamId: string) {
+    this.activeTeamId.set(teamId);
+    this.inventoryService.loadItems(teamId);
   }
 
   exportarRelatorio() {
@@ -395,7 +462,8 @@ export class EstoqueComponent implements OnInit {
           category: formValue.category || 'Geral',
           unit: formValue.unit || 'un',
           quantity: formValue.quantity || 0,
-          min_quantity: formValue.min_quantity || 0
+          min_quantity: formValue.min_quantity || 0,
+          team_id: this.activeTeamId()
         });
       } else {
         success = await this.inventoryService.addItem({
@@ -404,7 +472,8 @@ export class EstoqueComponent implements OnInit {
           unit: formValue.unit || 'un',
           quantity: formValue.quantity || 0,
           min_quantity: formValue.min_quantity || 0,
-          cost_per_unit: 0
+          cost_per_unit: 0,
+          team_id: this.activeTeamId()
         });
       }
       

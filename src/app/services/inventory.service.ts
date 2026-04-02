@@ -12,6 +12,7 @@ export interface InventoryItem {
   min_quantity: number;
   cost_per_unit: number;
   created_at?: string;
+  team_id?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -21,10 +22,10 @@ export class InventoryService {
   items = signal<InventoryItem[]>([]);
   isLoading = signal(false);
 
-  async loadItems() {
+  async loadItems(teamId?: string) {
     this.isLoading.set(true);
     try {
-      const items = await this.getItems();
+      const items = await this.getItems(teamId);
       this.items.set(items);
     } catch (error) {
       console.error('Erro ao carregar estoque:', error);
@@ -34,9 +35,13 @@ export class InventoryService {
     }
   }
 
-  async getItems() {
+  async getItems(teamId?: string) {
+    let url = `${environment.apiUrl}/inventory`;
+    if (teamId) {
+      url += `?team_id=${teamId}`;
+    }
     return firstValueFrom(
-      this.http.get<InventoryItem[]>(`${environment.apiUrl}/inventory`)
+      this.http.get<InventoryItem[]>(url)
     );
   }
 

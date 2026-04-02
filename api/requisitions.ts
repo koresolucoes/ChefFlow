@@ -38,7 +38,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // GET: Listar requisições
     if (req.method === 'GET') {
-      const { data, error } = await supabase
+      const { team_id } = req.query;
+
+      let query = supabase
         .from('requisitions')
         .select(`
           *,
@@ -48,8 +50,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             *,
             inventory:inventory!product_id(item_name, unit)
           )
-        `)
-        .order('created_at', { ascending: false });
+        `);
+
+      if (userRole === 'cook' || userRole === 'chef') {
+        // Cooks and chefs only see their team's requisitions
+        if (userTeamId) {
+          query = query.eq('team_id', userTeamId);
+        } else {
+          // If they don't have a team, they shouldn't see any requisitions, or maybe just theirs
+          query = query.eq('requester_id', user.id);
+        }
+      } else if (team_id) {
+        // Admin/estoque can filter by team
+        query = query.eq('team_id', team_id);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       return res.status(200).json(data);
@@ -97,6 +113,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { id, items } = req.body;
       if (!id || !items) return res.status(400).json({ error: 'Requisition ID and items are required' });
 
+      const { data: reqData } = await supabase.from('requisitions').select('team_id').eq('id', id).single();
+      const targetTeamId = reqData?.team_id;
+
       let allFulfilled = true;
       let anyFulfilled = false;
 
@@ -112,13 +131,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           status: status
         }).eq('id', item.id);
           
-        // Desconta do estoque
+        // Desconta do estoque central e adiciona ao estoque da praça
         if (item.quantity_fulfilled > 0) {
-          const { data: invItem } = await supabase.from('inventory').select('quantity').eq('id', item.product_id).single();
+          const { data: invItem } = await supabase.from('inventory').select('*').eq('id', item.product_id).single();
           if (invItem) {
+            // Subtract from central
             await supabase.from('inventory').update({
               quantity: Math.max(0, Number(invItem.quantity) - Number(item.quantity_fulfilled))
             }).eq('id', item.product_id);
+
+            // Add to praça's inventory
+            if (targetTeamId) {
+              const { data: pracaItem } = await supabase.from('inventory')
+                .select('*')
+                .eq('team_id', targetTeamId)
+                .eq('item_name', invItem.item_name)
+                .single();
+                
+              if (pracaItem) {
+                await supabase.from('inventory').update({
+                  quantity: Number(pracaItem.quantity) + Number(item.quantity_fulfilled)
+                }).eq('id', pracaItem.id);
+              } else {
+                await supabase.from('inventory').insert({
+                  item_name: invItem.item_name,
+                  name: invItem.name,
+                  category: invItem.category,
+                  unit: invItem.unit,
+                  quantity: Number(item.quantity_fulfilled),
+                  min_quantity: 0,
+                  cost_per_unit: invItem.cost_per_unit,
+                  team_id: targetTeamId,
+                  tenant_id: invItem.tenant_id
+                });
+              }
+            }
           }
         }
       }

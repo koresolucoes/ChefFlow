@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, OnInit, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,6 +6,7 @@ import { RequisitionService, Requisition, RequisitionItem } from '../services/re
 import { InventoryService, InventoryItem } from '../services/inventory.service';
 import { AuthService } from '../services/auth.service';
 import { ExportService } from '../services/export.service';
+import { TeamService } from '../services/team.service';
 
 @Component({
   selector: 'app-requisicoes',
@@ -34,6 +35,42 @@ import { ExportService } from '../services/export.service';
         </div>
       </div>
 
+      <!-- Abas de Praças (Apenas para Admin/Estoque) -->
+      @if (canViewAllTeams()) {
+        <div class="flex gap-2 overflow-x-auto pb-2 mb-6 hide-scrollbar border-b border-stone-200">
+          <button 
+            (click)="setActiveTeam('all')"
+            [class.border-b-2]="activeTeamId() === 'all'"
+            [class.border-emerald-600]="activeTeamId() === 'all'"
+            [class.text-emerald-700]="activeTeamId() === 'all'"
+            [class.text-stone-500]="activeTeamId() !== 'all'"
+            [class.border-transparent]="activeTeamId() !== 'all'"
+            class="px-4 py-3 text-sm font-bold uppercase tracking-wider whitespace-nowrap transition-colors hover:text-emerald-600">
+            Todas as Praças
+          </button>
+          @for (team of teamService.teams(); track team.id) {
+            <button 
+              (click)="setActiveTeam(team.id)"
+              [class.border-b-2]="activeTeamId() === team.id"
+              [class.border-emerald-600]="activeTeamId() === team.id"
+              [class.text-emerald-700]="activeTeamId() === team.id"
+              [class.text-stone-500]="activeTeamId() !== team.id"
+              [class.border-transparent]="activeTeamId() !== team.id"
+              class="px-4 py-3 text-sm font-bold uppercase tracking-wider whitespace-nowrap transition-colors hover:text-emerald-600">
+              {{ team.name }}
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center gap-3 mb-6">
+          <mat-icon class="text-emerald-600">kitchen</mat-icon>
+          <div>
+            <h3 class="font-bold text-emerald-800">Requisições da Praça</h3>
+            <p class="text-sm text-emerald-600">Você está visualizando as requisições da sua estação.</p>
+          </div>
+        </div>
+      }
+
       <!-- Lista de Requisições -->
       <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
         <!-- Desktop View -->
@@ -43,6 +80,7 @@ import { ExportService } from '../services/export.service';
               <tr class="bg-stone-50 border-b border-stone-200 text-sm text-stone-500">
                 <th class="p-4 font-medium">Data</th>
                 <th class="p-4 font-medium">Solicitante</th>
+                <th class="p-4 font-medium">Praça</th>
                 <th class="p-4 font-medium">Status</th>
                 <th class="p-4 font-medium text-right">Ações</th>
               </tr>
@@ -52,6 +90,7 @@ import { ExportService } from '../services/export.service';
                 <tr class="hover:bg-stone-50 transition-colors">
                   <td class="p-4 text-stone-800">{{ req.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
                   <td class="p-4 text-stone-800">{{ req.requester?.name || 'N/A' }}</td>
+                  <td class="p-4 text-stone-800">{{ req.team?.name || 'Central' }}</td>
                   <td class="p-4">
                     <span class="px-2.5 py-1 rounded-full text-xs font-medium"
                       [ngClass]="{
@@ -72,7 +111,7 @@ import { ExportService } from '../services/export.service';
                 </tr>
               }
               @if (requisitions().length === 0) {
-                <tr><td colspan="4" class="p-8 text-center text-stone-500">Nenhuma requisição encontrada.</td></tr>
+                <tr><td colspan="5" class="p-8 text-center text-stone-500">Nenhuma requisição encontrada.</td></tr>
               }
             </tbody>
           </table>
@@ -102,7 +141,10 @@ import { ExportService } from '../services/export.service';
                   <div class="w-6 h-6 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center text-[10px] font-bold">
                     {{ req.requester?.name?.charAt(0) || 'U' }}
                   </div>
-                  <span class="text-sm text-stone-700">{{ req.requester?.name || 'N/A' }}</span>
+                  <div class="flex flex-col">
+                    <span class="text-sm text-stone-700 leading-tight">{{ req.requester?.name || 'N/A' }}</span>
+                    <span class="text-[10px] text-stone-500 font-medium uppercase tracking-wider">{{ req.team?.name || 'Central' }}</span>
+                  </div>
                 </div>
                 <mat-icon class="text-stone-400 text-[20px] w-5 h-5">chevron_right</mat-icon>
               </div>
@@ -319,12 +361,14 @@ export class RequisicoesComponent implements OnInit {
   private invService = inject(InventoryService);
   private authService = inject(AuthService);
   private exportService = inject(ExportService);
+  teamService = inject(TeamService);
 
   requisitions = signal<Requisition[]>([]);
   inventory = signal<InventoryItem[]>([]);
   showNewModal = signal(false);
   selectedReq = signal<Requisition | null>(null);
   isSubmitting = signal(false);
+  activeTeamId = signal<string>('all');
 
   selectedProductId = signal('');
   selectedQuantity = signal<number | null>(null);
@@ -336,11 +380,38 @@ export class RequisicoesComponent implements OnInit {
   canRequest = computed(() => ['chef', 'cook', 'admin'].includes(this.currentUser()?.role || ''));
   canFulfill = computed(() => ['estoque', 'admin'].includes(this.currentUser()?.role || ''));
 
-  ngOnInit() { this.loadData(); }
+  constructor() {
+    effect(() => {
+      const user = this.currentUser();
+      if (user) {
+        if (this.canViewAllTeams()) {
+          this.teamService.loadTeams();
+          this.loadData(this.activeTeamId() === 'all' ? undefined : this.activeTeamId());
+        } else {
+          this.activeTeamId.set(user.team_id || 'all');
+          this.loadData(user.team_id || undefined);
+        }
+      }
+    });
+  }
 
-  async loadData() {
+  ngOnInit() { 
+    // Handled by effect
+  }
+
+  canViewAllTeams(): boolean {
+    const user = this.currentUser();
+    return user?.role === 'admin' || user?.role === 'estoque';
+  }
+
+  setActiveTeam(teamId: string) {
+    this.activeTeamId.set(teamId);
+    this.loadData(teamId === 'all' ? undefined : teamId);
+  }
+
+  async loadData(teamId?: string) {
     try {
-      const [reqs, inv] = await Promise.all([this.reqService.getRequisitions(), this.invService.getItems()]);
+      const [reqs, inv] = await Promise.all([this.reqService.getRequisitions(teamId), this.invService.getItems('central')]);
       this.requisitions.set(reqs);
       this.inventory.set(inv);
     } catch (error) { console.error(error); }
@@ -401,7 +472,7 @@ export class RequisicoesComponent implements OnInit {
     this.isSubmitting.set(true);
     try {
       await this.reqService.createRequisition({ notes: this.draftNotes(), items: this.draftItems() });
-      await this.loadData();
+      await this.loadData(this.activeTeamId() === 'all' ? undefined : this.activeTeamId());
       this.closeNewModal();
     } catch { alert('Erro ao criar requisição'); } 
     finally { this.isSubmitting.set(false); }
@@ -422,7 +493,7 @@ export class RequisicoesComponent implements OnInit {
     this.isSubmitting.set(true);
     try {
       await this.reqService.fulfillRequisition(req.id, req.items);
-      await this.loadData();
+      await this.loadData(this.activeTeamId() === 'all' ? undefined : this.activeTeamId());
       this.closeDetails();
     } catch { alert('Erro ao atender requisição'); } 
     finally { this.isSubmitting.set(false); }
