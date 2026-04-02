@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           team:teams(name),
           items:requisition_items(
             *,
-            inventory:inventory!product_id(item_name, unit)
+            inventory:inventory!product_id(name, unit)
           )
         `);
 
@@ -69,18 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (error) throw error;
 
-      const mappedData = data.map((req: any) => ({
-        ...req,
-        items: req.items ? req.items.map((item: any) => ({
-          ...item,
-          inventory: item.inventory ? {
-            ...item.inventory,
-            name: item.inventory.item_name || item.inventory.name
-          } : null
-        })) : []
-      }));
-
-      return res.status(200).json(mappedData);
+      return res.status(200).json(data);
     }
 
     // POST: Criar nova requisição
@@ -143,40 +132,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           status: status
         }).eq('id', item.id);
           
-        // Desconta do estoque central e adiciona ao estoque da praça
+        // Desconta do estoque
         if (item.quantity_fulfilled > 0) {
           const { data: invItem } = await supabase.from('inventory').select('*').eq('id', item.product_id).single();
           if (invItem) {
-            // Subtract from central
+            // Subtract from inventory
             await supabase.from('inventory').update({
               quantity: Math.max(0, Number(invItem.quantity) - Number(item.quantity_fulfilled))
             }).eq('id', item.product_id);
-
-            // Add to praça's inventory
-            if (targetTeamId) {
-              const { data: pracaItem } = await supabase.from('inventory')
-                .select('*')
-                .eq('team_id', targetTeamId)
-                .eq('item_name', invItem.item_name || invItem.name)
-                .single();
-                
-              if (pracaItem) {
-                await supabase.from('inventory').update({
-                  quantity: Number(pracaItem.quantity) + Number(item.quantity_fulfilled)
-                }).eq('id', pracaItem.id);
-              } else {
-                await supabase.from('inventory').insert({
-                  item_name: invItem.item_name || invItem.name,
-                  category: invItem.category,
-                  unit: invItem.unit,
-                  quantity: Number(item.quantity_fulfilled),
-                  min_quantity: 0,
-                  cost_per_unit: invItem.cost_per_unit,
-                  team_id: targetTeamId,
-                  tenant_id: invItem.tenant_id
-                });
-              }
-            }
           }
         }
       }

@@ -12,7 +12,6 @@ export interface InventoryItem {
   min_quantity: number;
   cost_per_unit: number;
   created_at?: string;
-  team_id?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -22,10 +21,10 @@ export class InventoryService {
   items = signal<InventoryItem[]>([]);
   isLoading = signal(false);
 
-  async loadItems(teamId?: string) {
+  async loadItems() {
     this.isLoading.set(true);
     try {
-      const items = await this.getItems(teamId);
+      const items = await this.getItems();
       items.sort((a, b) => a.name.localeCompare(b.name));
       this.items.set(items);
     } catch (error) {
@@ -36,11 +35,8 @@ export class InventoryService {
     }
   }
 
-  async getItems(teamId?: string) {
-    let url = `${environment.apiUrl}/inventory`;
-    if (teamId) {
-      url += `?team_id=${teamId}`;
-    }
+  async getItems() {
+    const url = `${environment.apiUrl}/inventory`;
     return firstValueFrom(
       this.http.get<InventoryItem[]>(url)
     );

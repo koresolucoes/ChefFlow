@@ -13,7 +13,7 @@ import { TeamService } from '../services/team.service';
   imports: [MatIconModule, CommonModule, ReactiveFormsModule, FormsModule],
   template: `
     <div class="space-y-6">
-      <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
         <div>
           <h1 class="text-3xl font-bold tracking-tight text-stone-900">Estoque</h1>
           <p class="text-stone-500 mt-1">Controle de ingredientes e alertas de baixo estoque.</p>
@@ -31,42 +31,6 @@ import { TeamService } from '../services/team.service';
           }
         </div>
       </header>
-
-      <!-- Abas de Praças (Apenas para Admin/Estoque) -->
-      @if (canViewAllTeams()) {
-        <div class="flex gap-2 overflow-x-auto pb-2 hide-scrollbar border-b border-stone-200">
-          <button 
-            (click)="setActiveTeam('central')"
-            [class.border-b-2]="activeTeamId() === 'central'"
-            [class.border-emerald-600]="activeTeamId() === 'central'"
-            [class.text-emerald-700]="activeTeamId() === 'central'"
-            [class.text-stone-500]="activeTeamId() !== 'central'"
-            [class.border-transparent]="activeTeamId() !== 'central'"
-            class="px-4 py-3 text-sm font-bold uppercase tracking-wider whitespace-nowrap transition-colors hover:text-emerald-600">
-            Estoque Central
-          </button>
-          @for (team of teamService.teams(); track team.id) {
-            <button 
-              (click)="setActiveTeam(team.id)"
-              [class.border-b-2]="activeTeamId() === team.id"
-              [class.border-emerald-600]="activeTeamId() === team.id"
-              [class.text-emerald-700]="activeTeamId() === team.id"
-              [class.text-stone-500]="activeTeamId() !== team.id"
-              [class.border-transparent]="activeTeamId() !== team.id"
-              class="px-4 py-3 text-sm font-bold uppercase tracking-wider whitespace-nowrap transition-colors hover:text-emerald-600">
-              {{ team.name }}
-            </button>
-          }
-        </div>
-      } @else {
-        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center gap-3">
-          <mat-icon class="text-emerald-600">kitchen</mat-icon>
-          <div>
-            <h3 class="font-bold text-emerald-800">Estoque da Praça</h3>
-            <p class="text-sm text-emerald-600">Você está visualizando o estoque local da sua estação.</p>
-          </div>
-        </div>
-      }
 
       <!-- Formulário de Novo/Editar Item -->
       @if (showForm()) {
@@ -325,7 +289,6 @@ export class EstoqueComponent {
   showForm = signal(false);
   isSubmitting = signal(false);
   editingItem = signal<InventoryItem | null>(null);
-  activeTeamId = signal<string>('central');
 
   itemForm = this.fb.group({
     name: ['', Validators.required],
@@ -359,33 +322,16 @@ export class EstoqueComponent {
     effect(() => {
       const user = this.authService.currentUser();
       if (user) {
-        if (this.canViewAllTeams()) {
-          this.teamService.loadTeams();
-          this.inventoryService.loadItems(this.activeTeamId());
-        } else {
-          this.activeTeamId.set(user.team_id || 'central');
-          this.inventoryService.loadItems(user.team_id || 'central');
-        }
+        this.inventoryService.loadItems();
       }
     });
   }
 
-  canViewAllTeams(): boolean {
-    const user = this.authService.currentUser();
-    return user?.role === 'admin' || user?.role === 'estoque';
-  }
-
   canManageInventory(): boolean {
     const user = this.authService.currentUser();
-    // Admin and Estoque can manage everything. Chefs can manage their own team's inventory.
     if (user?.role === 'admin' || user?.role === 'estoque') return true;
     if (user?.role === 'chef') return true;
     return false;
-  }
-
-  setActiveTeam(teamId: string) {
-    this.activeTeamId.set(teamId);
-    this.inventoryService.loadItems(teamId);
   }
 
   exportarRelatorio() {
@@ -458,8 +404,7 @@ export class EstoqueComponent {
           category: formValue.category || 'Geral',
           unit: formValue.unit || 'un',
           quantity: formValue.quantity || 0,
-          min_quantity: formValue.min_quantity || 0,
-          team_id: this.activeTeamId()
+          min_quantity: formValue.min_quantity || 0
         });
       } else {
         success = await this.inventoryService.addItem({
@@ -468,8 +413,7 @@ export class EstoqueComponent {
           unit: formValue.unit || 'un',
           quantity: formValue.quantity || 0,
           min_quantity: formValue.min_quantity || 0,
-          cost_per_unit: 0,
-          team_id: this.activeTeamId()
+          cost_per_unit: 0
         });
       }
       
