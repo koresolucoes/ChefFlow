@@ -273,7 +273,7 @@ import { TeamService } from '../services/team.service';
                     <tbody class="divide-y divide-stone-100">
                       @for (item of selectedReq()!.items; track item.id) {
                         <tr class="hover:bg-stone-50 transition-colors">
-                          <td class="p-4 text-stone-800 font-bold">{{ item.inventory?.item_name }}</td>
+                          <td class="p-4 text-stone-800 font-bold">{{ item.inventory?.name }}</td>
                           <td class="p-4 text-center">
                             <span class="inline-flex items-center justify-center px-3 py-1 bg-stone-100 text-stone-700 rounded-full font-bold text-sm">
                               {{ item.quantity_requested }} <span class="text-xs ml-1 font-medium">{{ item.inventory?.unit }}</span>
@@ -301,7 +301,7 @@ import { TeamService } from '../services/team.service';
                 <div class="md:hidden divide-y divide-stone-100">
                   @for (item of selectedReq()!.items; track item.id) {
                     <div class="p-4">
-                      <div class="font-bold text-stone-800 mb-3">{{ item.inventory?.item_name }}</div>
+                      <div class="font-bold text-stone-800 mb-3">{{ item.inventory?.name }}</div>
                       <div class="flex items-center justify-between gap-4">
                         <div class="flex-1">
                           <div class="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Solicitado</div>

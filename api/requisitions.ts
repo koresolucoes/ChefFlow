@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           team:teams(name),
           items:requisition_items(
             *,
-            inventory:inventory!product_id(item_name, unit)
+            inventory:inventory!product_id(name, unit)
           )
         `);
 
@@ -145,7 +145,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               const { data: pracaItem } = await supabase.from('inventory')
                 .select('*')
                 .eq('team_id', targetTeamId)
-                .eq('item_name', invItem.item_name)
+                .eq('name', invItem.name)
                 .single();
                 
               if (pracaItem) {
@@ -154,7 +154,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 }).eq('id', pracaItem.id);
               } else {
                 await supabase.from('inventory').insert({
-                  item_name: invItem.item_name,
                   name: invItem.name,
                   category: invItem.category,
                   unit: invItem.unit,

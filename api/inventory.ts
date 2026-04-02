@@ -66,7 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         query = query.eq('team_id', team_id);
       }
 
-      const { data, error } = await query.order('item_name', { ascending: true });
+      const { data, error } = await query.order('name', { ascending: true });
 
       if (error) {
         return res.status(400).json({ error: error.message });
@@ -90,7 +90,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data, error } = await supabase
         .from('inventory')
         .insert({
-          item_name: name,
           name: name,
           category: category || 'Geral',
           unit,
@@ -124,7 +123,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (userRole === 'admin' || userRole === 'chef' || userRole === 'estoque') {
         if (name !== undefined) {
           updateData.name = name;
-          updateData.item_name = name;
         }
         if (category !== undefined) updateData.category = category;
         if (unit !== undefined) updateData.unit = unit;

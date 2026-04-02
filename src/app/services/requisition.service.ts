@@ -10,7 +10,7 @@ export interface RequisitionItem {
   quantity_fulfilled?: number;
   status?: string;
   notes?: string;
-  inventory?: { item_name: string; unit: string };
+  inventory?: { name: string; unit: string };
 }
 
 export interface Requisition {
