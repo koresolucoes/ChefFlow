@@ -414,10 +414,26 @@ export class RequisicoesComponent {
 
   async loadData(teamId?: string) {
     try {
-      const [reqs, inv] = await Promise.all([this.reqService.getRequisitions(teamId), this.invService.getItems('central')]);
+      const [reqs, centralInv] = await Promise.all([
+        this.reqService.getRequisitions(teamId), 
+        this.invService.getItems('central')
+      ]);
+      
       this.requisitions.set(reqs);
-      inv.sort((a, b) => a.name.localeCompare(b.name));
-      this.inventory.set(inv);
+      
+      const user = this.currentUser();
+      let filteredInv = centralInv;
+      
+      // Se for chef ou cook e tiver uma praça, filtra os itens do estoque central
+      // para mostrar apenas aqueles que também existem no estoque da praça.
+      if (user?.team_id && user.role !== 'admin' && user.role !== 'estoque') {
+        const pracaInv = await this.invService.getItems(user.team_id);
+        const allowedNames = new Set(pracaInv.map(i => i.name.toLowerCase().trim()));
+        filteredInv = centralInv.filter(i => allowedNames.has(i.name.toLowerCase().trim()));
+      }
+      
+      filteredInv.sort((a, b) => a.name.localeCompare(b.name));
+      this.inventory.set(filteredInv);
     } catch (error) { console.error(error); }
   }
 
