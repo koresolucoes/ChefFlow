@@ -87,7 +87,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id: userData.id,
         name: userData.name,
         email: userData.email,
-        role: userData.role
+        role: userData.role,
+        team_id: userData.team_id,
+        tenant_id: userData.tenant_id
       },
       token: authData.session.access_token
     });

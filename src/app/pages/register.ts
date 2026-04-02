@@ -11,96 +11,98 @@ import { environment } from '../../environments/environment';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule, MatIconModule],
   template: `
-    <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="min-h-screen bg-stone-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div class="sm:mx-auto sm:w-full sm:max-w-md">
-        <div class="flex justify-center text-indigo-600">
-          <mat-icon class="!w-12 !h-12 !text-5xl">restaurant</mat-icon>
+        <div class="flex justify-center mb-8">
+          <div class="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center">
+            <mat-icon class="text-emerald-600 text-4xl w-10 h-10">restaurant_menu</mat-icon>
+          </div>
         </div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Cadastre seu Restaurante
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-stone-900">
+          ChefFlow
         </h2>
-        <p class="mt-2 text-center text-sm text-gray-600">
-          Ou
-          <a routerLink="/login" class="font-medium text-indigo-600 hover:text-indigo-500">
+        <p class="mt-2 text-center text-sm text-stone-600">
+          Cadastre seu restaurante ou
+          <a routerLink="/login" class="font-medium text-emerald-600 hover:text-emerald-500">
             faça login em uma conta existente
           </a>
         </p>
       </div>
 
       <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div class="bg-white py-8 px-4 shadow-xl rounded-2xl sm:px-10 border border-stone-100">
           <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-6">
             
             <!-- Nome do Restaurante -->
             <div>
-              <label for="restaurantName" class="block text-sm font-medium text-gray-700">Nome do Restaurante</label>
-              <div class="mt-1">
+              <label for="restaurantName" class="block text-sm font-medium text-stone-700 mb-2">Nome do Restaurante</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <mat-icon class="text-stone-400 text-[20px] w-5 h-5">storefront</mat-icon>
+                </div>
                 <input id="restaurantName" type="text" formControlName="restaurantName" required
-                  class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  class="block w-full pl-10 pr-3 py-3 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-shadow" placeholder="Ex: Cantina do Chef">
               </div>
             </div>
 
             <!-- Nome do Usuário -->
             <div>
-              <label for="name" class="block text-sm font-medium text-gray-700">Seu Nome</label>
-              <div class="mt-1">
+              <label for="name" class="block text-sm font-medium text-stone-700 mb-2">Seu Nome (Chef Executivo / Admin)</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <mat-icon class="text-stone-400 text-[20px] w-5 h-5">person</mat-icon>
+                </div>
                 <input id="name" type="text" formControlName="name" required
-                  class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  class="block w-full pl-10 pr-3 py-3 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-shadow" placeholder="João Silva">
               </div>
             </div>
 
             <!-- Email -->
             <div>
-              <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-              <div class="mt-1">
+              <label for="email" class="block text-sm font-medium text-stone-700 mb-2">E-mail</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <mat-icon class="text-stone-400 text-[20px] w-5 h-5">email</mat-icon>
+                </div>
                 <input id="email" type="email" formControlName="email" required
-                  class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  class="block w-full pl-10 pr-3 py-3 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-shadow" placeholder="joao@restaurante.com">
               </div>
             </div>
 
             <!-- Senha -->
             <div>
-              <label for="password" class="block text-sm font-medium text-gray-700">Senha</label>
-              <div class="mt-1">
+              <label for="password" class="block text-sm font-medium text-stone-700 mb-2">Senha</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <mat-icon class="text-stone-400 text-[20px] w-5 h-5">lock</mat-icon>
+                </div>
                 <input id="password" type="password" formControlName="password" required
-                  class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  class="block w-full pl-10 pr-3 py-3 border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-shadow" placeholder="••••••••">
               </div>
             </div>
 
             @if (error()) {
-              <div class="rounded-md bg-red-50 p-4">
-                <div class="flex">
-                  <div class="flex-shrink-0">
-                    <mat-icon class="text-red-400">error</mat-icon>
-                  </div>
-                  <div class="ml-3">
-                    <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
-                  </div>
-                </div>
+              <div class="p-3 bg-rose-50 text-rose-700 text-sm rounded-lg border border-rose-100 flex items-start gap-2">
+                <mat-icon class="text-[18px] w-4.5 h-4.5 shrink-0">error_outline</mat-icon>
+                <span>{{ error() }}</span>
               </div>
             }
 
             @if (success()) {
-              <div class="rounded-md bg-green-50 p-4">
-                <div class="flex">
-                  <div class="flex-shrink-0">
-                    <mat-icon class="text-green-400">check_circle</mat-icon>
-                  </div>
-                  <div class="ml-3">
-                    <h3 class="text-sm font-medium text-green-800">{{ success() }}</h3>
-                  </div>
-                </div>
+              <div class="p-3 bg-emerald-50 text-emerald-700 text-sm rounded-lg border border-emerald-100 flex items-start gap-2">
+                <mat-icon class="text-[18px] w-4.5 h-4.5 shrink-0">check_circle</mat-icon>
+                <span>{{ success() }}</span>
               </div>
             }
 
             <div>
               <button type="submit" [disabled]="registerForm.invalid || loading()"
-                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 disabled:cursor-not-allowed transition-colors">
                 @if (loading()) {
                   <mat-icon class="animate-spin mr-2">refresh</mat-icon>
-                  Cadastrando...
+                  Criando conta...
                 } @else {
-                  Criar Conta
+                  Cadastrar Restaurante
                 }
               </button>
             </div>
