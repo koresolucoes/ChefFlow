@@ -74,21 +74,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (templatesError) throw templatesError;
 
-        const tasks = templates?.map(t => {
-          const log = t.cleaning_logs?.[0];
-          return {
-            id: t.id,
-            title: t.title,
-            description: t.description,
-            category: t.category,
-            shift_moment: t.shift_moment,
-            target_value: t.target_value,
-            status: log ? log.status : 'pending',
-            value: log ? log.value : undefined,
-            reason: log ? log.reason : undefined,
-            updated_at: log ? log.created_at : t.created_at
-          };
-        }) || [];
+        const tasks: any[] = [];
+        
+        templates?.forEach(t => {
+          // If it has shift_moments array, we create a task object for each moment it belongs to
+          const moments = t.shift_moments && t.shift_moments.length > 0 ? t.shift_moments : (t.shift_moment ? [t.shift_moment] : []);
+          
+          moments.forEach((moment: string) => {
+            // Find the log for this specific moment
+            const log = t.cleaning_logs?.find((l: any) => l.shift_moment === moment || (!l.shift_moment && t.shift_moment === moment));
+            
+            tasks.push({
+              id: t.id,
+              title: t.title,
+              description: t.description,
+              category: t.category,
+              shift_moment: moment,
+              target_value: t.target_value,
+              status: log ? log.status : 'pending',
+              value: log ? log.value : undefined,
+              reason: log ? log.reason : undefined,
+              updated_at: log ? log.created_at : t.created_at
+            });
+          });
+        });
 
         return res.status(200).json(tasks);
       }
@@ -106,41 +115,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(400).json({ error: 'Title, category, and at least one shift_moment are required' });
         }
 
-        const inserts = momentsToInsert.map((sm: string) => ({
+        // Insert a single template with shift_moments array
+        const insertData = {
           title,
           description,
           category,
-          shift_moment: sm,
+          shift_moment: momentsToInsert[0], // Keep for backwards compatibility
+          shift_moments: momentsToInsert,
           target_value,
           tenant_id: userTenantId
-        }));
+        };
 
         const { data, error } = await supabase
           .from('cleaning_templates')
-          .insert(inserts)
+          .insert([insertData])
           .select();
 
         if (error) throw error;
 
-        const responseData = data.map(d => ({
-          id: d.id,
-          title: d.title,
-          description: d.description,
-          category: d.category,
-          shift_moment: d.shift_moment,
-          target_value: d.target_value,
-          status: 'pending',
-          updated_at: d.created_at
-        }));
+        const responseData: any[] = [];
+        data.forEach(d => {
+          const moments = d.shift_moments && d.shift_moments.length > 0 ? d.shift_moments : [d.shift_moment];
+          moments.forEach((moment: string) => {
+            responseData.push({
+              id: d.id,
+              title: d.title,
+              description: d.description,
+              category: d.category,
+              shift_moment: moment,
+              target_value: d.target_value,
+              status: 'pending',
+              updated_at: d.created_at
+            });
+          });
+        });
 
         return res.status(201).json(responseData);
       }
 
       case 'PUT': {
-        const { id, status, reason, value } = req.body;
+        const { id, status, reason, value, shift_moment } = req.body;
 
-        if (!id || !status) {
-          return res.status(400).json({ error: 'Template ID and status are required' });
+        if (!id || !status || !shift_moment) {
+          return res.status(400).json({ error: 'Template ID, status, and shift_moment are required' });
         }
 
         const today = new Date();
@@ -150,11 +167,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const logDate = `${yyyy}-${mm}-${dd}`;
 
         if (status === 'pending') {
-           await supabase.from('cleaning_logs').delete().eq('template_id', id).eq('log_date', logDate);
+           await supabase.from('cleaning_logs').delete().eq('template_id', id).eq('log_date', logDate).eq('shift_moment', shift_moment);
            return res.status(200).json({ status: 'pending', updated_at: new Date().toISOString() });
         }
 
-        const logData: any = { template_id: id, status, user_id: user.id, log_date: logDate, tenant_id: userTenantId };
+        const logData: any = { template_id: id, status, user_id: user.id, log_date: logDate, tenant_id: userTenantId, shift_moment };
         if (reason !== undefined) logData.reason = reason;
         if (value !== undefined) logData.value = value;
 
@@ -164,6 +181,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .select('id')
           .eq('template_id', id)
           .eq('log_date', logDate)
+          .eq('shift_moment', shift_moment)
           .maybeSingle();
 
         let resultData;

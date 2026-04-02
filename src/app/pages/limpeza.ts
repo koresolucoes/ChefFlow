@@ -547,7 +547,7 @@ export class LimpezaComponent implements OnInit {
         }
         
         if (task) {
-          await this.cleaningService.updateTaskStatus(task.id, 'fechamento', 'conforme', this.shiftAnalysis(), this.shiftAnalysis());
+          await this.cleaningService.updateTaskStatus(task.id, 'fechamento', 'conforme', this.shiftAnalysis(), this.shiftAnalysis(), 'fechamento');
           this.generateReport();
           alert('Plantão encerrado e relatório gerado com sucesso!');
         }
@@ -558,11 +558,11 @@ export class LimpezaComponent implements OnInit {
   }
 
   async setStatus(task: CleaningTask, status: 'conforme' | 'nao_conforme' | 'na') {
-    await this.cleaningService.updateTaskStatus(task.id, task.category, status);
+    await this.cleaningService.updateTaskStatus(task.id, task.category, status, undefined, undefined, task.shift_moment);
   }
 
   async updateReason(task: CleaningTask, reason: string) {
-    await this.cleaningService.updateTaskStatus(task.id, task.category, 'nao_conforme', reason);
+    await this.cleaningService.updateTaskStatus(task.id, task.category, 'nao_conforme', reason, undefined, task.shift_moment);
   }
 
   validateTemperature(value: string, target?: string): boolean {
@@ -612,7 +612,7 @@ export class LimpezaComponent implements OnInit {
       newStatus = 'conforme';
     }
 
-    await this.cleaningService.updateTaskStatus(task.id, task.category, newStatus, task.reason, value);
+    await this.cleaningService.updateTaskStatus(task.id, task.category, newStatus, task.reason, value, task.shift_moment);
   }
 
   editTemperature(id: string) {
@@ -626,7 +626,7 @@ export class LimpezaComponent implements OnInit {
 
   async toggleConformity(task: CleaningTask) {
     const newStatus = task.status === 'nao_conforme' ? 'conforme' : 'nao_conforme';
-    await this.cleaningService.updateTaskStatus(task.id, task.category, newStatus);
+    await this.cleaningService.updateTaskStatus(task.id, task.category, newStatus, undefined, undefined, task.shift_moment);
   }
 
   async deleteTask(task: CleaningTask) {

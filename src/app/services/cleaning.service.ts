@@ -70,13 +70,13 @@ export class CleaningService {
     }
   }
 
-  async updateTaskStatus(id: string, category: string, status: string, reason?: string, value?: string) {
+  async updateTaskStatus(id: string, category: string, status: string, reason?: string, value?: string, shift_moment?: string) {
     this.updatingTaskId.set(id);
     this.error.set(null);
     try {
       // Optimistic update
       this.tasks.update(tasks => tasks.map(t => {
-        if (t.id === id) {
+        if (t.id === id && (!shift_moment || t.shift_moment === shift_moment)) {
           return { ...t, status: status as CleaningTask['status'], reason: reason !== undefined ? reason : t.reason, value: value !== undefined ? value : t.value };
         }
         return t;
@@ -85,10 +85,11 @@ export class CleaningService {
       const body: Record<string, unknown> = { id, category, status };
       if (reason !== undefined) body['reason'] = reason;
       if (value !== undefined) body['value'] = value;
+      if (shift_moment !== undefined) body['shift_moment'] = shift_moment;
       
       const updatedTask = await firstValueFrom(this.http.put<CleaningTask>(this.apiUrl, body));
       this.tasks.update(tasks => tasks.map(t => {
-        if (t.id === id) {
+        if (t.id === id && (!shift_moment || t.shift_moment === shift_moment)) {
           return {
             ...t,
             ...updatedTask,
