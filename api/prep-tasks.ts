@@ -66,11 +66,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `)
         .order('created_at', { ascending: false });
 
-      // If cook, only show tasks assigned to them specifically
-      if (userRole !== 'admin' && userRole !== 'chef') {
-        query = query.eq('assigned_to', user.id);
+      // Filter by team if not admin
+      if (userRole !== 'admin') {
+        if (userTeamId) {
+          query = query.eq('team_id', userTeamId);
+        } else {
+          // If no team, only see own tasks
+          query = query.eq('assigned_to', user.id);
+        }
       } else {
-        // For admin/chef, allow filtering by team if provided
+        // For admin, allow filtering by team if provided
         const { team_id } = req.query;
         if (team_id && team_id !== 'todas') {
           query = query.eq('team_id', team_id);
@@ -98,6 +103,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Name is required' });
       }
 
+      let finalTeamId = team_id || null;
+      if (userRole !== 'admin') {
+        finalTeamId = userTeamId || null;
+      }
+
       const { data, error } = await supabase
         .from('prep_tasks')
         .insert({
@@ -105,7 +115,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           name: name,
           description,
           status: status || 'pending',
-          team_id: team_id || null,
+          team_id: finalTeamId,
           assigned_to: assigned_to || null,
           due_date: due_date || null,
           tenant_id: userTenantId

@@ -19,11 +19,15 @@ export class ScheduleService {
   schedules = signal<Schedule[]>([]);
   isLoading = signal(false);
 
-  async loadSchedules(startDate: string, endDate: string) {
+  async loadSchedules(startDate: string, endDate: string, teamId?: string) {
     this.isLoading.set(true);
     try {
+      let url = `${environment.apiUrl}/schedules?start_date=${startDate}&end_date=${endDate}`;
+      if (teamId) {
+        url += `&team_id=${teamId}`;
+      }
       const data = await firstValueFrom(
-        this.http.get<Schedule[]>(`${environment.apiUrl}/schedules?start_date=${startDate}&end_date=${endDate}`)
+        this.http.get<Schedule[]>(url)
       );
       this.schedules.set(data);
     } catch (error) {

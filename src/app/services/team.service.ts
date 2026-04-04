@@ -25,11 +25,15 @@ export class TeamService {
   isLoading = signal(false);
   isLoadingTeams = signal(false);
 
-  async loadTeam() {
+  async loadTeam(teamId?: string) {
     this.isLoading.set(true);
     try {
+      let url = `${environment.apiUrl}/team`;
+      if (teamId) {
+        url += `?team_id=${teamId}`;
+      }
       const members = await firstValueFrom(
-        this.http.get<UserWithTeam[]>(`${environment.apiUrl}/team`)
+        this.http.get<UserWithTeam[]>(url)
       );
       this.teamMembers.set(members);
     } catch (error) {

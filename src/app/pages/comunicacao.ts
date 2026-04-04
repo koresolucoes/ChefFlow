@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { CommunicationService, Announcement } from '../services/communication.service';
 import { AuthService } from '../services/auth.service';
 import { ExportService } from '../services/export.service';
+import { TeamService } from '../services/team.service';
 
 @Component({
   selector: 'app-comunicacao',
@@ -35,7 +36,7 @@ import { ExportService } from '../services/export.service';
       }
 
       <!-- Tabs -->
-      <div class="border-b border-stone-200 overflow-x-auto">
+      <div class="border-b border-stone-200 overflow-x-auto flex justify-between items-center">
         <nav class="-mb-px flex space-x-6 md:space-x-8 min-w-max px-2 md:px-0" aria-label="Tabs">
           <button 
             (click)="activeTab.set('mural')"
@@ -56,6 +57,16 @@ import { ExportService } from '../services/export.service';
             Dashboard de Performance (BI)
           </button>
         </nav>
+        @if (authService.isAdmin() && activeTab() === 'mural') {
+          <div class="px-2 pb-2 md:pb-0">
+            <select [ngModel]="selectedTeamId()" (ngModelChange)="onTeamChange($event)" class="w-full sm:w-auto border border-stone-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white font-medium text-stone-700">
+              <option value="todas">Todas as Praças</option>
+              @for (team of teamService.teams(); track team.id) {
+                <option [value]="team.id">{{ team.name }}</option>
+              }
+            </select>
+          </div>
+        }
       </div>
 
       <!-- New Announcement Form -->
@@ -84,6 +95,18 @@ import { ExportService } from '../services/export.service';
                 </select>
               </div>
             </div>
+
+            @if (authService.isAdmin()) {
+              <div>
+                <label for="announcement-team" class="block text-sm font-medium text-stone-700 mb-1">Praça (Opcional - Deixe em branco para Todas)</label>
+                <select id="announcement-team" [(ngModel)]="draftTeamId" name="team_id" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
+                  <option [value]="null">Todas as Praças</option>
+                  @for (team of teamService.teams(); track team.id) {
+                    <option [value]="team.id">{{ team.name }}</option>
+                  }
+                </select>
+              </div>
+            }
             
             <div>
               <label for="announcement-content" class="block text-sm font-medium text-stone-700 mb-1">Mensagem</label>
@@ -256,18 +279,33 @@ export class ComunicacaoComponent implements OnInit {
   communicationService = inject(CommunicationService);
   authService = inject(AuthService);
   exportService = inject(ExportService);
+  teamService = inject(TeamService);
 
   activeTab = signal<'mural' | 'bi'>('mural');
   showNewAnnouncementForm = signal(false);
+  draftTeamId = signal<string | null>(null);
+  selectedTeamId = signal<string>('todas');
 
-  newAnnouncement: Partial<Announcement> = {
+  newAnnouncement: Partial<Announcement> & { team_id?: string | null } = {
     title: '',
     content: '',
-    type: 'info'
+    type: 'info',
+    team_id: null
   };
 
   ngOnInit() {
-    this.communicationService.loadAnnouncements();
+    const user = this.authService.currentUser();
+    if (user?.role === 'admin') {
+      this.teamService.loadTeams();
+      this.communicationService.loadAnnouncements(); // Admin loads all
+    } else {
+      this.communicationService.loadAnnouncements(user?.team_id);
+    }
+  }
+
+  onTeamChange(teamId: string) {
+    this.selectedTeamId.set(teamId);
+    this.communicationService.loadAnnouncements(teamId === 'todas' ? undefined : teamId);
   }
 
   canManageAnnouncements() {
@@ -287,13 +325,20 @@ export class ComunicacaoComponent implements OnInit {
     if (!this.newAnnouncement.title || !this.newAnnouncement.content) return;
     
     try {
-      await this.communicationService.addAnnouncement(this.newAnnouncement);
+      const payload = { ...this.newAnnouncement };
+      if (this.authService.isAdmin()) {
+        payload.team_id = this.draftTeamId();
+      }
+      
+      await this.communicationService.addAnnouncement(payload);
       this.showNewAnnouncementForm.set(false);
       this.newAnnouncement = {
         title: '',
         content: '',
-        type: 'info'
+        type: 'info',
+        team_id: null
       };
+      this.draftTeamId.set(null);
     } catch {
       // Error is handled by service
     }

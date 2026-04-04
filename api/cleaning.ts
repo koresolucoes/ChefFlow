@@ -39,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Get user role and tenant
   const { data: userData, error: userError } = await supabase
     .from('users')
-    .select('role, tenant_id')
+    .select('role, tenant_id, team_id')
     .eq('id', user.id)
     .single();
 
@@ -65,12 +65,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           logDate = `${yyyy}-${mm}-${dd}`;
         }
 
-        const { data: templates, error: templatesError } = await supabase
+        let query = supabase
           .from('cleaning_templates')
           .select('*, cleaning_logs(*)')
           .eq('is_active', true)
           .eq('cleaning_logs.log_date', logDate)
           .order('created_at', { ascending: true });
+
+        // Filter by team if not admin
+        if (userRole !== 'admin') {
+          if (userData.team_id) {
+            query = query.or(`team_id.eq.${userData.team_id},team_id.is.null`);
+          } else {
+            // If no team, only show global templates
+            query = query.is('team_id', null);
+          }
+        } else {
+          // For admin, allow filtering by team if provided
+          const { team_id } = req.query;
+          if (team_id && team_id !== 'todas') {
+            query = query.or(`team_id.eq.${team_id},team_id.is.null`);
+          }
+        }
+
+        const { data: templates, error: templatesError } = await query;
 
         if (templatesError) throw templatesError;
 
@@ -107,7 +125,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(403).json({ error: 'Forbidden: Only admins and chefs can create tasks' });
         }
 
-        const { title, description, category, shift_moment, shift_moments, target_value } = req.body;
+        const { title, description, category, shift_moment, shift_moments, target_value, team_id } = req.body;
         
         const momentsToInsert = shift_moments || (shift_moment ? [shift_moment] : []);
 
@@ -123,7 +141,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           shift_moment: momentsToInsert[0], // Keep for backwards compatibility
           shift_moments: momentsToInsert,
           target_value,
-          tenant_id: userTenantId
+          tenant_id: userTenantId,
+          team_id: userRole === 'admin' && team_id ? team_id : userData.team_id
         };
 
         const { data, error } = await supabase

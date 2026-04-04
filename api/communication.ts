@@ -39,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Get user role and tenant
   const { data: userData, error: userError } = await supabase
     .from('users')
-    .select('role, tenant_id')
+    .select('role, tenant_id, team_id')
     .eq('id', user.id)
     .single();
 
@@ -53,13 +53,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     switch (req.method) {
       case 'GET': {
-        const { data, error } = await supabase
+        let query = supabase
           .from('communication')
           .select(`
             *,
             author:users!communication_author_id_fkey ( name, role )
           `)
           .order('created_at', { ascending: false });
+
+        // Filter by team if not admin
+        if (userRole !== 'admin') {
+          if (userData.team_id) {
+            // Show announcements for this team OR global announcements (team_id is null)
+            query = query.or(`team_id.eq.${userData.team_id},team_id.is.null`);
+          } else {
+            // If no team, only show global announcements
+            query = query.is('team_id', null);
+          }
+        } else {
+          // For admin, allow filtering by team if provided
+          const { team_id } = req.query;
+          if (team_id && team_id !== 'todas') {
+            query = query.or(`team_id.eq.${team_id},team_id.is.null`);
+          }
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
         return res.status(200).json(data);
@@ -70,7 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(403).json({ error: 'Forbidden: Only admins and chefs can post announcements' });
         }
 
-        const { title, content, type } = req.body;
+        const { title, content, type, team_id } = req.body;
         
         if (!title || !content) {
           return res.status(400).json({ error: 'Title and content are required' });
@@ -83,7 +102,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             content, 
             type: type || 'info',
             author_id: user.id,
-            tenant_id: userTenantId
+            tenant_id: userTenantId,
+            team_id: userRole === 'admin' && team_id ? team_id : userData.team_id
           }])
           .select(`
             *,

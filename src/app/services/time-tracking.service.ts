@@ -19,10 +19,18 @@ export class TimeTrackingService {
   entries = signal<TimeEntry[]>([]);
   isLoading = signal(false);
 
-  async loadEntries(date?: string) {
+  async loadEntries(date?: string, teamId?: string) {
     this.isLoading.set(true);
     try {
-      const url = date ? `${environment.apiUrl}/time-tracking?date=${date}` : `${environment.apiUrl}/time-tracking`;
+      let url = `${environment.apiUrl}/time-tracking`;
+      const params = new URLSearchParams();
+      if (date) params.append('date', date);
+      if (teamId) params.append('team_id', teamId);
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
       const data = await firstValueFrom(this.http.get<TimeEntry[]>(url));
       this.entries.set(data);
     } catch (error) {

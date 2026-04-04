@@ -208,6 +208,15 @@ import { TeamService } from '../services/team.service';
               }
               
               <div class="p-4 border-t border-stone-200 bg-white mt-4">
+                @if (canViewAllTeams()) {
+                  <label for="req-team" class="block text-sm font-bold text-stone-700 mb-2 uppercase tracking-wider">Praça Solicitante</label>
+                  <select id="req-team" [(ngModel)]="draftTeamId" class="w-full border-2 border-stone-200 rounded-xl px-4 py-3 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-stone-50 mb-4">
+                    <option value="">Selecione uma praça...</option>
+                    @for (team of teamService.teams(); track team.id) {
+                      <option [value]="team.id">{{ team.name }}</option>
+                    }
+                  </select>
+                }
                 <label for="req-notes" class="block text-sm font-bold text-stone-700 mb-2 uppercase tracking-wider">Observações (Opcional)</label>
                 <textarea id="req-notes" [(ngModel)]="draftNotes" rows="2" class="w-full border-2 border-stone-200 rounded-xl px-4 py-3 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none bg-stone-50" placeholder="Ex: Urgente para o jantar..."></textarea>
               </div>
@@ -367,6 +376,7 @@ export class RequisicoesComponent {
   requestedQuantities = signal<Record<string, number>>({});
   modalSearchQuery = signal('');
   draftNotes = signal('');
+  draftTeamId = signal('');
 
   currentUser = this.authService.currentUser;
 
@@ -399,7 +409,7 @@ export class RequisicoesComponent {
           this.loadData(user.team_id || undefined);
         }
       }
-    });
+    }, { allowSignalWrites: true });
   }
 
   canViewAllTeams(): boolean {
@@ -468,6 +478,7 @@ export class RequisicoesComponent {
     this.requestedQuantities.set({});
     this.modalSearchQuery.set('');
     this.draftNotes.set('');
+    this.draftTeamId.set(this.activeTeamId() !== 'all' ? this.activeTeamId() : '');
     this.showNewModal.set(true);
   }
   closeNewModal() { this.showNewModal.set(false); }
@@ -496,10 +507,18 @@ export class RequisicoesComponent {
       .map(([product_id, quantity_requested]) => ({ product_id, quantity_requested }));
       
     if (itemsToRequest.length === 0) return;
+    if (this.canViewAllTeams() && !this.draftTeamId()) {
+      alert('Por favor, selecione a praça solicitante.');
+      return;
+    }
     
     this.isSubmitting.set(true);
     try {
-      await this.reqService.createRequisition({ notes: this.draftNotes(), items: itemsToRequest });
+      await this.reqService.createRequisition({ 
+        notes: this.draftNotes(), 
+        items: itemsToRequest,
+        team_id: this.canViewAllTeams() ? this.draftTeamId() : undefined
+      });
       await this.loadData(this.activeTeamId() === 'all' ? undefined : this.activeTeamId());
       this.closeNewModal();
     } catch { alert('Erro ao criar requisição'); } 

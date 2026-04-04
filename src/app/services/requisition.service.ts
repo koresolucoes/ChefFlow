@@ -40,7 +40,7 @@ export class RequisitionService {
     return firstValueFrom(this.http.get<Requisition[]>(url));
   }
 
-  createRequisition(data: { notes?: string; items: RequisitionItem[] }) {
+  createRequisition(data: { notes?: string; items: RequisitionItem[], team_id?: string }) {
     return firstValueFrom(this.http.post<Requisition>(this.apiUrl, data));
   }
 

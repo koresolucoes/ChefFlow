@@ -42,15 +42,17 @@ import { ExportService } from '../services/export.service';
               <input id="task-name" type="text" formControlName="name" placeholder="Ex: Caldo de Legumes" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
             </div>
             
-            <div class="space-y-1.5">
-              <label for="task-team" class="text-sm font-medium text-stone-700">Praça (Equipe)</label>
-              <select id="task-team" formControlName="team_id" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
-                <option value="">Nenhuma praça (Geral)</option>
-                @for (team of teamService.teams(); track team.id) {
-                  <option [value]="team.id">{{ team.name }}</option>
-                }
-              </select>
-            </div>
+            @if (authService.isAdmin()) {
+              <div class="space-y-1.5">
+                <label for="task-team" class="text-sm font-medium text-stone-700">Praça (Equipe)</label>
+                <select id="task-team" formControlName="team_id" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+                  <option value="">Nenhuma praça (Geral)</option>
+                  @for (team of teamService.teams(); track team.id) {
+                    <option [value]="team.id">{{ team.name }}</option>
+                  }
+                </select>
+              </div>
+            }
 
             <div class="space-y-1.5 md:col-span-2">
               <label for="task-description" class="text-sm font-medium text-stone-700">Descrição / Instruções</label>
@@ -73,28 +75,30 @@ import { ExportService } from '../services/export.service';
       }
 
       <!-- Praças Tabs -->
-      <div class="flex gap-2 overflow-x-auto pb-2">
-        <button 
-          (click)="filterByTeam('todas')"
-          [class.bg-stone-900]="activePraca() === 'todas'"
-          [class.text-white]="activePraca() === 'todas'"
-          [class.bg-white]="activePraca() !== 'todas'"
-          [class.text-stone-600]="activePraca() !== 'todas'"
-          class="px-4 py-2 rounded-full text-sm font-medium border border-stone-200 whitespace-nowrap transition-colors">
-          Todas as Praças
-        </button>
-        @for (team of teamService.teams(); track team.id) {
+      @if (authService.isAdmin()) {
+        <div class="flex gap-2 overflow-x-auto pb-2">
           <button 
-            (click)="filterByTeam(team.id)"
-            [class.bg-stone-900]="activePraca() === team.id"
-            [class.text-white]="activePraca() === team.id"
-            [class.bg-white]="activePraca() !== team.id"
-            [class.text-stone-600]="activePraca() !== team.id"
+            (click)="filterByTeam('todas')"
+            [class.bg-stone-900]="activePraca() === 'todas'"
+            [class.text-white]="activePraca() === 'todas'"
+            [class.bg-white]="activePraca() !== 'todas'"
+            [class.text-stone-600]="activePraca() !== 'todas'"
             class="px-4 py-2 rounded-full text-sm font-medium border border-stone-200 whitespace-nowrap transition-colors">
-            {{ team.name }}
+            Todas as Praças
           </button>
-        }
-      </div>
+          @for (team of teamService.teams(); track team.id) {
+            <button 
+              (click)="filterByTeam(team.id)"
+              [class.bg-stone-900]="activePraca() === team.id"
+              [class.text-white]="activePraca() === team.id"
+              [class.bg-white]="activePraca() !== team.id"
+              [class.text-stone-600]="activePraca() !== team.id"
+              class="px-4 py-2 rounded-full text-sm font-medium border border-stone-200 whitespace-nowrap transition-colors">
+              {{ team.name }}
+            </button>
+          }
+        </div>
+      }
 
       <!-- Prep List -->
       <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden relative" [class.opacity-60]="prepTaskService.isLoading() && prepTaskService.tasks().length > 0">
@@ -215,8 +219,11 @@ export class ProducaoComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.teamService.loadTeams();
-    this.prepTaskService.loadTasks();
+    if (this.authService.isAdmin()) {
+      this.teamService.loadTeams();
+    }
+    const user = this.authService.currentUser();
+    this.prepTaskService.loadTasks(user?.role === 'admin' ? undefined : user?.team_id);
   }
 
   canManageTasks(): boolean {

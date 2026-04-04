@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { TeamService, UserWithTeam } from '../services/team.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-equipe',
@@ -16,14 +17,16 @@ import { TeamService, UserWithTeam } from '../services/team.service';
           <p class="text-stone-500 text-sm mt-1">Gerencie os membros da cozinha, seus acessos e as praças de trabalho.</p>
         </div>
         <div class="flex gap-2">
-          <button (click)="toggleTeamForm()" class="flex items-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-800 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm border border-stone-200">
-            <mat-icon class="text-[20px] w-5 h-5">{{ showTeamForm() ? 'close' : 'add' }}</mat-icon>
-            {{ showTeamForm() ? 'Cancelar' : 'Nova Praça' }}
-          </button>
-          <button (click)="toggleForm()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
-            <mat-icon class="text-[20px] w-5 h-5">{{ showForm() ? 'close' : 'add' }}</mat-icon>
-            {{ showForm() ? 'Cancelar' : 'Novo Membro' }}
-          </button>
+          @if (canManage()) {
+            <button (click)="toggleTeamForm()" class="flex items-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-800 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm border border-stone-200">
+              <mat-icon class="text-[20px] w-5 h-5">{{ showTeamForm() ? 'close' : 'add' }}</mat-icon>
+              {{ showTeamForm() ? 'Cancelar' : 'Nova Praça' }}
+            </button>
+            <button (click)="toggleForm()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm">
+              <mat-icon class="text-[20px] w-5 h-5">{{ showForm() ? 'close' : 'add' }}</mat-icon>
+              {{ showForm() ? 'Cancelar' : 'Novo Membro' }}
+            </button>
+          }
         </div>
       </div>
 
@@ -140,9 +143,11 @@ import { TeamService, UserWithTeam } from '../services/team.service';
                       <p class="text-xs text-stone-500 mt-1 line-clamp-2">{{ team.description }}</p>
                     }
                   </div>
-                  <button (click)="removeTeam(team.id)" class="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="Remover Praça">
-                    <mat-icon class="text-[18px] w-4.5 h-4.5">delete_outline</mat-icon>
-                  </button>
+                  @if (canManage()) {
+                    <button (click)="removeTeam(team.id)" class="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="Remover Praça">
+                      <mat-icon class="text-[18px] w-4.5 h-4.5">delete_outline</mat-icon>
+                    </button>
+                  }
                 </div>
               }
             }
@@ -176,12 +181,14 @@ import { TeamService, UserWithTeam } from '../services/team.service';
                         <div class="text-xs text-stone-500">{{ member.email }}</div>
                       </div>
                     </div>
-                    <button (click)="editMember(member)" class="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar">
-                      <mat-icon class="text-[20px] w-5 h-5">edit</mat-icon>
-                    </button>
-                    <button (click)="removeMember(member.id)" class="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Remover">
-                      <mat-icon class="text-[20px] w-5 h-5">delete_outline</mat-icon>
-                    </button>
+                    @if (canManage()) {
+                      <button (click)="editMember(member)" class="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar">
+                        <mat-icon class="text-[20px] w-5 h-5">edit</mat-icon>
+                      </button>
+                      <button (click)="removeMember(member.id)" class="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Remover">
+                        <mat-icon class="text-[20px] w-5 h-5">delete_outline</mat-icon>
+                      </button>
+                    }
                   </div>
                   <div class="flex items-center gap-2">
                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-medium"
@@ -262,12 +269,14 @@ import { TeamService, UserWithTeam } from '../services/team.service';
                         </div>
                       </td>
                       <td class="px-6 py-4 text-right">
-                        <button (click)="editMember(member)" class="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar">
-                          <mat-icon class="text-[20px] w-5 h-5">edit</mat-icon>
-                        </button>
-                        <button (click)="removeMember(member.id)" class="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Remover">
-                          <mat-icon class="text-[20px] w-5 h-5">delete_outline</mat-icon>
-                        </button>
+                        @if (canManage()) {
+                          <button (click)="editMember(member)" class="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar">
+                            <mat-icon class="text-[20px] w-5 h-5">edit</mat-icon>
+                          </button>
+                          <button (click)="removeMember(member.id)" class="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Remover">
+                            <mat-icon class="text-[20px] w-5 h-5">delete_outline</mat-icon>
+                          </button>
+                        }
                       </td>
                     </tr>
                   }
@@ -284,6 +293,7 @@ import { TeamService, UserWithTeam } from '../services/team.service';
 export class EquipeComponent implements OnInit {
   teamService = inject(TeamService);
   private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
 
   showForm = signal(false);
   showTeamForm = signal(false);
@@ -306,7 +316,13 @@ export class EquipeComponent implements OnInit {
 
   ngOnInit() {
     this.teamService.loadTeams();
-    this.teamService.loadTeam();
+    const user = this.authService.currentUser();
+    this.teamService.loadTeam(user?.role === 'admin' ? undefined : user?.team_id);
+  }
+
+  canManage(): boolean {
+    const role = this.authService.currentUser()?.role;
+    return role === 'admin' || role === 'chef';
   }
 
   toggleForm() {

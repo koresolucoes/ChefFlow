@@ -32,7 +32,7 @@ export class CleaningService {
   updatingTaskId = signal<string | null>(null);
   error = signal<string | null>(null);
 
-  async loadTasks(category?: string, date?: string) {
+  async loadTasks(category?: string, date?: string, teamId?: string) {
     this.loading.set(true);
     this.error.set(null);
     try {
@@ -40,6 +40,7 @@ export class CleaningService {
       const params = new URLSearchParams();
       if (category) params.append('category', category);
       if (date) params.append('date', date);
+      if (teamId) params.append('team_id', teamId);
       
       const queryString = params.toString();
       if (queryString) url += `?${queryString}`;

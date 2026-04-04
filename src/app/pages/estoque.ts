@@ -25,44 +25,56 @@ import { TeamService } from '../services/team.service';
           </button>
           @if (canManageInventory()) {
             <button (click)="toggleForm()" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
-              <mat-icon>{{ showForm() ? 'close' : (activeTab() === 'praca' ? 'link' : 'add') }}</mat-icon>
-              {{ showForm() ? 'Cancelar' : (activeTab() === 'praca' ? 'Vincular Item' : 'Novo Item') }}
+              <mat-icon>{{ showForm() ? 'close' : (activeTab() !== 'central' ? 'link' : 'add') }}</mat-icon>
+              {{ showForm() ? 'Cancelar' : (activeTab() !== 'central' ? 'Vincular Item' : 'Novo Item') }}
             </button>
           }
         </div>
       </header>
 
       <!-- Tabs -->
-      <div class="flex border-b border-stone-200 mb-6">
-        <button 
-          (click)="setTab('central')"
-          [class.border-emerald-600]="activeTab() === 'central'"
-          [class.text-emerald-600]="activeTab() === 'central'"
-          [class.border-transparent]="activeTab() !== 'central'"
-          [class.text-stone-500]="activeTab() !== 'central'"
-          class="px-6 py-3 border-b-2 font-medium text-sm transition-colors hover:text-emerald-600">
-          Estoque Central
-        </button>
-        @if (authService.currentUser()?.team_id) {
+      @if (canViewAllTeams()) {
+        <div class="flex gap-2 overflow-x-auto pb-2 mb-6 hide-scrollbar border-b border-stone-200">
           <button 
-            (click)="setTab('praca')"
-            [class.border-emerald-600]="activeTab() === 'praca'"
-            [class.text-emerald-600]="activeTab() === 'praca'"
-            [class.border-transparent]="activeTab() !== 'praca'"
-            [class.text-stone-500]="activeTab() !== 'praca'"
-            class="px-6 py-3 border-b-2 font-medium text-sm transition-colors hover:text-emerald-600">
-            Estoque da Praça
+            (click)="setTab('central')"
+            [class.border-b-2]="activeTab() === 'central'"
+            [class.border-emerald-600]="activeTab() === 'central'"
+            [class.text-emerald-700]="activeTab() === 'central'"
+            [class.text-stone-500]="activeTab() !== 'central'"
+            [class.border-transparent]="activeTab() !== 'central'"
+            class="px-4 py-3 text-sm font-bold uppercase tracking-wider whitespace-nowrap transition-colors hover:text-emerald-600">
+            Estoque Central
           </button>
-        }
-      </div>
+          @for (team of teamService.teams(); track team.id) {
+            <button 
+              (click)="setTab(team.id)"
+              [class.border-b-2]="activeTab() === team.id"
+              [class.border-emerald-600]="activeTab() === team.id"
+              [class.text-emerald-700]="activeTab() === team.id"
+              [class.text-stone-500]="activeTab() !== team.id"
+              [class.border-transparent]="activeTab() !== team.id"
+              class="px-4 py-3 text-sm font-bold uppercase tracking-wider whitespace-nowrap transition-colors hover:text-emerald-600">
+              {{ team.name }}
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center gap-3 mb-6">
+          <mat-icon class="text-emerald-600">inventory_2</mat-icon>
+          <div>
+            <h3 class="font-bold text-emerald-800">Estoque da Praça</h3>
+            <p class="text-sm text-emerald-600">Gerencie os itens da sua estação.</p>
+          </div>
+        </div>
+      }
 
       <!-- Formulário de Novo/Editar Item -->
       @if (showForm()) {
         <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
-          <h2 class="text-lg font-semibold text-stone-900 mb-4">{{ editingItem() ? 'Editar Item' : (activeTab() === 'praca' ? 'Vincular Item do Estoque Central' : 'Adicionar Novo Item') }}</h2>
+          <h2 class="text-lg font-semibold text-stone-900 mb-4">{{ editingItem() ? 'Editar Item' : (activeTab() !== 'central' ? 'Vincular Item do Estoque Central' : 'Adicionar Novo Item') }}</h2>
           
           <form [formGroup]="itemForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            @if (activeTab() === 'praca') {
+            @if (activeTab() !== 'central') {
               @if (!editingItem()) {
                 <div class="space-y-1.5 md:col-span-3">
                   <label for="central-item" class="text-sm font-medium text-stone-700">Item do Estoque Central</label>
@@ -329,7 +341,7 @@ export class EstoqueComponent {
   teamService = inject(TeamService);
   private fb = inject(FormBuilder);
 
-  activeTab = signal<'central' | 'praca'>('central');
+  activeTab = signal<string>('central');
   activeCategory = signal<string>('Todas');
   searchQuery = signal<string>('');
   showForm = signal(false);
@@ -376,16 +388,27 @@ export class EstoqueComponent {
       const user = this.authService.currentUser();
       const tab = this.activeTab();
       if (user) {
-        if (tab === 'central') {
-          this.inventoryService.loadItems('central');
-        } else if (tab === 'praca' && user.team_id) {
-          this.inventoryService.loadItems(user.team_id);
+        if (this.canViewAllTeams()) {
+          this.teamService.loadTeams();
+          this.inventoryService.loadItems(tab);
+        } else {
+          if (user.team_id) {
+            this.activeTab.set(user.team_id);
+            this.inventoryService.loadItems(user.team_id);
+          } else {
+            this.activeTab.set('central');
+          }
         }
       }
-    });
+    }, { allowSignalWrites: true });
   }
 
-  setTab(tab: 'central' | 'praca') {
+  canViewAllTeams(): boolean {
+    const user = this.authService.currentUser();
+    return user?.role === 'admin' || user?.role === 'estoque';
+  }
+
+  setTab(tab: string) {
     this.activeTab.set(tab);
   }
 
@@ -423,7 +446,7 @@ export class EstoqueComponent {
   async toggleForm() {
     this.showForm.update(v => !v);
     if (this.showForm()) {
-      if (this.activeTab() === 'praca') {
+      if (this.activeTab() !== 'central') {
         const items = await this.inventoryService.getItems('central');
         this.centralItems.set(items);
       }
@@ -472,7 +495,7 @@ export class EstoqueComponent {
   }
 
   async onSubmit() {
-    if (this.activeTab() === 'praca' && !this.editingItem() && !this.itemForm.value.central_item_id) {
+    if (this.activeTab() !== 'central' && !this.editingItem() && !this.itemForm.value.central_item_id) {
       alert('Por favor, selecione um item do estoque central para vincular.');
       return;
     }
@@ -492,7 +515,7 @@ export class EstoqueComponent {
           unit: formValue.unit || 'un',
           quantity: formValue.quantity || 0,
           min_quantity: formValue.min_quantity || 0,
-          team_id: this.activeTab() === 'central' ? 'central' : this.authService.currentUser()?.team_id
+          team_id: this.activeTab()
         });
       } else {
         success = await this.inventoryService.addItem({
@@ -502,7 +525,7 @@ export class EstoqueComponent {
           quantity: formValue.quantity || 0,
           min_quantity: formValue.min_quantity || 0,
           cost_per_unit: 0,
-          team_id: this.activeTab() === 'central' ? 'central' : this.authService.currentUser()?.team_id
+          team_id: this.activeTab()
         });
       }
       

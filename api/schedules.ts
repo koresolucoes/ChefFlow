@@ -65,9 +65,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         query = query.gte('date', start_date).lte('date', end_date);
       }
       
-      // Filter by user if not admin/chef
-      if (userRole !== 'admin' && userRole !== 'chef') {
-        query = query.eq('user_id', user.id);
+      // Filter by team if not admin
+      if (userRole !== 'admin') {
+        if (userTeamId) {
+          query = query.eq('users.team_id', userTeamId);
+        } else {
+          // If the user has no team, they shouldn't see any schedules
+          query = query.eq('user_id', user.id);
+        }
+      } else {
+        // For admin, allow filtering by team if provided
+        const { team_id } = req.query;
+        if (team_id && team_id !== 'todas') {
+          query = query.eq('users.team_id', team_id);
+        }
       }
       
       const { data: schedules, error } = await query;

@@ -37,15 +37,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ message: 'Token inválido ou expirado' });
     }
 
-    // 2. Verifica se o usuário tem permissão (admin ou chef)
-    const { data: currentUser } = await supabase.from('users').select('role, tenant_id').eq('id', user.id).single();
-    if (currentUser?.role !== 'admin' && currentUser?.role !== 'chef') {
+    // 2. Verifica se o usuário tem permissão (admin ou chef) para modificações
+    const { data: currentUser } = await supabase.from('users').select('role, tenant_id, team_id').eq('id', user.id).single();
+    if (!currentUser) {
        return res.status(403).json({ message: 'Acesso negado' });
     }
 
     // LISTAR USUÁRIOS
     if (req.method === 'GET') {
-      const { data: users, error } = await supabase
+      let query = supabase
         .from('users')
         .select(`
           id, name, email, role, created_at, team_id, tenant_id,
@@ -53,9 +53,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `)
         .eq('tenant_id', currentUser.tenant_id)
         .order('created_at', { ascending: false });
+
+      if (currentUser.role !== 'admin') {
+        if (currentUser.team_id) {
+          query = query.eq('team_id', currentUser.team_id);
+        } else {
+          query = query.eq('id', user.id); // Only see themselves if no team
+        }
+      } else {
+        const { team_id } = req.query;
+        if (team_id && team_id !== 'todas') {
+          query = query.eq('team_id', team_id);
+        }
+      }
+
+      const { data: users, error } = await query;
         
       if (error) throw error;
       return res.status(200).json(users);
+    }
+
+    if (currentUser.role !== 'admin' && currentUser.role !== 'chef') {
+       return res.status(403).json({ message: 'Acesso negado' });
     }
 
     // CRIAR USUÁRIO

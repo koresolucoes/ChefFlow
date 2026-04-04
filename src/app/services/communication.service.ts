@@ -27,11 +27,15 @@ export class CommunicationService {
   loading = signal(false);
   error = signal<string | null>(null);
 
-  async loadAnnouncements() {
+  async loadAnnouncements(teamId?: string) {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const data = await firstValueFrom(this.http.get<Announcement[]>(this.apiUrl));
+      let url = this.apiUrl;
+      if (teamId) {
+        url += `?team_id=${teamId}`;
+      }
+      const data = await firstValueFrom(this.http.get<Announcement[]>(url));
       this.announcements.set(data);
     } catch (err: unknown) {
       console.error('Error loading announcements:', err);
@@ -41,7 +45,7 @@ export class CommunicationService {
     }
   }
 
-  async addAnnouncement(announcement: Partial<Announcement>) {
+  async addAnnouncement(announcement: Partial<Announcement> & { team_id?: string | null }) {
     this.loading.set(true);
     this.error.set(null);
     try {

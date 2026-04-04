@@ -19,13 +19,21 @@ import { ExportService } from '../services/export.service';
           <h1 class="text-3xl font-bold tracking-tight text-stone-900">Escalas & Pessoal</h1>
           <p class="text-stone-500 mt-1">Gestão de turnos, freelancers e ponto digital.</p>
         </div>
-        <div class="flex gap-3">
+        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          @if (authService.isAdmin()) {
+            <select [ngModel]="draftTeamId()" (ngModelChange)="onTeamChange($event)" class="w-full sm:w-auto border border-stone-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white font-medium text-stone-700">
+              <option value="todas">Todas as Praças</option>
+              @for (team of teamService.teams(); track team.id) {
+                <option [value]="team.id">{{ team.name }}</option>
+              }
+            </select>
+          }
           @if (canManage()) {
-            <button (click)="abrirModalFreelancer()" class="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2">
+            <button (click)="abrirModalFreelancer()" class="px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center justify-center gap-2">
               <mat-icon>person_add</mat-icon>
               Novo Freelancer
             </button>
-            <button (click)="gerarEscalaPadrao()" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
+            <button (click)="gerarEscalaPadrao()" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center justify-center gap-2">
               <mat-icon>add</mat-icon>
               Gerar Escala Padrão
             </button>
@@ -500,10 +508,23 @@ export class EscalasComponent implements OnInit {
   novoFreelancerTelefone = signal('');
   novoFreelancerDiaria = signal<number | null>(null);
 
+  draftTeamId = signal<string>('todas');
+
   ngOnInit() {
-    this.teamService.loadTeam();
+    if (this.authService.isAdmin()) {
+      this.teamService.loadTeams();
+    }
+    this.teamService.loadTeam(this.draftTeamId() === 'todas' ? undefined : this.draftTeamId());
     this.setupWeek(this.currentDate());
-    this.timeTrackingService.loadEntries(this.formatDate(new Date()));
+    const user = this.authService.currentUser();
+    this.timeTrackingService.loadEntries(this.formatDate(new Date()), user?.role === 'admin' ? undefined : user?.team_id);
+  }
+
+  onTeamChange(teamId: string) {
+    this.draftTeamId.set(teamId);
+    this.timeTrackingService.loadEntries(this.formatDate(new Date()), teamId === 'todas' ? undefined : teamId);
+    this.carregarEscalasDaSemana();
+    this.teamService.loadTeam(teamId === 'todas' ? undefined : teamId);
   }
 
   canManage(): boolean {
@@ -514,7 +535,8 @@ export class EscalasComponent implements OnInit {
   mudarAba(aba: 'escala' | 'freelancers' | 'ponto') {
     this.activeTab.set(aba);
     if (aba === 'ponto') {
-      this.timeTrackingService.loadEntries(this.formatDate(new Date()));
+      const user = this.authService.currentUser();
+      this.timeTrackingService.loadEntries(this.formatDate(new Date()), user?.role === 'admin' ? undefined : user?.team_id);
     }
   }
 
@@ -551,7 +573,7 @@ export class EscalasComponent implements OnInit {
   carregarEscalasDaSemana() {
     const start = this.formatDate(this.weekDates()[0]);
     const end = this.formatDate(this.weekDates()[6]);
-    this.scheduleService.loadSchedules(start, end);
+    this.scheduleService.loadSchedules(start, end, this.draftTeamId() === 'todas' ? undefined : this.draftTeamId());
   }
 
   getSchedule(userId: string, date: Date): Schedule | undefined {
@@ -609,7 +631,8 @@ export class EscalasComponent implements OnInit {
     if (!userId) return;
     const success = await this.timeTrackingService.clockIn(userId);
     if (success) {
-      this.timeTrackingService.loadEntries(this.formatDate(new Date()));
+      const user = this.authService.currentUser();
+      this.timeTrackingService.loadEntries(this.formatDate(new Date()), user?.role === 'admin' ? undefined : user?.team_id);
     } else {
       alert('Erro ao registrar entrada. Talvez já exista um turno aberto?');
     }
@@ -619,7 +642,8 @@ export class EscalasComponent implements OnInit {
     if (!userId) return;
     const success = await this.timeTrackingService.clockOut(userId);
     if (success) {
-      this.timeTrackingService.loadEntries(this.formatDate(new Date()));
+      const user = this.authService.currentUser();
+      this.timeTrackingService.loadEntries(this.formatDate(new Date()), user?.role === 'admin' ? undefined : user?.team_id);
     } else {
       alert('Erro ao registrar saída. Não há turno aberto para este usuário hoje.');
     }

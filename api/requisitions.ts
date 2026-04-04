@@ -74,15 +74,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // POST: Criar nova requisição
     if (req.method === 'POST') {
-      const { notes, items } = req.body;
+      const { notes, items, team_id } = req.body;
       
       if (!items || !items.length) return res.status(400).json({ error: 'Items are required' });
+
+      // Only allow admin/estoque to override team_id
+      const finalTeamId = (userRole === 'admin' || userRole === 'estoque') && team_id ? team_id : userTeamId;
 
       const { data: reqData, error: reqError } = await supabase
         .from('requisitions')
         .insert({
           requester_id: user.id,
-          team_id: userTeamId,
+          team_id: finalTeamId,
           tenant_id: userTenantId,
           status: 'pending',
           notes

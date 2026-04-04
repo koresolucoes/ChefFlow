@@ -9,6 +9,7 @@ import { CleaningService } from '../services/cleaning.service';
 import { CommunicationService } from '../services/communication.service';
 import { InventoryService } from '../services/inventory.service';
 import { ExportService } from '../services/export.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,36 +37,46 @@ import { ExportService } from '../services/export.service';
 
       <!-- App Drawer / Acesso Rápido -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
-        <a routerLink="/equipe" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center justify-center gap-3 hover:bg-stone-50 transition-colors active:scale-95">
-          <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
-            <mat-icon class="text-3xl w-8 h-8 flex items-center justify-center">badge</mat-icon>
-          </div>
-          <span class="text-sm md:text-base font-semibold text-stone-700 text-center">Equipe</span>
-        </a>
-        <a routerLink="/escalas" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center justify-center gap-3 hover:bg-stone-50 transition-colors active:scale-95">
-          <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <mat-icon class="text-3xl w-8 h-8 flex items-center justify-center">groups</mat-icon>
-          </div>
-          <span class="text-sm md:text-base font-semibold text-stone-700 text-center">Escalas</span>
-        </a>
-        <a routerLink="/producao" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center justify-center gap-3 hover:bg-stone-50 transition-colors active:scale-95">
-          <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
-            <mat-icon class="text-3xl w-8 h-8 flex items-center justify-center">receipt_long</mat-icon>
-          </div>
-          <span class="text-sm md:text-base font-semibold text-stone-700 text-center">Produção</span>
-        </a>
-        <a routerLink="/estoque" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center justify-center gap-3 hover:bg-stone-50 transition-colors active:scale-95">
-          <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
-            <mat-icon class="text-3xl w-8 h-8 flex items-center justify-center">inventory_2</mat-icon>
-          </div>
-          <span class="text-sm md:text-base font-semibold text-stone-700 text-center">Estoque</span>
-        </a>
-        <a routerLink="/limpeza" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center justify-center gap-3 hover:bg-stone-50 transition-colors active:scale-95">
-          <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-            <mat-icon class="text-3xl w-8 h-8 flex items-center justify-center">cleaning_services</mat-icon>
-          </div>
-          <span class="text-sm md:text-base font-semibold text-stone-700 text-center">Limpeza</span>
-        </a>
+        @if (authService.canManageTeam()) {
+          <a routerLink="/equipe" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center justify-center gap-3 hover:bg-stone-50 transition-colors active:scale-95">
+            <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <mat-icon class="text-3xl w-8 h-8 flex items-center justify-center">badge</mat-icon>
+            </div>
+            <span class="text-sm md:text-base font-semibold text-stone-700 text-center">Equipe</span>
+          </a>
+        }
+        @if (!authService.isEstoque() && !authService.isAuditor()) {
+          <a routerLink="/escalas" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center justify-center gap-3 hover:bg-stone-50 transition-colors active:scale-95">
+            <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <mat-icon class="text-3xl w-8 h-8 flex items-center justify-center">groups</mat-icon>
+            </div>
+            <span class="text-sm md:text-base font-semibold text-stone-700 text-center">Escalas</span>
+          </a>
+        }
+        @if (!authService.isEstoque()) {
+          <a routerLink="/producao" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center justify-center gap-3 hover:bg-stone-50 transition-colors active:scale-95">
+            <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
+              <mat-icon class="text-3xl w-8 h-8 flex items-center justify-center">receipt_long</mat-icon>
+            </div>
+            <span class="text-sm md:text-base font-semibold text-stone-700 text-center">Produção</span>
+          </a>
+        }
+        @if (!authService.isCook()) {
+          <a routerLink="/estoque" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center justify-center gap-3 hover:bg-stone-50 transition-colors active:scale-95">
+            <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
+              <mat-icon class="text-3xl w-8 h-8 flex items-center justify-center">inventory_2</mat-icon>
+            </div>
+            <span class="text-sm md:text-base font-semibold text-stone-700 text-center">Estoque</span>
+          </a>
+        }
+        @if (!authService.isEstoque()) {
+          <a routerLink="/limpeza" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center justify-center gap-3 hover:bg-stone-50 transition-colors active:scale-95">
+            <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+              <mat-icon class="text-3xl w-8 h-8 flex items-center justify-center">cleaning_services</mat-icon>
+            </div>
+            <span class="text-sm md:text-base font-semibold text-stone-700 text-center">Limpeza</span>
+          </a>
+        }
         <a routerLink="/comunicacao" class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-stone-200 flex flex-col items-center justify-center gap-3 hover:bg-stone-50 transition-colors active:scale-95">
           <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
             <mat-icon class="text-3xl w-8 h-8 flex items-center justify-center">campaign</mat-icon>
@@ -205,6 +216,7 @@ export class DashboardComponent implements OnInit {
   cleaningService = inject(CleaningService);
   communicationService = inject(CommunicationService);
   inventoryService = inject(InventoryService);
+  authService = inject(AuthService);
   exportService = inject(ExportService);
 
   today = new Date();
@@ -244,12 +256,19 @@ export class DashboardComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.teamService.loadTeam();
-    this.scheduleService.loadSchedules(this.todayStr, this.todayStr);
-    this.prepTaskService.loadTasks();
-    this.cleaningService.loadTasks(undefined, this.todayStr);
-    this.communicationService.loadAnnouncements();
-    this.inventoryService.loadItems();
+    const user = this.authService.currentUser();
+    
+    this.teamService.loadTeam(user?.role === 'admin' ? undefined : user?.team_id);
+    this.scheduleService.loadSchedules(this.todayStr, this.todayStr, user?.role === 'admin' ? undefined : user?.team_id);
+    this.prepTaskService.loadTasks(user?.role === 'admin' ? undefined : user?.team_id);
+    this.cleaningService.loadTasks(undefined, this.todayStr, user?.role === 'admin' ? undefined : user?.team_id);
+    this.communicationService.loadAnnouncements(user?.role === 'admin' ? undefined : user?.team_id);
+    
+    if (user?.role === 'admin' || user?.role === 'estoque') {
+      this.inventoryService.loadItems();
+    } else if (user?.team_id) {
+      this.inventoryService.loadItems(user.team_id);
+    }
   }
 
   exportarVisaoGeral() {

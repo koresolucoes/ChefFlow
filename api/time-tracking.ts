@@ -43,18 +43,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Get user role and tenant
     const { data: userProfile } = await supabase
       .from('users')
-      .select('role, tenant_id')
+      .select('role, tenant_id, team_id')
       .eq('id', user.id)
       .single();
 
     const userTenantId = userProfile?.tenant_id;
+    const userRole = userProfile?.role;
+    const userTeamId = userProfile?.team_id;
 
     if (req.method === 'GET') {
       const { date } = req.query;
-      let query = supabase.from('time_entries').select('*, users(name, role)');
+      let query = supabase.from('time_entries').select('*, users!inner(name, role, team_id)');
       if (date) {
         query = query.eq('date', date);
       }
+
+      if (userRole !== 'admin') {
+        if (userTeamId) {
+          query = query.eq('users.team_id', userTeamId);
+        } else {
+          query = query.eq('user_id', user.id);
+        }
+      } else {
+        const { team_id } = req.query;
+        if (team_id && team_id !== 'todas') {
+          query = query.eq('users.team_id', team_id);
+        }
+      }
+
       const { data, error } = await query.order('clock_in', { ascending: false });
       
       if (error) {

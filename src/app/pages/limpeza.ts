@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CleaningService, CleaningTask } from '../services/cleaning.service';
 import { AuthService } from '../services/auth.service';
+import { TeamService } from '../services/team.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -24,6 +25,14 @@ import autoTable from 'jspdf-autotable';
             <input type="date" [ngModel]="selectedDate()" (ngModelChange)="onDateChange($event)" class="w-full border-none focus:ring-0 text-stone-700 font-medium bg-transparent p-0 outline-none">
           </div>
           <div class="flex gap-2 w-full sm:w-auto">
+            @if (authService.isAdmin()) {
+              <select [ngModel]="selectedTeamId()" (ngModelChange)="onTeamChange($event)" class="w-full sm:w-auto border border-stone-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white font-medium text-stone-700">
+                <option value="todas">Todas as Praças</option>
+                @for (team of teamService.teams(); track team.id) {
+                  <option [value]="team.id">{{ team.name }}</option>
+                }
+              </select>
+            }
             <button type="button" (click)="generateReport()" class="flex-1 sm:flex-none justify-center px-3 md:px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2 whitespace-nowrap">
               <mat-icon>picture_as_pdf</mat-icon>
               <span class="hidden sm:inline">Gerar Relatório</span>
@@ -132,6 +141,18 @@ import autoTable from 'jspdf-autotable';
                 <div>
                   <label for="task-max-temp" class="block text-sm font-medium text-stone-700 mb-1">Temp. Máxima (°C)</label>
                   <input id="task-max-temp" type="number" [(ngModel)]="newTaskMaxTemp" name="max_temp" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
+                </div>
+              }
+
+              @if (authService.isAdmin()) {
+                <div class="md:col-span-2">
+                  <label for="task-team" class="block text-sm font-medium text-stone-700 mb-1">Praça (Opcional - Deixe em branco para Todas)</label>
+                  <select id="task-team" [(ngModel)]="draftTeamId" name="team_id" class="w-full px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900">
+                    <option [value]="null">Todas as Praças</option>
+                    @for (team of teamService.teams(); track team.id) {
+                      <option [value]="team.id">{{ team.name }}</option>
+                    }
+                  </select>
                 </div>
               }
             </div>
@@ -408,11 +429,14 @@ import autoTable from 'jspdf-autotable';
 export class LimpezaComponent implements OnInit {
   cleaningService = inject(CleaningService);
   authService = inject(AuthService);
+  teamService = inject(TeamService);
 
   activeTab = signal<'abertura' | 'operacao' | 'fechamento'>('abertura');
   showNewTaskForm = signal(false);
   shiftAnalysis = signal('');
   selectedDate = signal(new Date().toISOString().split('T')[0]);
+  draftTeamId = signal<string | null>(null);
+  selectedTeamId = signal<string>('todas');
 
   editingTaskId = signal<string | null>(null);
 
@@ -472,12 +496,20 @@ export class LimpezaComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.cleaningService.loadTasks(undefined, this.selectedDate());
+    this.cleaningService.loadTasks(undefined, this.selectedDate(), this.selectedTeamId() === 'todas' ? undefined : this.selectedTeamId());
+    if (this.authService.isAdmin()) {
+      this.teamService.loadTeams();
+    }
   }
 
   onDateChange(newDate: string) {
     this.selectedDate.set(newDate);
-    this.cleaningService.loadTasks(undefined, newDate);
+    this.cleaningService.loadTasks(undefined, newDate, this.selectedTeamId() === 'todas' ? undefined : this.selectedTeamId());
+  }
+
+  onTeamChange(teamId: string) {
+    this.selectedTeamId.set(teamId);
+    this.cleaningService.loadTasks(undefined, this.selectedDate(), teamId === 'todas' ? undefined : teamId);
   }
 
   toggleShiftMoment(moment: string) {
@@ -513,14 +545,21 @@ export class LimpezaComponent implements OnInit {
     }
 
     try {
-      await this.cleaningService.addTask({
+      const payload: any = {
         ...this.newTask,
         shift_moments: this.newTaskShiftMoments
-      });
+      };
+
+      if (this.authService.isAdmin()) {
+        payload.team_id = this.draftTeamId();
+      }
+
+      await this.cleaningService.addTask(payload);
       this.showNewTaskForm.set(false);
       this.newTaskMinTemp = null;
       this.newTaskMaxTemp = null;
       this.newTaskShiftMoments = [this.activeTab()];
+      this.draftTeamId.set(null);
       this.newTask = {
         title: '',
         category: 'checklist',

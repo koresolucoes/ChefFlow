@@ -69,10 +69,12 @@ import { AuthService } from './services/auth.service';
             </a>
           }
           
-          <a routerLink="/limpeza" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
-            <mat-icon>checklist</mat-icon>
-            <span class="font-medium">Qualidade & Checklist</span>
-          </a>
+          @if (!authService.isEstoque()) {
+            <a routerLink="/limpeza" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+              <mat-icon>checklist</mat-icon>
+              <span class="font-medium">Qualidade & Checklist</span>
+            </a>
+          }
           
           <a routerLink="/comunicacao" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
             <mat-icon>campaign</mat-icon>
