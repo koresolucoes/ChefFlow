@@ -62,8 +62,8 @@ import autoTable from 'jspdf-autotable';
       }
 
       <!-- Tabs -->
-      <div class="border-b border-stone-200 overflow-x-auto">
-        <nav class="-mb-px flex space-x-6 md:space-x-8 min-w-max px-2 md:px-0" aria-label="Tabs">
+      <div class="border-b border-stone-200 overflow-x-auto" style="scrollbar-width: none; -ms-overflow-style: none;">
+        <nav class="-mb-px flex space-x-4 md:space-x-8 min-w-max px-2 md:px-0" aria-label="Tabs">
           <button 
             (click)="activeTab.set('abertura')"
             [class.border-stone-900]="activeTab() === 'abertura'"
@@ -240,8 +240,8 @@ import autoTable from 'jspdf-autotable';
                           [class.bg-white]="task.status !== 'conforme' && task.status !== 'completed'"
                           [class.text-stone-600]="task.status !== 'conforme' && task.status !== 'completed'"
                           [class.border-stone-200]="task.status !== 'conforme' && task.status !== 'completed'"
-                          class="col-span-1 flex flex-col items-center justify-center py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
-                          <mat-icon class="mb-1">check_circle</mat-icon>
+                          class="col-span-1 flex items-center justify-center gap-1.5 py-2.5 sm:py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base">
+                          <mat-icon class="text-[18px] w-4.5 h-4.5">check_circle</mat-icon>
                           <span>Conforme</span>
                         </button>
                         
@@ -254,8 +254,8 @@ import autoTable from 'jspdf-autotable';
                           [class.bg-white]="task.status !== 'nao_conforme'"
                           [class.text-stone-600]="task.status !== 'nao_conforme'"
                           [class.border-stone-200]="task.status !== 'nao_conforme'"
-                          class="col-span-1 flex flex-col items-center justify-center py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
-                          <mat-icon class="mb-1">cancel</mat-icon>
+                          class="col-span-1 flex items-center justify-center gap-1.5 py-2.5 sm:py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base">
+                          <mat-icon class="text-[18px] w-4.5 h-4.5">cancel</mat-icon>
                           <span>Problema</span>
                         </button>
                       </div>
@@ -335,12 +335,12 @@ import autoTable from 'jspdf-autotable';
                             step="0.1"
                             [value]="task.value || ''" 
                             (keyup.enter)="saveTemperature(task, tempInput.value)"
-                            class="w-full px-4 py-3 text-center font-black text-2xl text-stone-900 focus:outline-none bg-transparent" 
+                            class="w-full px-2 sm:px-4 py-2.5 sm:py-3 text-center font-black text-xl sm:text-2xl text-stone-900 focus:outline-none bg-transparent min-w-0" 
                             placeholder="0.0">
-                          <span class="px-4 py-3 bg-stone-100 text-stone-500 font-bold border-l border-stone-200 text-lg">°C</span>
+                          <span class="px-3 sm:px-4 py-2.5 sm:py-3 bg-stone-100 text-stone-500 font-bold border-l border-stone-200 text-base sm:text-lg">°C</span>
                         </div>
-                        <button type="button" (click)="saveTemperature(task, tempInput.value)" class="h-[56px] w-[56px] flex items-center justify-center bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors shadow-md active:scale-95" title="Salvar">
-                          <mat-icon class="text-[28px] w-7 h-7">check</mat-icon>
+                        <button type="button" (click)="saveTemperature(task, tempInput.value)" class="h-[48px] sm:h-[56px] w-[48px] sm:w-[56px] flex items-center justify-center bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors shadow-md active:scale-95 shrink-0" title="Salvar">
+                          <mat-icon class="text-[24px] sm:text-[28px] w-6 sm:w-7 h-6 sm:h-7">check</mat-icon>
                         </button>
                       </div>
                     } @else {
