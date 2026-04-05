@@ -85,7 +85,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (req.method === 'POST') {
       const { user_id, action } = req.body; // action: 'in' or 'out'
-      const today = new Date().toISOString().split('T')[0];
+      
+      const timeZone = (req.headers['x-timezone'] as string) || 'America/Sao_Paulo';
+      const formatter = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' });
+      const today = formatter.format(new Date()); // Returns YYYY-MM-DD in the requested timezone
+      
       const now = new Date().toISOString();
 
       if (action === 'in') {

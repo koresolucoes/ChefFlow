@@ -57,7 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // GET: List inventory items
     if (req.method === 'GET') {
       const { team_id } = req.query;
-      let query = supabase.from('inventory').select('*');
+      let query = supabase.from('inventory').select('id, name, category, unit, quantity, min_quantity, cost_per_unit, team_id, created_at');
       
       if (team_id === 'central') {
         query = query.is('team_id', null);

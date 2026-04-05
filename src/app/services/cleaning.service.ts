@@ -32,6 +32,11 @@ export class CleaningService {
   updatingTaskId = signal<string | null>(null);
   error = signal<string | null>(null);
 
+  private getHeaders() {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return { headers: { 'x-timezone': timeZone } };
+  }
+
   async loadTasks(category?: string, date?: string, teamId?: string) {
     this.loading.set(true);
     this.error.set(null);
@@ -45,7 +50,7 @@ export class CleaningService {
       const queryString = params.toString();
       if (queryString) url += `?${queryString}`;
       
-      const data = await firstValueFrom(this.http.get<CleaningTask[]>(url));
+      const data = await firstValueFrom(this.http.get<CleaningTask[]>(url, this.getHeaders()));
       this.tasks.set(data);
     } catch (err: unknown) {
       console.error('Error loading cleaning tasks:', err);
@@ -59,7 +64,7 @@ export class CleaningService {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const newTasks = await firstValueFrom(this.http.post<CleaningTask[]>(this.apiUrl, task));
+      const newTasks = await firstValueFrom(this.http.post<CleaningTask[]>(this.apiUrl, task, this.getHeaders()));
       this.tasks.update(tasks => [...newTasks, ...tasks]);
       return newTasks;
     } catch (err: unknown) {
@@ -88,7 +93,7 @@ export class CleaningService {
       if (value !== undefined) body['value'] = value;
       if (shift_moment !== undefined) body['shift_moment'] = shift_moment;
       
-      const updatedTask = await firstValueFrom(this.http.put<CleaningTask>(this.apiUrl, body));
+      const updatedTask = await firstValueFrom(this.http.put<CleaningTask>(this.apiUrl, body, this.getHeaders()));
       this.tasks.update(tasks => tasks.map(t => {
         if (t.id === id && (!shift_moment || t.shift_moment === shift_moment)) {
           return {
@@ -104,7 +109,8 @@ export class CleaningService {
       console.error('Error updating cleaning task:', err);
       this.error.set((err as { error?: { error?: string } })?.error?.error || 'Failed to update cleaning task');
       // Revert optimistic update by reloading tasks
-      this.loadTasks(undefined, new Date().toISOString().split('T')[0]);
+      const localDate = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+      this.loadTasks(undefined, localDate);
       throw err;
     } finally {
       this.updatingTaskId.set(null);
@@ -115,7 +121,7 @@ export class CleaningService {
     this.updatingTaskId.set(id);
     this.error.set(null);
     try {
-      await firstValueFrom(this.http.delete(`${this.apiUrl}?id=${id}&category=${category}`));
+      await firstValueFrom(this.http.delete(`${this.apiUrl}?id=${id}&category=${category}`, this.getHeaders()));
       this.tasks.update(tasks => tasks.filter(t => t.id !== id));
     } catch (err: unknown) {
       console.error('Error removing cleaning task:', err);

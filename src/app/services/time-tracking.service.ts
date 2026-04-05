@@ -19,6 +19,11 @@ export class TimeTrackingService {
   entries = signal<TimeEntry[]>([]);
   isLoading = signal(false);
 
+  private getHeaders() {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return { headers: { 'x-timezone': timeZone } };
+  }
+
   async loadEntries(date?: string, teamId?: string) {
     this.isLoading.set(true);
     try {
@@ -31,7 +36,7 @@ export class TimeTrackingService {
         url += `?${params.toString()}`;
       }
       
-      const data = await firstValueFrom(this.http.get<TimeEntry[]>(url));
+      const data = await firstValueFrom(this.http.get<TimeEntry[]>(url, this.getHeaders()));
       this.entries.set(data);
     } catch (error) {
       console.error('Erro ao carregar ponto digital:', error);
@@ -44,7 +49,7 @@ export class TimeTrackingService {
   async clockIn(userId: string) {
     try {
       const entry = await firstValueFrom(
-        this.http.post<TimeEntry>(`${environment.apiUrl}/time-tracking`, { user_id: userId, action: 'in' })
+        this.http.post<TimeEntry>(`${environment.apiUrl}/time-tracking`, { user_id: userId, action: 'in' }, this.getHeaders())
       );
       this.entries.update(current => [entry, ...current]);
       return true;
@@ -57,7 +62,7 @@ export class TimeTrackingService {
   async clockOut(userId: string) {
     try {
       const entry = await firstValueFrom(
-        this.http.post<TimeEntry>(`${environment.apiUrl}/time-tracking`, { user_id: userId, action: 'out' })
+        this.http.post<TimeEntry>(`${environment.apiUrl}/time-tracking`, { user_id: userId, action: 'out' }, this.getHeaders())
       );
       this.entries.update(current => current.map(e => e.id === entry.id ? entry : e));
       return true;

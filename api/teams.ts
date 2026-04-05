@@ -46,7 +46,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method === 'GET') {
       const { data: teams, error } = await supabase
         .from('teams')
-        .select('*')
+        .select('id, name, description, tenant_id, created_at')
         .order('name', { ascending: true });
         
       if (error) throw error;
@@ -70,7 +70,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data: newTeam, error } = await supabase
         .from('teams')
         .insert({ name, description, tenant_id: currentUser?.tenant_id })
-        .select('*')
+        .select('id, name, description, tenant_id, created_at')
         .single();
         
       if (error) {

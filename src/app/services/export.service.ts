@@ -23,7 +23,8 @@ export class ExportService {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
+    const localDate = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+    link.setAttribute('download', `${filename}_${localDate}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();

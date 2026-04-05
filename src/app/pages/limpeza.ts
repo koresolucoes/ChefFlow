@@ -434,7 +434,7 @@ export class LimpezaComponent implements OnInit {
   activeTab = signal<'abertura' | 'operacao' | 'fechamento'>('abertura');
   showNewTaskForm = signal(false);
   shiftAnalysis = signal('');
-  selectedDate = signal(new Date().toISOString().split('T')[0]);
+  selectedDate = signal(new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()));
   draftTeamId = signal<string | null>(null);
   selectedTeamId = signal<string>('todas');
 

@@ -220,7 +220,7 @@ export class DashboardComponent implements OnInit {
   exportService = inject(ExportService);
 
   today = new Date();
-  todayStr = this.today.toISOString().split('T')[0];
+  todayStr = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(this.today);
 
   teamPresent = computed(() => {
     const schedules = this.scheduleService.schedules();

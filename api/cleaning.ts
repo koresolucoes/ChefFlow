@@ -58,11 +58,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
           logDate = dateParam;
         } else {
-          const today = new Date();
-          const yyyy = today.getFullYear();
-          const mm = String(today.getMonth() + 1).padStart(2, '0');
-          const dd = String(today.getDate()).padStart(2, '0');
-          logDate = `${yyyy}-${mm}-${dd}`;
+          const timeZone = (req.headers['x-timezone'] as string) || 'America/Sao_Paulo';
+          const formatter = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' });
+          logDate = formatter.format(new Date());
         }
 
         let query = supabase
@@ -179,11 +177,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(400).json({ error: 'Template ID, status, and shift_moment are required' });
         }
 
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        const logDate = `${yyyy}-${mm}-${dd}`;
+        const timeZone = (req.headers['x-timezone'] as string) || 'America/Sao_Paulo';
+        const formatter = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' });
+        const logDate = formatter.format(new Date());
 
         if (status === 'pending') {
            await supabase.from('cleaning_logs').delete().eq('template_id', id).eq('log_date', logDate).eq('shift_moment', shift_moment);
