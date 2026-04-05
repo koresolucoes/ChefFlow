@@ -545,13 +545,13 @@ export class LimpezaComponent implements OnInit {
     }
 
     try {
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         ...this.newTask,
         shift_moments: this.newTaskShiftMoments
       };
 
       if (this.authService.isAdmin()) {
-        payload.team_id = this.draftTeamId();
+        payload['team_id'] = this.draftTeamId();
       }
 
       await this.cleaningService.addTask(payload);

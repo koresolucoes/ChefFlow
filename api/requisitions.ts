@@ -130,44 +130,53 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (status !== 'fulfilled') allFulfilled = false;
         if (item.quantity_fulfilled > 0) anyFulfilled = true;
 
-        await supabase.from('requisition_items').update({
-          quantity_fulfilled: item.quantity_fulfilled,
-          status: status
-        }).eq('id', item.id);
-          
-        // Desconta do estoque central e adiciona ao estoque da praça
-        if (item.quantity_fulfilled > 0) {
-          const { data: centralInvItem } = await supabase.from('inventory').select('*').eq('id', item.product_id).single();
-          if (centralInvItem) {
-            // Subtract from central inventory
-            await supabase.from('inventory').update({
-              quantity: Math.max(0, Number(centralInvItem.quantity) - Number(item.quantity_fulfilled))
-            }).eq('id', item.product_id);
+        // Chama a RPC para atualizar o item da requisição e o estoque de forma atômica
+        const { error: rpcError } = await supabase.rpc('fulfill_requisition_item', {
+          p_item_id: item.id,
+          p_product_id: item.product_id,
+          p_quantity_fulfilled: item.quantity_fulfilled,
+          p_target_team_id: targetTeamId
+        });
 
-            // Add to team inventory
-            if (targetTeamId) {
-              const { data: teamInvItem } = await supabase
-                .from('inventory')
-                .select('*')
-                .eq('name', centralInvItem.name)
-                .eq('team_id', targetTeamId)
-                .single();
+        if (rpcError) {
+          console.error('RPC Error:', rpcError);
+          // Fallback para a lógica antiga caso a RPC não exista no banco ainda
+          await supabase.from('requisition_items').update({
+            quantity_fulfilled: item.quantity_fulfilled,
+            status: status
+          }).eq('id', item.id);
+            
+          if (item.quantity_fulfilled > 0) {
+            const { data: centralInvItem } = await supabase.from('inventory').select('*').eq('id', item.product_id).single();
+            if (centralInvItem) {
+              await supabase.from('inventory').update({
+                quantity: Math.max(0, Number(centralInvItem.quantity) - Number(item.quantity_fulfilled))
+              }).eq('id', item.product_id);
 
-              if (teamInvItem) {
-                await supabase.from('inventory').update({
-                  quantity: Number(teamInvItem.quantity) + Number(item.quantity_fulfilled)
-                }).eq('id', teamInvItem.id);
-              } else {
-                await supabase.from('inventory').insert({
-                  name: centralInvItem.name,
-                  category: centralInvItem.category,
-                  unit: centralInvItem.unit,
-                  quantity: Number(item.quantity_fulfilled),
-                  min_quantity: 0,
-                  cost_per_unit: centralInvItem.cost_per_unit,
-                  tenant_id: centralInvItem.tenant_id,
-                  team_id: targetTeamId
-                });
+              if (targetTeamId) {
+                const { data: teamInvItem } = await supabase
+                  .from('inventory')
+                  .select('*')
+                  .eq('name', centralInvItem.name)
+                  .eq('team_id', targetTeamId)
+                  .single();
+
+                if (teamInvItem) {
+                  await supabase.from('inventory').update({
+                    quantity: Number(teamInvItem.quantity) + Number(item.quantity_fulfilled)
+                  }).eq('id', teamInvItem.id);
+                } else {
+                  await supabase.from('inventory').insert({
+                    name: centralInvItem.name,
+                    category: centralInvItem.category,
+                    unit: centralInvItem.unit,
+                    quantity: Number(item.quantity_fulfilled),
+                    min_quantity: 0,
+                    cost_per_unit: centralInvItem.cost_per_unit,
+                    tenant_id: centralInvItem.tenant_id,
+                    team_id: targetTeamId
+                  });
+                }
               }
             }
           }
