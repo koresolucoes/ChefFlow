@@ -196,7 +196,7 @@ import autoTable from 'jspdf-autotable';
               </div>
             </div>
             
-            <div class="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               @if (checklists().length === 0) {
                 <div class="col-span-full p-8 text-center text-stone-500 bg-stone-50 rounded-2xl border border-stone-200 border-dashed">
                   Nenhum checklist cadastrado para este momento.
@@ -230,7 +230,7 @@ import autoTable from 'jspdf-autotable';
                         }
                       </div>
                       
-                      <div class="grid grid-cols-2 gap-2 mt-auto">
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-auto">
                         <button type="button"
                           [disabled]="!canEditTasks()"
                           (click)="setStatus(task, 'conforme')"
@@ -240,7 +240,7 @@ import autoTable from 'jspdf-autotable';
                           [class.bg-white]="task.status !== 'conforme' && task.status !== 'completed'"
                           [class.text-stone-600]="task.status !== 'conforme' && task.status !== 'completed'"
                           [class.border-stone-200]="task.status !== 'conforme' && task.status !== 'completed'"
-                          class="col-span-1 flex items-center justify-center gap-1.5 py-2.5 sm:py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base">
+                          class="flex items-center justify-center gap-1.5 py-3 sm:py-2.5 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed text-base sm:text-sm">
                           <mat-icon class="text-[18px] w-4.5 h-4.5">check_circle</mat-icon>
                           <span>Conforme</span>
                         </button>
@@ -254,7 +254,7 @@ import autoTable from 'jspdf-autotable';
                           [class.bg-white]="task.status !== 'nao_conforme'"
                           [class.text-stone-600]="task.status !== 'nao_conforme'"
                           [class.border-stone-200]="task.status !== 'nao_conforme'"
-                          class="col-span-1 flex items-center justify-center gap-1.5 py-2.5 sm:py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base">
+                          class="flex items-center justify-center gap-1.5 py-3 sm:py-2.5 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed text-base sm:text-sm">
                           <mat-icon class="text-[18px] w-4.5 h-4.5">cancel</mat-icon>
                           <span>Problema</span>
                         </button>
@@ -327,7 +327,7 @@ import autoTable from 'jspdf-autotable';
                   
                   <div class="mt-5">
                     @if (editingTaskId() === task.id || (!task.value && canEditTasks())) {
-                      <div class="flex items-center gap-2">
+                      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         <div class="flex-1 flex items-center bg-white border-2 border-stone-300 rounded-xl overflow-hidden focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20 transition-all shadow-inner">
                           <input 
                             #tempInput
@@ -335,22 +335,23 @@ import autoTable from 'jspdf-autotable';
                             step="0.1"
                             [value]="task.value || ''" 
                             (keyup.enter)="saveTemperature(task, tempInput.value)"
-                            class="w-full px-2 sm:px-4 py-2.5 sm:py-3 text-center font-black text-xl sm:text-2xl text-stone-900 focus:outline-none bg-transparent min-w-0" 
+                            class="w-full px-4 py-3 sm:py-2.5 text-center font-black text-2xl sm:text-xl text-stone-900 focus:outline-none bg-transparent min-w-0" 
                             placeholder="0.0">
-                          <span class="px-3 sm:px-4 py-2.5 sm:py-3 bg-stone-100 text-stone-500 font-bold border-l border-stone-200 text-base sm:text-lg">°C</span>
+                          <span class="px-4 py-3 sm:py-2.5 bg-stone-100 text-stone-500 font-bold border-l border-stone-200 text-lg sm:text-base">°C</span>
                         </div>
-                        <button type="button" (click)="saveTemperature(task, tempInput.value)" class="h-[48px] sm:h-[56px] w-[48px] sm:w-[56px] flex items-center justify-center bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors shadow-md active:scale-95 shrink-0" title="Salvar">
-                          <mat-icon class="text-[24px] sm:text-[28px] w-6 sm:w-7 h-6 sm:h-7">check</mat-icon>
+                        <button type="button" (click)="saveTemperature(task, tempInput.value)" class="h-[52px] sm:h-[48px] w-full sm:w-[56px] flex items-center justify-center bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors shadow-md active:scale-95 shrink-0" title="Salvar">
+                          <mat-icon class="text-[28px] sm:text-[24px] w-7 sm:w-6 h-7 sm:h-6">check</mat-icon>
+                          <span class="sm:hidden ml-2 font-bold">Salvar</span>
                         </button>
                       </div>
                     } @else {
-                      <div class="flex items-center justify-between bg-white border border-stone-200 rounded-xl p-3 shadow-sm transition-colors" [class.cursor-pointer]="canEditTasks()" [class.hover:border-stone-300]="canEditTasks()" (click)="canEditTasks() ? editTemperature(task.id) : null" (keydown.enter)="canEditTasks() ? editTemperature(task.id) : null" [attr.tabindex]="canEditTasks() ? 0 : -1" [attr.role]="canEditTasks() ? 'button' : null">
+                      <div class="flex items-center justify-between bg-white border border-stone-200 rounded-xl p-4 sm:p-3 shadow-sm transition-colors" [class.cursor-pointer]="canEditTasks()" [class.hover:border-stone-300]="canEditTasks()" (click)="canEditTasks() ? editTemperature(task.id) : null" (keydown.enter)="canEditTasks() ? editTemperature(task.id) : null" [attr.tabindex]="canEditTasks() ? 0 : -1" [attr.role]="canEditTasks() ? 'button' : null">
                         <div class="flex items-center gap-2">
-                          <span class="font-black text-3xl" [class.text-rose-600]="task.status === 'nao_conforme'" [class.text-emerald-600]="task.status === 'conforme'">{{ task.value || '--' }}</span>
-                          <span class="text-stone-500 font-bold text-lg">°C</span>
+                          <span class="font-black text-4xl sm:text-3xl" [class.text-rose-600]="task.status === 'nao_conforme'" [class.text-emerald-600]="task.status === 'conforme'">{{ task.value || '--' }}</span>
+                          <span class="text-stone-500 font-bold text-xl sm:text-lg">°C</span>
                         </div>
                         @if (canEditTasks()) {
-                          <div class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-500">
+                          <div class="w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-500">
                             <mat-icon>edit</mat-icon>
                           </div>
                         }
