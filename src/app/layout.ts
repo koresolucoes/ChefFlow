@@ -51,11 +51,7 @@ import { AuthService } from './services/auth.service';
           @if (!authService.isCook()) {
             <a routerLink="/estoque" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
               <mat-icon>inventory_2</mat-icon>
-              <span class="font-medium">Estoque Central</span>
-            </a>
-            <a routerLink="/compras" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
-              <mat-icon>local_shipping</mat-icon>
-              <span class="font-medium">Compras & Fornecedores</span>
+              <span class="font-medium">Estoque & Pedidos</span>
             </a>
           }
 
@@ -145,10 +141,6 @@ import { AuthService } from './services/auth.service';
               <mat-icon>inventory_2</mat-icon>
               <span class="text-[10px] font-medium mt-1">Estoque</span>
             </a>
-            <a routerLink="/compras" routerLinkActive="text-emerald-600" class="flex flex-col items-center p-2 text-stone-500 hover:text-emerald-600 transition-colors">
-              <mat-icon>local_shipping</mat-icon>
-              <span class="text-[10px] font-medium mt-1">Compras</span>
-            </a>
           }
 
           @if (authService.isCook()) {
@@ -216,10 +208,6 @@ import { AuthService } from './services/auth.service';
                 <a routerLink="/estoque" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
                   <mat-icon class="text-[32px] w-8 h-8 text-orange-600">inventory_2</mat-icon>
                   <span class="font-bold text-stone-900 text-sm text-center">Estoque</span>
-                </a>
-                <a routerLink="/compras" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
-                  <mat-icon class="text-[32px] w-8 h-8 text-blue-600">local_shipping</mat-icon>
-                  <span class="font-bold text-stone-900 text-sm text-center">Compras</span>
                 </a>
               }
 
