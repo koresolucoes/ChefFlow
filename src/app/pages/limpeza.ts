@@ -14,17 +14,17 @@ import autoTable from 'jspdf-autotable';
   imports: [MatIconModule, CommonModule, FormsModule],
   template: `
     <div class="space-y-6">
-      <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      <header class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4">
         <div>
           <h1 class="text-3xl font-bold tracking-tight text-stone-900">Checklist</h1>
           <p class="text-stone-500 mt-1">Checklists sanitários e termometria.</p>
         </div>
-        <div class="flex flex-col sm:flex-row gap-2 md:gap-3 w-full md:w-auto mt-4 md:mt-0">
-          <div class="flex items-center gap-2 bg-white border border-stone-200 text-stone-700 rounded-lg px-3 py-2 font-medium w-full sm:w-auto">
-            <mat-icon class="text-stone-500">calendar_today</mat-icon>
-            <input type="date" [ngModel]="selectedDate()" (ngModelChange)="onDateChange($event)" class="w-full border-none focus:ring-0 text-stone-700 font-medium bg-transparent p-0 outline-none">
-          </div>
-          <div class="flex gap-2 w-full sm:w-auto">
+        <div class="flex flex-col sm:flex-row gap-2 md:gap-3 w-full lg:w-auto mt-2 lg:mt-0">
+          <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div class="flex items-center gap-2 bg-white border border-stone-200 text-stone-700 rounded-lg px-3 py-2 font-medium w-full sm:w-auto">
+              <mat-icon class="text-stone-500">calendar_today</mat-icon>
+              <input type="date" [ngModel]="selectedDate()" (ngModelChange)="onDateChange($event)" class="w-full border-none focus:ring-0 text-stone-700 font-medium bg-transparent p-0 outline-none">
+            </div>
             @if (authService.isAdmin()) {
               <select [ngModel]="selectedTeamId()" (ngModelChange)="onTeamChange($event)" class="w-full sm:w-auto border border-stone-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white font-medium text-stone-700">
                 <option value="todas">Todas as Praças</option>
@@ -33,21 +33,23 @@ import autoTable from 'jspdf-autotable';
                 }
               </select>
             }
-            <button type="button" (click)="generateReport()" class="flex-1 sm:flex-none justify-center px-3 md:px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2 whitespace-nowrap">
+          </div>
+          <div class="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
+            <button type="button" (click)="generateReport()" class="col-span-2 sm:col-span-1 justify-center px-3 md:px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex items-center gap-2 whitespace-nowrap">
               <mat-icon>picture_as_pdf</mat-icon>
               <span class="hidden sm:inline">Gerar Relatório</span>
               <span class="sm:hidden">Relatório</span>
             </button>
             @if (canManageTasks()) {
-              <button type="button" (click)="openNewChecklistForm()" class="flex-1 sm:flex-none justify-center px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
-                <mat-icon>add_task</mat-icon>
+              <button type="button" (click)="openNewChecklistForm()" class="col-span-1 justify-center px-2 sm:px-3 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-1 sm:gap-2">
+                <mat-icon class="text-[18px] sm:text-[24px] w-4.5 sm:w-6 h-4.5 sm:h-6">add_task</mat-icon>
                 <span class="hidden sm:inline">Novo Item Checklist</span>
-                <span class="sm:hidden">Checklist</span>
+                <span class="sm:hidden text-xs">Checklist</span>
               </button>
-              <button type="button" (click)="openNewEquipmentForm()" class="flex-1 sm:flex-none justify-center px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2">
-                <mat-icon>kitchen</mat-icon>
+              <button type="button" (click)="openNewEquipmentForm()" class="col-span-1 justify-center px-2 sm:px-3 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-1 sm:gap-2">
+                <mat-icon class="text-[18px] sm:text-[24px] w-4.5 sm:w-6 h-4.5 sm:h-6">kitchen</mat-icon>
                 <span class="hidden sm:inline">Novo Equipamento</span>
-                <span class="sm:hidden">Equip.</span>
+                <span class="sm:hidden text-xs">Equip.</span>
               </button>
             }
           </div>
@@ -62,36 +64,37 @@ import autoTable from 'jspdf-autotable';
       }
 
       <!-- Tabs -->
-      <div class="border-b border-stone-200 overflow-x-auto" style="scrollbar-width: none; -ms-overflow-style: none;">
-        <nav class="-mb-px flex space-x-4 md:space-x-8 min-w-max px-2 md:px-0" aria-label="Tabs">
-          <button 
-            (click)="activeTab.set('abertura')"
-            [class.border-stone-900]="activeTab() === 'abertura'"
-            [class.text-stone-900]="activeTab() === 'abertura'"
-            [class.border-transparent]="activeTab() !== 'abertura'"
-            [class.text-stone-500]="activeTab() !== 'abertura'"
-            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
-            Abertura
-          </button>
-          <button 
-            (click)="activeTab.set('operacao')"
-            [class.border-stone-900]="activeTab() === 'operacao'"
-            [class.text-stone-900]="activeTab() === 'operacao'"
-            [class.border-transparent]="activeTab() !== 'operacao'"
-            [class.text-stone-500]="activeTab() !== 'operacao'"
-            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
-            Operação
-          </button>
-          <button 
-            (click)="activeTab.set('fechamento')"
-            [class.border-stone-900]="activeTab() === 'fechamento'"
-            [class.text-stone-900]="activeTab() === 'fechamento'"
-            [class.border-transparent]="activeTab() !== 'fechamento'"
-            [class.text-stone-500]="activeTab() !== 'fechamento'"
-            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
-            Fechamento
-          </button>
-        </nav>
+      <div class="bg-stone-100 p-1 rounded-xl flex flex-wrap sm:flex-nowrap gap-1">
+        <button 
+          (click)="activeTab.set('abertura')"
+          [class.bg-white]="activeTab() === 'abertura'"
+          [class.text-stone-900]="activeTab() === 'abertura'"
+          [class.shadow-sm]="activeTab() === 'abertura'"
+          [class.text-stone-500]="activeTab() !== 'abertura'"
+          [class.hover:text-stone-700]="activeTab() !== 'abertura'"
+          class="flex-1 py-2.5 px-2 sm:px-3 rounded-lg font-bold text-xs sm:text-sm transition-all">
+          Abertura
+        </button>
+        <button 
+          (click)="activeTab.set('operacao')"
+          [class.bg-white]="activeTab() === 'operacao'"
+          [class.text-stone-900]="activeTab() === 'operacao'"
+          [class.shadow-sm]="activeTab() === 'operacao'"
+          [class.text-stone-500]="activeTab() !== 'operacao'"
+          [class.hover:text-stone-700]="activeTab() !== 'operacao'"
+          class="flex-1 py-2.5 px-2 sm:px-3 rounded-lg font-bold text-xs sm:text-sm transition-all">
+          Operação
+        </button>
+        <button 
+          (click)="activeTab.set('fechamento')"
+          [class.bg-white]="activeTab() === 'fechamento'"
+          [class.text-stone-900]="activeTab() === 'fechamento'"
+          [class.shadow-sm]="activeTab() === 'fechamento'"
+          [class.text-stone-500]="activeTab() !== 'fechamento'"
+          [class.hover:text-stone-700]="activeTab() !== 'fechamento'"
+          class="flex-1 py-2.5 px-2 sm:px-3 rounded-lg font-bold text-xs sm:text-sm transition-all">
+          Fechamento
+        </button>
       </div>
 
       <!-- New Task Form -->
