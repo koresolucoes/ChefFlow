@@ -34,19 +34,19 @@ import autoTable from 'jspdf-autotable';
               </select>
             }
           </div>
-          <div class="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0" style="scrollbar-width: none;">
-            <button type="button" (click)="generateReport()" class="flex-1 sm:flex-none justify-center px-2 sm:px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-base min-w-[80px]">
+          <div class="grid grid-cols-3 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
+            <button type="button" (click)="generateReport()" class="col-span-1 sm:flex-none justify-center px-2 sm:px-4 py-2 bg-white border border-stone-200 text-stone-700 rounded-lg font-medium hover:bg-stone-50 transition-colors flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-base text-center">
               <mat-icon class="text-[20px] w-5 h-5 sm:text-[24px] sm:w-6 sm:h-6">picture_as_pdf</mat-icon>
               <span class="hidden sm:inline">Gerar Relatório</span>
               <span class="sm:hidden">Relatório</span>
             </button>
             @if (canManageTasks()) {
-              <button type="button" (click)="openNewChecklistForm()" class="flex-1 sm:flex-none justify-center px-2 sm:px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-base text-center min-w-[80px]">
+              <button type="button" (click)="openNewChecklistForm()" class="col-span-1 sm:flex-none justify-center px-2 sm:px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-base text-center">
                 <mat-icon class="text-[20px] w-5 h-5 sm:text-[24px] sm:w-6 sm:h-6">add_task</mat-icon>
                 <span class="hidden sm:inline">Novo Item Checklist</span>
                 <span class="sm:hidden">Checklist</span>
               </button>
-              <button type="button" (click)="openNewEquipmentForm()" class="flex-1 sm:flex-none justify-center px-2 sm:px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-base text-center min-w-[80px]">
+              <button type="button" (click)="openNewEquipmentForm()" class="col-span-1 sm:flex-none justify-center px-2 sm:px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-base text-center">
                 <mat-icon class="text-[20px] w-5 h-5 sm:text-[24px] sm:w-6 sm:h-6">kitchen</mat-icon>
                 <span class="hidden sm:inline">Novo Equipamento</span>
                 <span class="sm:hidden">Equip.</span>
