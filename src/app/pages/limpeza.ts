@@ -62,15 +62,15 @@ import autoTable from 'jspdf-autotable';
       }
 
       <!-- Tabs -->
-      <div class="border-b border-stone-200 overflow-x-auto" style="scrollbar-width: none; -ms-overflow-style: none;">
-        <nav class="-mb-px flex space-x-4 md:space-x-8 min-w-max px-2 md:px-0" aria-label="Tabs">
+      <div class="border-b border-stone-200">
+        <nav class="-mb-px flex flex-wrap gap-2 md:gap-8 px-2 md:px-0" aria-label="Tabs">
           <button 
             (click)="activeTab.set('abertura')"
             [class.border-stone-900]="activeTab() === 'abertura'"
             [class.text-stone-900]="activeTab() === 'abertura'"
             [class.border-transparent]="activeTab() !== 'abertura'"
             [class.text-stone-500]="activeTab() !== 'abertura'"
-            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
+            class="py-3 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
             Abertura
           </button>
           <button 
@@ -79,7 +79,7 @@ import autoTable from 'jspdf-autotable';
             [class.text-stone-900]="activeTab() === 'operacao'"
             [class.border-transparent]="activeTab() !== 'operacao'"
             [class.text-stone-500]="activeTab() !== 'operacao'"
-            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
+            class="py-3 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
             Operação
           </button>
           <button 
@@ -88,7 +88,7 @@ import autoTable from 'jspdf-autotable';
             [class.text-stone-900]="activeTab() === 'fechamento'"
             [class.border-transparent]="activeTab() !== 'fechamento'"
             [class.text-stone-500]="activeTab() !== 'fechamento'"
-            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
+            class="py-3 px-1 border-b-2 font-medium text-sm hover:text-stone-700 hover:border-stone-300 transition-colors">
             Fechamento
           </button>
         </nav>
