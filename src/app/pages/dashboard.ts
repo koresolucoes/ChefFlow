@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, computed, effect, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, computed, effect, ElementRef, ViewChild, AfterViewInit, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -377,9 +378,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
   }
 
+  private platformId = inject(PLATFORM_ID);
+
   ngAfterViewInit() {
-    this.initPrepChart();
-    this.initInventoryChart();
+    if (isPlatformBrowser(this.platformId)) {
+      this.initPrepChart();
+      this.initInventoryChart();
+    }
   }
 
   private initPrepChart() {
