@@ -14,7 +14,7 @@ import { AuthService } from '../services/auth.service';
     <div class="space-y-6">
       <header class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 class="text-3xl font-bold tracking-tight text-stone-900">Waste Log (Desperdício)</h1>
+          <h1 class="text-3xl font-bold tracking-tight text-stone-900">Desperdício</h1>
           <p class="text-stone-500 mt-1">Registro rápido de perdas e quebras para controle de CMV.</p>
         </div>
         <button (click)="toggleForm()" class="px-4 py-2 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">

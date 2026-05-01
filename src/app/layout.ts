@@ -52,7 +52,7 @@ import { AuthService } from './services/auth.service';
             </a>
             <a routerLink="/desperdicio" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
               <mat-icon>delete_sweep</mat-icon>
-              <span class="font-medium">Waste Log</span>
+              <span class="font-medium">Desperdício</span>
             </a>
           }
           
@@ -224,7 +224,7 @@ import { AuthService } from './services/auth.service';
                 </a>
                 <a routerLink="/desperdicio" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-blue-500 bg-blue-50/50" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
                   <mat-icon class="text-[32px] w-8 h-8 text-rose-600">delete_sweep</mat-icon>
-                  <span class="font-bold text-stone-900 text-sm text-center">Waste Log</span>
+                  <span class="font-bold text-stone-900 text-sm text-center">Desperdício</span>
                 </a>
               }
               
