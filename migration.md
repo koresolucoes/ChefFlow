@@ -52,4 +52,22 @@ CREATE TABLE waste_logs (
   tenant_id UUID,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- =========================================================================
+-- FASE 1: COMPRAS (HISTÓRICO DE ENTRADAS)
+-- =========================================================================
+
+CREATE TABLE purchases (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  inventory_item_id UUID REFERENCES inventory(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  quantity NUMERIC NOT NULL,
+  unit VARCHAR(50) NOT NULL,
+  total_cost NUMERIC NOT NULL,
+  unit_cost NUMERIC NOT NULL,
+  invoice_number VARCHAR(100),
+  supplier_name VARCHAR(255),
+  tenant_id UUID,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
