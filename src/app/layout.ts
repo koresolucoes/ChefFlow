@@ -20,7 +20,7 @@ import { AuthService } from './services/auth.service';
         <nav class="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
           <a routerLink="/dashboard" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
             <mat-icon>dashboard</mat-icon>
-            <span class="font-medium">Dashboard</span>
+            <span class="font-medium">Painel de Controle</span>
           </a>
           
           <div class="pt-4 pb-2 px-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">
@@ -196,7 +196,7 @@ import { AuthService } from './services/auth.service';
             <div class="grid grid-cols-2 gap-3">
               <a routerLink="/dashboard" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" [routerLinkActiveOptions]="{exact: true}" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
                 <mat-icon class="text-[32px] w-8 h-8 text-emerald-600">dashboard</mat-icon>
-                <span class="font-bold text-stone-900 text-sm">Dashboard</span>
+                <span class="font-bold text-stone-900 text-sm">Painel de Controle</span>
               </a>
               
               @if (authService.canManageTeam()) {

@@ -23,7 +23,7 @@ Chart.register(...registerables);
     <div class="space-y-6 pb-12">
       <header class="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
         <div>
-          <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">Business Intelligence</h1>
+          <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">Painel de Controle</h1>
           <p class="text-sm md:text-base text-stone-500 mt-1">Visão analítica e indicadores de performance do restaurante.</p>
         </div>
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
