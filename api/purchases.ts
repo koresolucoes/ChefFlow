@@ -17,6 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const supabaseUrl = process.env['SUPABASE_URL'];
     const supabaseKey = process.env['SUPABASE_ANON_KEY'];
+    const serviceRoleKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
     
     if (!supabaseUrl || !supabaseKey) {
       return res.status(500).json({ error: 'Supabase credentials missing' });
@@ -32,6 +33,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } }
     });
+    
+    // Admin client to bypass RLS if configured
+    const adminSupabase = serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : supabase;
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
@@ -43,7 +47,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const tenantId = userProfile?.tenant_id;
 
     if (req.method === 'GET') {
-      const { data, error } = await supabase
+      const { data, error } = await adminSupabase
         .from('purchases')
         .select(`
           *,
@@ -64,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await adminSupabase
         .from('purchases')
         .insert({
           inventory_item_id,

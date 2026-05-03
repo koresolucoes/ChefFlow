@@ -18,6 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const supabaseUrl = process.env['SUPABASE_URL'];
     const supabaseKey = process.env['SUPABASE_ANON_KEY'];
+    const serviceRoleKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
     
     if (!supabaseUrl || !supabaseKey) {
       return res.status(500).json({ error: 'Supabase credentials missing' });
@@ -38,6 +39,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     });
 
+    const adminSupabase = serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : supabase;
+
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
@@ -57,7 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // GET: List prep tasks
     if (req.method === 'GET') {
-      let query = supabase
+      let query = adminSupabase
         .from('prep_tasks')
         .select(`
           *,
@@ -108,7 +111,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         finalTeamId = userTeamId || null;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await adminSupabase
         .from('prep_tasks')
         .insert({
           title: name,
@@ -149,7 +152,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       // Check existing task
-      const { data: existingTask } = await supabase.from('prep_tasks').select('*').eq('id', id).single();
+      const { data: existingTask } = await adminSupabase.from('prep_tasks').select('*').eq('id', id).single();
       if (!existingTask) return res.status(404).json({ error: 'Task not found' });
 
       const updateData: any = {};
@@ -173,7 +176,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await adminSupabase
         .from('prep_tasks')
         .update(updateData)
         .eq('id', id)
@@ -190,7 +193,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (shouldProcessInventory && data.recipe_id && data.target_portions) {
          // Deduct from inventory
-         const { data: recipe } = await supabase.from('recipes').select('*, recipe_ingredients(*)').eq('id', data.recipe_id).single();
+         const { data: recipe } = await adminSupabase.from('recipes').select('*, recipe_ingredients(*)').eq('id', data.recipe_id).single();
          if (recipe) {
             const ratio = data.target_portions / (recipe.base_portions || 1);
             
@@ -198,18 +201,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             for (const ing of recipe.recipe_ingredients || []) {
                if (ing.inventory_item_id) {
                  const totalDeduct = ing.quantity * ratio * (ing.correction_factor || 1.0);
-                 const { data: invItem } = await supabase.from('inventory').select('quantity').eq('id', ing.inventory_item_id).single();
+                 const { data: invItem } = await adminSupabase.from('inventory').select('quantity').eq('id', ing.inventory_item_id).single();
                  if (invItem) {
-                    await supabase.from('inventory').update({ quantity: invItem.quantity - totalDeduct }).eq('id', ing.inventory_item_id);
+                    await adminSupabase.from('inventory').update({ quantity: invItem.quantity - totalDeduct }).eq('id', ing.inventory_item_id);
                  }
                }
             }
 
             // Increase produced item
             if (recipe.produced_item_id) {
-               const { data: invItem } = await supabase.from('inventory').select('quantity').eq('id', recipe.produced_item_id).single();
+               const { data: invItem } = await adminSupabase.from('inventory').select('quantity').eq('id', recipe.produced_item_id).single();
                if (invItem) {
-                  await supabase.from('inventory').update({ quantity: (Number(invItem.quantity) || 0) + data.target_portions }).eq('id', recipe.produced_item_id);
+                  await adminSupabase.from('inventory').update({ quantity: (Number(invItem.quantity) || 0) + data.target_portions }).eq('id', recipe.produced_item_id);
                }
             }
          }
@@ -230,7 +233,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Task ID is required' });
       }
 
-      const { error } = await supabase
+      const { error } = await adminSupabase
         .from('prep_tasks')
         .delete()
         .eq('id', id);

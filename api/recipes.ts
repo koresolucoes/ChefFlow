@@ -18,6 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const supabaseUrl = process.env['SUPABASE_URL'];
     const supabaseKey = process.env['SUPABASE_ANON_KEY'];
+    const serviceRoleKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
     
     if (!supabaseUrl || !supabaseKey) {
       return res.status(500).json({ error: 'Supabase credentials missing' });
@@ -38,6 +39,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     });
 
+    // Admin client to bypass RLS if configured
+    const adminSupabase = serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : supabase;
+
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
@@ -50,7 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       
       if (id) {
         // Obter uma receita específica com seus ingredientes
-        const { data: recipe, error: recipeError } = await supabase
+        const { data: recipe, error: recipeError } = await adminSupabase
           .from('recipes')
           .select(`
             *,
@@ -64,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       
       // Listar todas as receitas
-      const { data, error } = await supabase
+      const { data, error } = await adminSupabase
         .from('recipes')
         .select('*')
         .order('name');
@@ -82,7 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data: userProfile } = await supabase.from('users').select('tenant_id').eq('id', user.id).single();
 
       // INSERE a Receita
-      const { data: recipe, error: recipeError } = await supabase
+      const { data: recipe, error: recipeError } = await adminSupabase
         .from('recipes')
         .insert({
           name, description, prep_time_minutes, base_portions, image_url, method, equipment, produced_item_id, tenant_id: userProfile?.tenant_id
@@ -103,7 +107,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           inventory_item_id: ing.inventory_item_id || null
         }));
         
-        await supabase.from('recipe_ingredients').insert(ingredientsToInsert);
+        await adminSupabase.from('recipe_ingredients').insert(ingredientsToInsert);
       }
 
       return res.status(201).json(recipe);
@@ -115,9 +119,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!id) return res.status(400).json({ error: 'Recipe ID is required' });
 
       // Ingredientes serão deletados em cascata (se configurado no BD) ou podemos deletá-los explicitamente
-      await supabase.from('recipe_ingredients').delete().eq('recipe_id', id);
+      await adminSupabase.from('recipe_ingredients').delete().eq('recipe_id', id);
       
-      const { error } = await supabase.from('recipes').delete().eq('id', id);
+      const { error } = await adminSupabase.from('recipes').delete().eq('id', id);
       if (error) return res.status(400).json({ error: error.message });
 
       return res.status(200).json({ success: true });

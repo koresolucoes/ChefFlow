@@ -17,6 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const supabaseUrl = process.env['SUPABASE_URL'];
     const supabaseKey = process.env['SUPABASE_ANON_KEY'];
+    const serviceRoleKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
     
     if (!supabaseUrl || !supabaseKey) {
       return res.status(500).json({ error: 'Supabase credentials missing' });
@@ -31,6 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } }
     });
+    const adminSupabase = serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : supabase;
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) return res.status(401).json({ error: 'Invalid token' });
@@ -42,7 +44,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const tenantId = userProfile.tenant_id;
 
     if (req.method === 'GET') {
-      const { data, error } = await supabase
+      const { data, error } = await adminSupabase
         .from('waste_logs')
         .select(`
           *,
@@ -63,7 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await adminSupabase
         .from('waste_logs')
         .insert({
           inventory_item_id,
@@ -84,15 +86,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (error) return res.status(400).json({ error: error.message });
 
-      // Opcional: deduzir a quantidade do estoque ao registrar o desperdício
-      // Descomentar quando o backend suportar descontos no estoque ou se for lidar no frontend via endpoint de inventário.
-      /*
-      await supabase.rpc('decrement_inventory', { 
-        p_item_id: inventory_item_id, 
-        p_quantity: quantity 
-      });
-      */
-
       return res.status(201).json(data);
     }
     
@@ -100,7 +93,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { id } = req.query;
       if (!id) return res.status(400).json({ error: 'Log ID is required' });
       
-      const { error } = await supabase.from('waste_logs').delete().eq('id', id).eq('tenant_id', tenantId);
+      const { error } = await adminSupabase.from('waste_logs').delete().eq('id', id).eq('tenant_id', tenantId);
       if (error) return res.status(400).json({ error: error.message });
       
       return res.status(200).json({ success: true });
