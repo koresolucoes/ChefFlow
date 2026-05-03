@@ -70,4 +70,13 @@ CREATE TABLE purchases (
   tenant_id UUID,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+-- =========================================================================
+-- FASE 2: INTEGRAÇÃO RECEITAS E PRODUÇÃO
+-- =========================================================================
+
+ALTER TABLE recipes ADD COLUMN IF NOT EXISTS produced_item_id UUID REFERENCES inventory(id) ON DELETE SET NULL;
+
+ALTER TABLE prep_tasks ADD COLUMN IF NOT EXISTS recipe_id UUID REFERENCES recipes(id) ON DELETE SET NULL;
+ALTER TABLE prep_tasks ADD COLUMN IF NOT EXISTS target_portions INTEGER;
+
 ```

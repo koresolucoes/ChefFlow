@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormArray } from '@angular/forms';
 import { RecipeService, Recipe, RecipeIngredient } from '../services/recipe.service';
 import { AuthService } from '../services/auth.service';
+import { InventoryService } from '../services/inventory.service';
 
 @Component({
   selector: 'app-receitas',
@@ -49,9 +50,19 @@ import { AuthService } from '../services/auth.service';
                 <input id="recipe-time" type="number" formControlName="prep_time_minutes" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
               </div>
 
-              <div class="space-y-1.5 lg:col-span-4">
+              <div class="space-y-1.5 lg:col-span-2">
                 <label for="recipe-desc" class="text-sm font-medium text-stone-700">Descrição Curta</label>
                 <input id="recipe-desc" type="text" formControlName="description" placeholder="Ex: Molho rústico de tomates frescos italiano." class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              </div>
+
+              <div class="space-y-1.5 lg:col-span-2">
+                <label for="recipe-produced" class="text-sm font-medium text-stone-700">Rendimento Final (Insumo Produzido)</label>
+                <select id="recipe-produced" formControlName="produced_item_id" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+                  <option value="">Nenhum (Apenas Porções)</option>
+                  @for (item of inventoryService.items(); track item.id) {
+                    <option [value]="item.id">{{ item.name }} ({{ item.unit }})</option>
+                  }
+                </select>
               </div>
             </div>
 
@@ -69,7 +80,14 @@ import { AuthService } from '../services/auth.service';
                   @for (ing of ingredientsFormArray.controls; track i; let i = $index) {
                     <div [formGroupName]="i" class="flex flex-wrap sm:flex-nowrap items-start gap-2 bg-stone-50 p-2 rounded-lg border border-stone-200 animate-in fade-in">
                       <div class="w-full sm:w-1/3">
-                        <input type="text" formControlName="name" placeholder="Nome do Insumo" class="w-full px-2 py-1.5 text-sm bg-white border border-stone-200 rounded focus:outline-none focus:border-emerald-500">
+                        <select formControlName="inventory_item_id" class="w-full px-2 py-1.5 text-sm bg-white border border-stone-200 rounded focus:outline-none focus:border-emerald-500">
+                          <option value="">--- Insumo não cadastrado ---</option>
+                          @for (item of inventoryService.items(); track item.id) {
+                            <option [value]="item.id">{{ item.name }}</option>
+                          }
+                        </select>
+                        <!-- Fallback se não usar o estoque central -->
+                        <input type="text" formControlName="name" placeholder="Ou digite o nome..." class="w-full mt-1 px-2 py-1.5 text-sm bg-white border border-stone-200 rounded focus:outline-none focus:border-emerald-500">
                       </div>
                       <div class="w-1/3 sm:w-20">
                         <input type="number" step="0.01" formControlName="quantity" placeholder="Qtd" class="w-full px-2 py-1.5 text-sm bg-white border border-stone-200 rounded focus:outline-none focus:border-emerald-500">
@@ -285,6 +303,7 @@ import { AuthService } from '../services/auth.service';
 export class ReceitasComponent implements OnInit {
   recipeService = inject(RecipeService);
   authService = inject(AuthService);
+  inventoryService = inject(InventoryService);
   private fb = inject(FormBuilder);
 
   showForm = signal(false);
@@ -298,6 +317,7 @@ export class ReceitasComponent implements OnInit {
     description: [''],
     prep_time_minutes: [0],
     base_portions: [1, [Validators.required, Validators.min(1)]],
+    produced_item_id: [''],
     method: [''],
     equipment: [''],
     ingredients: this.fb.array([])
@@ -309,6 +329,7 @@ export class ReceitasComponent implements OnInit {
 
   ngOnInit() {
     this.recipeService.loadRecipes();
+    this.inventoryService.loadItems('central');
   }
 
   canEdit() {
@@ -326,7 +347,8 @@ export class ReceitasComponent implements OnInit {
 
   addIngredient() {
     this.ingredientsFormArray.push(this.fb.group({
-      name: ['', Validators.required],
+      inventory_item_id: [''],
+      name: [''],
       quantity: [0, [Validators.required, Validators.min(0.01)]],
       unit: ['kg', Validators.required],
       correction_factor: [1.0, Validators.min(0.1)]
@@ -380,11 +402,15 @@ export class ReceitasComponent implements OnInit {
         description: val.description || '',
         prep_time_minutes: val.prep_time_minutes || 0,
         base_portions: val.base_portions || 1,
+        produced_item_id: val.produced_item_id || undefined,
         method: val.method || '',
         equipment: val.equipment || ''
       };
 
-      const ingredients = (val.ingredients || []) as RecipeIngredient[];
+      const ingredients = (val.ingredients || []).map((i: any) => ({
+        ...i,
+        name: i.name || (i.inventory_item_id ? this.inventoryService.items().find(x => x.id === i.inventory_item_id)?.name : 'Sem nome')
+      })) as RecipeIngredient[];
 
       const success = await this.recipeService.addRecipe(recipeData, ingredients);
       this.isSubmitting.set(false);

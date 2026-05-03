@@ -12,6 +12,8 @@ export interface PrepTask {
   assigned_to?: string;
   due_date?: string;
   created_at?: string;
+  recipe_id?: string;
+  target_portions?: number;
   teams?: { id: string; name: string };
   assigned_to_user?: { id: string; name: string };
 }

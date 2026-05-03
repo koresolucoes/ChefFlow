@@ -6,6 +6,7 @@ import { PrepTaskService, PrepTask } from '../services/prep-task.service';
 import { TeamService } from '../services/team.service';
 import { AuthService } from '../services/auth.service';
 import { ExportService } from '../services/export.service';
+import { RecipeService } from '../services/recipe.service';
 
 @Component({
   selector: 'app-producao',
@@ -58,6 +59,24 @@ import { ExportService } from '../services/export.service';
               <label for="task-description" class="text-sm font-medium text-stone-700">Descrição / Instruções</label>
               <input id="task-description" type="text" formControlName="description" placeholder="Ex: Fazer 10 litros para o serviço da noite" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
             </div>
+
+            <!-- Fichas Técnicas Integradas -->
+            <div class="space-y-1.5">
+              <label for="task-recipe" class="text-sm font-medium text-stone-700">Vincular Receita / Ficha Técnica (Opcional)</label>
+              <select id="task-recipe" formControlName="recipe_id" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+                <option value="">Nenhuma receita</option>
+                @for (recipe of recipeService.recipes(); track recipe.id) {
+                  <option [value]="recipe.id">{{ recipe.name }}</option>
+                }
+              </select>
+            </div>
+
+            @if (taskForm.get('recipe_id')?.value) {
+              <div class="space-y-1.5">
+                <label for="task-target-portions" class="text-sm font-medium text-stone-700">Porções a Produzir</label>
+                <input id="task-target-portions" type="number" formControlName="target_portions" min="1" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors">
+              </div>
+            }
 
             <div class="md:col-span-2 flex justify-end mt-2">
               <button type="submit" [disabled]="taskForm.invalid || isSubmitting()" class="flex items-center gap-2 bg-stone-900 hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm">
@@ -160,6 +179,11 @@ import { ExportService } from '../services/export.service';
                   <div class="flex-1 mb-5">
                     <h3 class="text-lg font-bold text-stone-900 leading-tight" [class.line-through]="task.status === 'completed'">
                       {{ task.name }}
+                      @if (task.recipe_id && task.target_portions) {
+                        <span class="inline-flex items-center ml-2 px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">
+                          <mat-icon class="text-[12px] w-3 h-3 mr-1">receipt</mat-icon> Receita ({{ task.target_portions }} porções)
+                        </span>
+                      }
                     </h3>
                     @if (task.description) {
                       <p class="text-sm text-stone-500 mt-2 line-clamp-3">{{ task.description }}</p>
@@ -199,6 +223,7 @@ export class ProducaoComponent implements OnInit {
   teamService = inject(TeamService);
   authService = inject(AuthService);
   exportService = inject(ExportService);
+  recipeService = inject(RecipeService);
   private fb = inject(FormBuilder);
 
   activePraca = signal<string>('todas');
@@ -208,7 +233,9 @@ export class ProducaoComponent implements OnInit {
   taskForm = this.fb.group({
     name: ['', Validators.required],
     description: [''],
-    team_id: ['']
+    team_id: [''],
+    recipe_id: [''],
+    target_portions: [1]
   });
 
   completionPercentage = computed(() => {
@@ -224,6 +251,7 @@ export class ProducaoComponent implements OnInit {
     }
     const user = this.authService.currentUser();
     this.prepTaskService.loadTasks(user?.role === 'admin' ? undefined : user?.team_id);
+    this.recipeService.loadRecipes();
   }
 
   canManageTasks(): boolean {
@@ -239,7 +267,7 @@ export class ProducaoComponent implements OnInit {
   toggleForm() {
     this.showForm.update(v => !v);
     if (!this.showForm()) {
-      this.taskForm.reset({ team_id: '' });
+      this.taskForm.reset({ team_id: '', recipe_id: '', target_portions: 1 });
     }
   }
 
@@ -270,6 +298,8 @@ export class ProducaoComponent implements OnInit {
         name: formValue.name || '',
         description: formValue.description || '',
         team_id: formValue.team_id || undefined,
+        recipe_id: formValue.recipe_id || undefined,
+        target_portions: formValue.recipe_id ? (formValue.target_portions || 1) : undefined,
         status: 'pending'
       });
       

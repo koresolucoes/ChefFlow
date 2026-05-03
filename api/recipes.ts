@@ -75,7 +75,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // POST: Create a new recipe
     if (req.method === 'POST') {
-      const { name, description, prep_time_minutes, base_portions, image_url, method, equipment, ingredients } = req.body;
+      const { name, description, prep_time_minutes, base_portions, image_url, method, equipment, ingredients, produced_item_id } = req.body;
 
       if (!name) return res.status(400).json({ error: 'Name is required' });
 
@@ -85,7 +85,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data: recipe, error: recipeError } = await supabase
         .from('recipes')
         .insert({
-          name, description, prep_time_minutes, base_portions, image_url, method, equipment, tenant_id: userProfile?.tenant_id
+          name, description, prep_time_minutes, base_portions, image_url, method, equipment, produced_item_id, tenant_id: userProfile?.tenant_id
         })
         .select()
         .single();

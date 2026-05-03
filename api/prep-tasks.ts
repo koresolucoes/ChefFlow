@@ -97,7 +97,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(403).json({ error: 'Only admins and chefs can create tasks' });
       }
 
-      const { name, description, status, team_id, assigned_to, due_date } = req.body;
+      const { name, description, status, team_id, assigned_to, due_date, recipe_id, target_portions } = req.body;
 
       if (!name) {
         return res.status(400).json({ error: 'Name is required' });
@@ -118,6 +118,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           team_id: finalTeamId,
           assigned_to: assigned_to || null,
           due_date: due_date || null,
+          recipe_id: recipe_id || null,
+          target_portions: target_portions || null,
           tenant_id: userTenantId
         })
         .select(`
@@ -136,15 +138,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // PUT: Update a prep task
     if (req.method === 'PUT') {
-      if (userRole !== 'admin' && userRole !== 'chef') {
-        return res.status(403).json({ error: 'Only admins and chefs can update tasks' });
+      if (userRole !== 'admin' && userRole !== 'chef' && userRole !== 'cook') {
+        return res.status(403).json({ error: 'Permission denied to update tasks' });
       }
 
-      const { id, name, description, status, team_id, assigned_to, due_date } = req.body;
+      const { id, name, description, status, team_id, assigned_to, due_date, recipe_id, target_portions } = req.body;
 
       if (!id) {
         return res.status(400).json({ error: 'Task ID is required' });
       }
+
+      // Check existing task
+      const { data: existingTask } = await supabase.from('prep_tasks').select('*').eq('id', id).single();
+      if (!existingTask) return res.status(404).json({ error: 'Task not found' });
 
       const updateData: any = {};
       
@@ -156,7 +162,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (team_id !== undefined) updateData.team_id = team_id || null;
       if (assigned_to !== undefined) updateData.assigned_to = assigned_to || null;
       if (due_date !== undefined) updateData.due_date = due_date || null;
-      if (status !== undefined) updateData.status = status;
+      if (recipe_id !== undefined) updateData.recipe_id = recipe_id || null;
+      if (target_portions !== undefined) updateData.target_portions = target_portions || null;
+      
+      let shouldProcessInventory = false;
+      if (status !== undefined) {
+        updateData.status = status;
+        if (existingTask.status !== 'completed' && status === 'completed') {
+           shouldProcessInventory = true;
+        }
+      }
 
       const { data, error } = await supabase
         .from('prep_tasks')
@@ -171,6 +186,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (error) {
         return res.status(400).json({ error: error.message });
+      }
+
+      if (shouldProcessInventory && data.recipe_id && data.target_portions) {
+         // Deduct from inventory
+         const { data: recipe } = await supabase.from('recipes').select('*, recipe_ingredients(*)').eq('id', data.recipe_id).single();
+         if (recipe) {
+            const ratio = data.target_portions / (recipe.base_portions || 1);
+            
+            // Decrease ingredients
+            for (const ing of recipe.recipe_ingredients || []) {
+               if (ing.inventory_item_id) {
+                 const totalDeduct = ing.quantity * ratio * (ing.correction_factor || 1.0);
+                 const { data: invItem } = await supabase.from('inventory').select('quantity').eq('id', ing.inventory_item_id).single();
+                 if (invItem) {
+                    await supabase.from('inventory').update({ quantity: invItem.quantity - totalDeduct }).eq('id', ing.inventory_item_id);
+                 }
+               }
+            }
+
+            // Increase produced item
+            if (recipe.produced_item_id) {
+               const { data: invItem } = await supabase.from('inventory').select('quantity').eq('id', recipe.produced_item_id).single();
+               if (invItem) {
+                  await supabase.from('inventory').update({ quantity: (Number(invItem.quantity) || 0) + data.target_portions }).eq('id', recipe.produced_item_id);
+               }
+            }
+         }
       }
 
       return res.status(200).json(data);

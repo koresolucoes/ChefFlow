@@ -22,6 +22,7 @@ export interface Recipe {
   image_url?: string;
   method?: string;
   equipment?: string;
+  produced_item_id?: string;
   recipe_ingredients?: RecipeIngredient[];
 }
 
