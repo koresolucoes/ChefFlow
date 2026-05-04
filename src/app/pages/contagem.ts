@@ -100,33 +100,40 @@ import { TeamService } from '../services/team.service';
 
         <div class="divide-y divide-stone-100">
           @for (item of filteredItems(); track item.id) {
-            <div class="p-4 flex items-center justify-between hover:bg-stone-50 transition-colors" [class.bg-emerald-50]="newQuantities()[item.id] !== undefined">
-              <div>
-                <div class="font-bold text-stone-800 text-lg">{{ item.name }}</div>
-                <div class="text-sm text-stone-500">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between hover:bg-stone-50 transition-colors p-4 gap-4" [class.bg-emerald-50]="newQuantities()[item.id] !== undefined">
+              <div class="flex-1">
+                <div class="font-bold text-stone-800 text-lg sm:text-xl">{{ item.name }}</div>
+                <div class="text-sm text-stone-500 mt-1">
                   @if (countMode() === 'quick') {
-                    Estoque sistêmico: {{ item.quantity }} {{ item.unit }}
+                    Sistema: <span class="font-medium text-stone-700">{{ item.quantity }} {{ item.unit }}</span>
                   } @else {
-                    Modo cego - Informe a quantidade física
+                    Modo cego - Informe a quantidade
                   }
                 </div>
               </div>
               
-              <div class="flex items-center gap-3">
-                <div class="flex flex-col items-end">
-                  <label [for]="'qty-' + item.id" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Qtd Encontrada</label>
-                  <div class="flex items-center gap-2">
+              <div class="flex flex-col items-start sm:items-end w-full sm:w-auto">
+                <label [for]="'qty-' + item.id" class="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-2">Qtd Encontrada</label>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                  <button type="button" (click)="adjustQuantity(item.id, -1)" class="w-12 h-12 flex items-center justify-center bg-stone-100 hover:bg-stone-200 active:bg-stone-300 rounded-xl text-stone-700 transition-colors touch-manipulation">
+                    <mat-icon>remove</mat-icon>
+                  </button>
+                  <div class="relative flex-1 sm:w-32">
                     <input 
                       [id]="'qty-' + item.id"
                       type="number" 
+                      inputmode="decimal"
                       [value]="getNewQuantity(item.id)" 
                       (input)="setNewQuantity(item.id, $event)" 
                       min="0" 
                       step="0.1" 
-                      class="w-24 text-right border-2 border-stone-200 rounded-xl px-3 py-2 text-lg focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none font-bold text-stone-800 transition-all bg-white"
+                      class="w-full text-center border-2 border-stone-200 rounded-xl py-3 text-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none font-bold text-stone-800 transition-all bg-white"
                       [placeholder]="countMode() === 'blind' ? '?' : ''">
-                    <span class="text-stone-500 font-medium w-8">{{ item.unit }}</span>
                   </div>
+                  <button type="button" (click)="adjustQuantity(item.id, 1)" class="w-12 h-12 flex items-center justify-center bg-stone-100 hover:bg-stone-200 active:bg-stone-300 rounded-xl text-stone-700 transition-colors touch-manipulation">
+                    <mat-icon>add</mat-icon>
+                  </button>
+                  <span class="text-stone-500 font-bold ml-2 w-8">{{ item.unit }}</span>
                 </div>
               </div>
             </div>
@@ -218,6 +225,25 @@ export class ContagemComponent {
        delete prev[id];
        this.newQuantities.set(prev);
     }
+  }
+
+  adjustQuantity(id: string, delta: number) {
+    const currentStr = this.getNewQuantity(id);
+    let current = parseFloat(currentStr);
+    
+    // If blind mode and no entry yet, base it off 0. If quick mode and no entry, it defaults to systemic quantity.
+    if (isNaN(current)) {
+      if (this.countMode() === 'blind') {
+        current = 0;
+      } else {
+        const item = this.items().find(i => i.id === id);
+        current = item ? item.quantity : 0;
+      }
+    }
+    
+    // Optional: adjusting step could change based on unit (e.g. Kg vs Un), but standard 1 works for most quick adjustments
+    const newVal = Math.max(0, current + delta);
+    this.newQuantities.update(prev => ({ ...prev, [id]: newVal }));
   }
 
   async salvarContagem() {

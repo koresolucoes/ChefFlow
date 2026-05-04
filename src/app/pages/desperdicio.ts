@@ -17,7 +17,7 @@ import { AuthService } from '../services/auth.service';
           <h1 class="text-3xl font-bold tracking-tight text-stone-900">Desperdício</h1>
           <p class="text-stone-500 mt-1">Registro rápido de perdas e quebras para controle de CMV.</p>
         </div>
-        <button (click)="toggleForm()" class="px-4 py-2 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
+        <button (click)="toggleForm()" class="w-full sm:w-auto px-4 py-3 sm:py-2 bg-rose-600 text-white rounded-xl sm:rounded-lg font-bold hover:bg-rose-700 transition-colors flex justify-center items-center gap-2 shadow-sm whitespace-nowrap mt-4 sm:mt-0">
           <mat-icon>{{ showForm() ? 'close' : 'add' }}</mat-icon>
           <span>{{ showForm() ? 'Cancelar' : 'Registrar Perda' }}</span>
         </button>
@@ -44,7 +44,7 @@ import { AuthService } from '../services/auth.service';
               <div class="space-y-1.5">
                 <label for="quantity" class="text-sm font-medium text-stone-700">Quantidade Perdida *</label>
                 <div class="flex gap-2">
-                  <input id="quantity" type="number" step="0.01" min="0.01" formControlName="quantity" (input)="calculaImpacto()" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-colors">
+                  <input id="quantity" type="number" inputmode="decimal" step="0.01" min="0.01" formControlName="quantity" (input)="calculaImpacto()" class="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-colors">
                   <input type="text" formControlName="unit" readonly class="w-20 px-3 py-2 bg-stone-100 border border-stone-200 rounded-lg text-stone-500 cursor-not-allowed">
                 </div>
               </div>

@@ -335,6 +335,7 @@ import autoTable from 'jspdf-autotable';
                             #tempInput
                             type="number" 
                             step="0.1"
+                            inputmode="decimal"
                             [value]="task.value || ''" 
                             (keyup.enter)="saveTemperature(task, tempInput.value)"
                             class="w-full px-2 sm:px-4 py-2.5 sm:py-3 text-center font-black text-xl sm:text-2xl text-stone-900 focus:outline-none bg-transparent min-w-0" 
