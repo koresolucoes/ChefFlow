@@ -108,36 +108,32 @@ import { AuthService } from '../services/auth.service';
 
       <!-- Tabela de Registros -->
       <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm whitespace-nowrap">
-            <thead class="bg-stone-50 text-stone-600 font-medium border-b border-stone-200">
-              <tr>
-                <th class="px-4 py-3">Insumo</th>
-                <th class="px-4 py-3">Qtd Perdida</th>
-                <th class="px-4 py-3">Motivo</th>
-                <th class="px-4 py-3">Impacto R$</th>
-                <th class="px-4 py-3">Registrado por</th>
-                <th class="px-4 py-3">Data/Hora</th>
-                <th class="px-4 py-3 text-right">Ação</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-stone-100">
-              @if (logService.isLoading()) {
+        @if (logService.isLoading()) {
+          <div class="p-8 text-center text-stone-400">
+            <mat-icon class="animate-spin text-3xl">refresh</mat-icon>
+            <p class="mt-2 font-medium">Carregando registros...</p>
+          </div>
+        } @else if (logService.logs().length === 0) {
+          <div class="p-12 text-center text-stone-500">
+            <mat-icon class="text-4xl text-stone-300 mb-2">check_circle</mat-icon>
+            <p class="font-medium text-stone-900">Nenhum desperdício registrado.</p>
+            <p class="text-sm mt-1">Ótimo trabalho! Mantenha a equipe eficiente.</p>
+          </div>
+        } @else {
+          <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+              <thead class="bg-stone-50 text-stone-600 font-medium border-b border-stone-200">
                 <tr>
-                  <td colspan="7" class="px-4 py-8 text-center text-stone-400">
-                    <mat-icon class="animate-spin text-3xl">refresh</mat-icon>
-                    <p class="mt-2 font-medium">Carregando registros...</p>
-                  </td>
+                  <th class="px-4 py-3">Insumo</th>
+                  <th class="px-4 py-3">Qtd Perdida</th>
+                  <th class="px-4 py-3">Motivo</th>
+                  <th class="px-4 py-3">Impacto R$</th>
+                  <th class="px-4 py-3">Registrado por</th>
+                  <th class="px-4 py-3">Data/Hora</th>
+                  <th class="px-4 py-3 text-right">Ação</th>
                 </tr>
-              } @else if (logService.logs().length === 0) {
-                <tr>
-                  <td colspan="7" class="px-4 py-12 text-center text-stone-500">
-                    <mat-icon class="text-4xl text-stone-300 mb-2">check_circle</mat-icon>
-                    <p class="font-medium text-stone-900">Nenhum desperdício registrado.</p>
-                    <p class="text-sm mt-1">Ótimo trabalho! Mantenha a equipe eficiente.</p>
-                  </td>
-                </tr>
-              } @else {
+              </thead>
+              <tbody class="divide-y divide-stone-100">
                 @for (log of logService.logs(); track log.id) {
                   <tr class="hover:bg-stone-50/50 transition-colors">
                     <td class="px-4 py-3 font-medium text-stone-900">{{ log.inventory_item?.name || 'Insumo Apagado' }}</td>
@@ -159,10 +155,42 @@ import { AuthService } from '../services/auth.service';
                     </td>
                   </tr>
                 }
-              }
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile View -->
+          <div class="md:hidden flex flex-col divide-y divide-stone-100">
+            @for (log of logService.logs(); track log.id) {
+              <div class="p-4 flex flex-col gap-3">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h3 class="font-bold text-stone-900 text-lg">{{ log.inventory_item?.name || 'Insumo apagado' }}</h3>
+                    <div class="flex items-center gap-2 mt-1 -ml-1">
+                      <span class="inline-flex items-center px-2 py-0.5 rounded bg-rose-50 border border-rose-100 text-rose-800 text-sm font-black">{{ log.quantity }} {{ log.unit }}</span>
+                      <span class="text-sm font-medium text-stone-500">{{ log.reason }}</span>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="block font-black text-rose-600">{{ log.cost_impact | currency:'BRL' }}</span>
+                  </div>
+                </div>
+                
+                <div class="flex justify-between items-center text-xs text-stone-500 bg-stone-50 p-2 rounded-lg">
+                  <div class="flex flex-col gap-0.5">
+                    <span>👤 {{ log.user?.name || '-' }}</span>
+                    <span>🕒 {{ log.created_at | date:'shortTime' }} de {{ log.created_at | date:'shortDate' }}</span>
+                  </div>
+                  @if (canDelete()) {
+                    <button (click)="deleteLog(log.id)" class="p-2 text-stone-400 hover:text-rose-600 bg-white rounded-lg border border-stone-200 shadow-sm" title="Remover registro">
+                      <mat-icon class="text-[18px] w-4.5 h-4.5">delete</mat-icon>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
       </div>
     </div>
   `,

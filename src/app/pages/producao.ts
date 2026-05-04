@@ -148,63 +148,66 @@ import { RecipeService } from '../services/recipe.service';
           } @else {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               @for (task of prepTaskService.tasks(); track task.id) {
-                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-5 relative overflow-hidden group transition-all hover:shadow-md flex flex-col" 
+                <div class="bg-white rounded-2xl shadow-sm border p-4 sm:p-5 relative overflow-hidden group flex flex-col" 
                      [ngClass]="{
-                       'border-amber-300 bg-amber-50/30': task.status === 'in-progress',
-                       'border-emerald-200 bg-emerald-50/30 opacity-75': task.status === 'completed'
+                       'border-stone-200': task.status === 'pending',
+                       'border-amber-300 bg-amber-50/50': task.status === 'in-progress',
+                       'border-emerald-300 bg-emerald-50/70': task.status === 'completed'
                      }">
                   
                   @if (task.status === 'in-progress') {
-                    <div class="absolute top-0 left-0 w-full h-1.5 bg-amber-500"></div>
+                    <div class="absolute top-0 left-0 w-full h-2 bg-amber-500"></div>
                   } @else if (task.status === 'completed') {
-                    <div class="absolute top-0 left-0 w-full h-1.5 bg-emerald-500"></div>
+                    <div class="absolute top-0 left-0 w-full h-2 bg-emerald-500"></div>
                   }
 
-                  <div class="flex justify-between items-start mb-3 mt-1">
-                    <div class="flex flex-wrap gap-2">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="flex flex-wrap gap-2 pt-1">
                       @if (task.teams?.name) {
-                        <span class="px-2.5 py-1 bg-stone-100 text-stone-700 text-[10px] uppercase font-bold tracking-wider rounded-md">{{ task.teams?.name }}</span>
+                        <span class="px-2.5 py-1 bg-stone-100 text-stone-700 text-[11px] uppercase font-bold tracking-wider rounded-lg">{{ task.teams?.name }}</span>
                       }
                       @if (task.status === 'in-progress') {
-                        <span class="px-2.5 py-1 bg-amber-100 text-amber-800 text-[10px] uppercase font-bold tracking-wider rounded-md animate-pulse">Em Produção</span>
+                        <span class="px-2.5 py-1 bg-amber-200 text-amber-900 text-[11px] uppercase font-bold tracking-wider rounded-lg flex items-center gap-1">
+                           <mat-icon class="text-[14px] w-3.5 h-3.5 animate-spin">sync</mat-icon> Em Andamento
+                         </span>
                       }
                     </div>
                     @if (canManageTasks()) {
-                      <button (click)="removeTask(task.id)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-white rounded-full shadow-sm">
-                        <mat-icon class="text-[18px] w-4.5 h-4.5">delete</mat-icon>
+                      <button (click)="removeTask(task.id)" class="text-stone-400 hover:text-rose-600 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-2 -mr-2 -mt-2 rounded-full">
+                        <mat-icon>close</mat-icon>
                       </button>
                     }
                   </div>
                   
-                  <div class="flex-1 mb-5">
-                    <h3 class="text-lg font-bold text-stone-900 leading-tight" [class.line-through]="task.status === 'completed'">
+                  <div class="flex-1 mb-6">
+                    <h3 class="text-xl sm:text-lg font-black text-stone-900 leading-tight" [class.line-through]="task.status === 'completed'">
                       {{ task.name }}
-                      @if (task.recipe_id && task.target_portions) {
-                        <span class="inline-flex items-center ml-2 px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">
-                          <mat-icon class="text-[12px] w-3 h-3 mr-1">receipt</mat-icon> Receita ({{ task.target_portions }} porções)
-                        </span>
-                      }
                     </h3>
+                    @if (task.recipe_id && task.target_portions) {
+                      <div class="mt-2 inline-flex items-center px-3 py-1.5 rounded-xl text-sm font-bold bg-emerald-100 text-emerald-900 border border-emerald-200">
+                        <mat-icon class="text-[16px] w-4 h-4 mr-1">receipt</mat-icon> Fazer: {{ task.target_portions }} porções
+                      </div>
+                    }
                     @if (task.description) {
-                      <p class="text-sm text-stone-500 mt-2 line-clamp-3">{{ task.description }}</p>
+                      <p class="text-base text-stone-600 mt-3">{{ task.description }}</p>
                     }
                   </div>
                   
-                  <div class="mt-auto pt-4 border-t border-stone-100">
+                  <div class="mt-auto pt-4 border-t border-stone-200/50">
                     @if (task.status === 'pending') {
-                      <button (click)="toggleTaskStatus(task)" [disabled]="!canEditTasks()" class="w-full py-3 bg-stone-900 text-white rounded-xl font-bold hover:bg-stone-800 transition-colors flex items-center justify-center gap-2 active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                      <button (click)="toggleTaskStatus(task)" [disabled]="!canEditTasks()" class="w-full py-4 sm:py-3 bg-stone-900 text-white rounded-xl font-bold hover:bg-stone-800 transition-colors flex items-center justify-center gap-2 active:scale-95 shadow-sm text-lg sm:text-base disabled:opacity-50">
                         <mat-icon>play_arrow</mat-icon>
-                        Iniciar Produção
+                        Começar
                       </button>
                     } @else if (task.status === 'in-progress') {
-                      <button (click)="toggleTaskStatus(task)" [disabled]="!canEditTasks()" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
-                        <mat-icon>check</mat-icon>
-                        Concluir Tarefa
+                      <button (click)="toggleTaskStatus(task)" [disabled]="!canEditTasks()" class="w-full py-4 sm:py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 active:scale-95 shadow-sm text-lg sm:text-base disabled:opacity-50">
+                        <mat-icon>check_circle</mat-icon>
+                        Pronto!
                       </button>
                     } @else {
-                      <button (click)="toggleTaskStatus(task)" [disabled]="!canEditTasks()" class="w-full py-3 bg-stone-100 text-stone-600 rounded-xl font-bold hover:bg-stone-200 transition-colors flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed">
+                      <button (click)="toggleTaskStatus(task)" [disabled]="!canEditTasks()" class="w-full py-4 sm:py-3 bg-stone-200 text-stone-700 rounded-xl font-bold hover:bg-stone-300 transition-colors flex items-center justify-center gap-2 active:scale-95 shadow-sm text-lg sm:text-base disabled:opacity-50">
                         <mat-icon>undo</mat-icon>
-                        Reabrir Tarefa
+                        Desfazer
                       </button>
                     }
                   </div>
