@@ -96,6 +96,30 @@ import autoTable from 'jspdf-autotable';
         </nav>
       </div>
 
+      <!-- View Mode Toggle -->
+      <div class="flex p-1 bg-stone-100 rounded-xl mb-4 max-w-[400px]">
+        <button 
+          (click)="viewMode.set('checklist')"
+          [class.bg-white]="viewMode() === 'checklist'"
+          [class.shadow-sm]="viewMode() === 'checklist'"
+          [class.text-stone-900]="viewMode() === 'checklist'"
+          [class.text-stone-500]="viewMode() !== 'checklist'"
+          class="flex-1 py-2 px-3 flex items-center justify-center gap-2 rounded-lg font-bold text-sm transition-all focus:outline-none">
+          <mat-icon class="text-[18px] w-4.5 h-4.5">checklist</mat-icon>
+          Checklists
+        </button>
+        <button 
+          (click)="viewMode.set('termometria')"
+          [class.bg-white]="viewMode() === 'termometria'"
+          [class.shadow-sm]="viewMode() === 'termometria'"
+          [class.text-stone-900]="viewMode() === 'termometria'"
+          [class.text-stone-500]="viewMode() !== 'termometria'"
+          class="flex-1 py-2 px-3 flex items-center justify-center gap-2 rounded-lg font-bold text-sm transition-all focus:outline-none">
+          <mat-icon class="text-[18px] w-4.5 h-4.5">thermostat</mat-icon>
+          Termometria
+        </button>
+      </div>
+
       <!-- New Task Form -->
       @if (showNewTaskForm()) {
         <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
@@ -190,220 +214,224 @@ import autoTable from 'jspdf-autotable';
           </div>
         } @else {
           <!-- Checklist Section -->
-          <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-            <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
-              <h2 class="font-bold text-stone-900">Checklists de {{ activeTab() | titlecase }}</h2>
-              <div class="text-sm font-medium text-stone-500 bg-white px-3 py-1 rounded-full border border-stone-200 shadow-sm">
-                {{ completedChecklists() }}/{{ checklists().length }} Concluído
-              </div>
-            </div>
-            
-            <div class="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              @if (checklists().length === 0) {
-                <div class="col-span-full p-8 text-center text-stone-500 bg-stone-50 rounded-2xl border border-stone-200 border-dashed">
-                  Nenhum checklist cadastrado para este momento.
+          @if (viewMode() === 'checklist') {
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+              <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+                <h2 class="font-bold text-stone-900">Checklists de {{ activeTab() | titlecase }}</h2>
+                <div class="text-sm font-medium text-stone-500 bg-white px-3 py-1 rounded-full border border-stone-200 shadow-sm">
+                  {{ completedChecklists() }}/{{ checklists().length }} Concluído
                 </div>
-              }
-              @for (task of checklists(); track task.id) {
-                  <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-5 relative overflow-hidden group transition-all hover:shadow-md"
-                       [class.border-emerald-200]="task.status === 'conforme' || task.status === 'completed'"
-                       [class.bg-emerald-50]="task.status === 'conforme' || task.status === 'completed'"
-                       [class.border-rose-200]="task.status === 'nao_conforme'"
-                       [class.bg-rose-50]="task.status === 'nao_conforme'">
-                    
-                    @if (task.status === 'nao_conforme') {
-                      <div class="absolute top-0 right-0 w-2 h-full bg-rose-500"></div>
-                    } @else if (task.status === 'conforme' || task.status === 'completed') {
-                      <div class="absolute top-0 right-0 w-2 h-full bg-emerald-500"></div>
-                    }
-
-                    <div class="flex flex-col h-full">
-                      <div class="flex-1 mb-4">
-                        <div class="flex items-start justify-between gap-2">
-                          <h3 class="text-lg font-bold text-stone-900 leading-tight" [class.text-emerald-900]="task.status === 'conforme'" [class.text-rose-900]="task.status === 'nao_conforme'">{{ task.title }}</h3>
-                          @if (canManageTasks()) {
-                            <button type="button" (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded-full shadow-sm">
-                              <mat-icon class="text-[18px] w-4.5 h-4.5">delete</mat-icon>
-                            </button>
+              </div>
+              
+              <div class="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                @if (checklists().length === 0) {
+                  <div class="col-span-full p-8 text-center text-stone-500 bg-stone-50 rounded-2xl border border-stone-200 border-dashed">
+                    Nenhum checklist cadastrado para este momento.
+                  </div>
+                }
+                @for (task of checklists(); track task.id) {
+                    <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-5 relative overflow-hidden group transition-all hover:shadow-md"
+                         [class.border-emerald-200]="task.status === 'conforme' || task.status === 'completed'"
+                         [class.bg-emerald-50]="task.status === 'conforme' || task.status === 'completed'"
+                         [class.border-rose-200]="task.status === 'nao_conforme'"
+                         [class.bg-rose-50]="task.status === 'nao_conforme'">
+                      
+                      @if (task.status === 'nao_conforme') {
+                        <div class="absolute top-0 right-0 w-2 h-full bg-rose-500"></div>
+                      } @else if (task.status === 'conforme' || task.status === 'completed') {
+                        <div class="absolute top-0 right-0 w-2 h-full bg-emerald-500"></div>
+                      }
+  
+                      <div class="flex flex-col h-full">
+                        <div class="flex-1 mb-4">
+                          <div class="flex items-start justify-between gap-2">
+                            <h3 class="text-lg font-bold text-stone-900 leading-tight" [class.text-emerald-900]="task.status === 'conforme'" [class.text-rose-900]="task.status === 'nao_conforme'">{{ task.title }}</h3>
+                            @if (canManageTasks()) {
+                              <button type="button" (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded-full shadow-sm">
+                                <mat-icon class="text-[18px] w-4.5 h-4.5">delete</mat-icon>
+                              </button>
+                            }
+                          </div>
+                          @if (task.description) {
+                            <p class="text-sm text-stone-500 mt-2 line-clamp-2">{{ task.description }}</p>
                           }
                         </div>
-                        @if (task.description) {
-                          <p class="text-sm text-stone-500 mt-2 line-clamp-2">{{ task.description }}</p>
-                        }
+                        
+                        <div class="grid grid-cols-2 gap-2 mt-auto">
+                          <button type="button"
+                            [disabled]="!canEditTasks()"
+                            (click)="setStatus(task, 'conforme')"
+                            [class.bg-emerald-500]="task.status === 'conforme' || task.status === 'completed'"
+                            [class.text-white]="task.status === 'conforme' || task.status === 'completed'"
+                            [class.border-emerald-600]="task.status === 'conforme' || task.status === 'completed'"
+                            [class.bg-white]="task.status !== 'conforme' && task.status !== 'completed'"
+                            [class.text-stone-600]="task.status !== 'conforme' && task.status !== 'completed'"
+                            [class.border-stone-200]="task.status !== 'conforme' && task.status !== 'completed'"
+                            class="col-span-1 flex items-center justify-center gap-1.5 py-2.5 sm:py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base">
+                            <mat-icon class="text-[18px] w-4.5 h-4.5">check_circle</mat-icon>
+                            <span>Conforme</span>
+                          </button>
+                          
+                          <button type="button"
+                            [disabled]="!canEditTasks()"
+                            (click)="setStatus(task, 'nao_conforme')"
+                            [class.bg-rose-500]="task.status === 'nao_conforme'"
+                            [class.text-white]="task.status === 'nao_conforme'"
+                            [class.border-rose-600]="task.status === 'nao_conforme'"
+                            [class.bg-white]="task.status !== 'nao_conforme'"
+                            [class.text-stone-600]="task.status !== 'nao_conforme'"
+                            [class.border-stone-200]="task.status !== 'nao_conforme'"
+                            class="col-span-1 flex items-center justify-center gap-1.5 py-2.5 sm:py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base">
+                            <mat-icon class="text-[18px] w-4.5 h-4.5">cancel</mat-icon>
+                            <span>Problema</span>
+                          </button>
+                        </div>
                       </div>
                       
-                      <div class="grid grid-cols-2 gap-2 mt-auto">
-                        <button type="button"
-                          [disabled]="!canEditTasks()"
-                          (click)="setStatus(task, 'conforme')"
-                          [class.bg-emerald-500]="task.status === 'conforme' || task.status === 'completed'"
-                          [class.text-white]="task.status === 'conforme' || task.status === 'completed'"
-                          [class.border-emerald-600]="task.status === 'conforme' || task.status === 'completed'"
-                          [class.bg-white]="task.status !== 'conforme' && task.status !== 'completed'"
-                          [class.text-stone-600]="task.status !== 'conforme' && task.status !== 'completed'"
-                          [class.border-stone-200]="task.status !== 'conforme' && task.status !== 'completed'"
-                          class="col-span-1 flex items-center justify-center gap-1.5 py-2.5 sm:py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base">
-                          <mat-icon class="text-[18px] w-4.5 h-4.5">check_circle</mat-icon>
-                          <span>Conforme</span>
-                        </button>
-                        
-                        <button type="button"
-                          [disabled]="!canEditTasks()"
-                          (click)="setStatus(task, 'nao_conforme')"
-                          [class.bg-rose-500]="task.status === 'nao_conforme'"
-                          [class.text-white]="task.status === 'nao_conforme'"
-                          [class.border-rose-600]="task.status === 'nao_conforme'"
-                          [class.bg-white]="task.status !== 'nao_conforme'"
-                          [class.text-stone-600]="task.status !== 'nao_conforme'"
-                          [class.border-stone-200]="task.status !== 'nao_conforme'"
-                          class="col-span-1 flex items-center justify-center gap-1.5 py-2.5 sm:py-3 border rounded-xl font-bold transition-all active:scale-95 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base">
-                          <mat-icon class="text-[18px] w-4.5 h-4.5">cancel</mat-icon>
-                          <span>Problema</span>
-                        </button>
+                      @if (task.status === 'nao_conforme') {
+                        <div class="mt-4 pt-4 border-t border-rose-200/50">
+                          <label [for]="'reason-chk-' + task.id" class="block text-xs font-bold text-rose-800 mb-2 uppercase tracking-wider flex items-center gap-1">
+                            <mat-icon class="text-[14px] w-3.5 h-3.5">photo_camera</mat-icon>
+                            Ação Corretiva / Evidência
+                          </label>
+                          <textarea 
+                            [id]="'reason-chk-' + task.id"
+                            [(ngModel)]="task.reason"
+                            [disabled]="!canEditTasks()"
+                            (blur)="updateReason(task, $any($event.target).value)"
+                            class="w-full p-3 bg-white border border-rose-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none shadow-inner disabled:opacity-70 disabled:bg-stone-50" 
+                            rows="2" 
+                            placeholder="Descreva o problema ou ação tomada..."></textarea>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+          }
+
+          <!-- Termometria Section -->
+          @if (viewMode() === 'termometria') {
+            <div>
+              <h2 class="text-xl font-bold text-stone-900 mb-4">Termometria de {{ activeTab() | titlecase }}</h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                @if (termometria().length === 0) {
+                  <div class="col-span-full p-8 text-center text-stone-500 bg-white rounded-2xl border border-stone-200 border-dashed">
+                    Nenhum equipamento cadastrado para este momento.
+                  </div>
+                }
+                @for (task of termometria(); track task.id) {
+                  <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-5 relative overflow-hidden group transition-all"
+                       [class.border-rose-300]="task.status === 'nao_conforme'"
+                       [class.bg-rose-50]="task.status === 'nao_conforme'"
+                       [class.border-emerald-200]="task.status === 'conforme'"
+                       [class.bg-emerald-50]="task.status === 'conforme'">
+                    
+                    @if (task.status === 'nao_conforme') {
+                      <div class="absolute top-0 left-0 w-full h-1.5 bg-rose-500"></div>
+                    } @else if (task.status === 'conforme') {
+                      <div class="absolute top-0 left-0 w-full h-1.5 bg-emerald-500"></div>
+                    }
+  
+                    <div class="flex justify-between items-start mb-4 mt-1">
+                      <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 shadow-inner">
+                        <mat-icon class="text-[24px] w-6 h-6">ac_unit</mat-icon>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        @if (canManageTasks()) {
+                          <button type="button" (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity p-2 bg-white rounded-full shadow-sm">
+                            <mat-icon>delete</mat-icon>
+                          </button>
+                        }
                       </div>
                     </div>
                     
+                    <h3 class="text-lg font-bold text-stone-900 leading-tight">{{ task.title }}</h3>
+                    @if (task.target_value) {
+                      <div class="inline-flex items-center gap-1 px-2 py-1 bg-stone-100 rounded-md mt-2">
+                        <mat-icon class="text-[14px] w-3.5 h-3.5 text-stone-500">thermostat</mat-icon>
+                        <p class="text-xs font-bold text-stone-600">Meta: {{ task.target_value }}</p>
+                      </div>
+                    }
+                    
+                    <div class="mt-5">
+                      @if (editingTaskId() === task.id || (!task.value && canEditTasks())) {
+                        <div class="flex items-center gap-2">
+                          <div class="flex-1 flex items-center bg-white border-2 border-stone-300 rounded-xl overflow-hidden focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20 transition-all shadow-inner">
+                            <input 
+                              #tempInput
+                              type="number" 
+                              step="0.1"
+                              inputmode="decimal"
+                              [value]="task.value || ''" 
+                              (keyup.enter)="saveTemperature(task, tempInput.value)"
+                              class="w-full px-2 sm:px-4 py-2.5 sm:py-3 text-center font-black text-xl sm:text-2xl text-stone-900 focus:outline-none bg-transparent min-w-0" 
+                              placeholder="0.0">
+                            <span class="px-3 sm:px-4 py-2.5 sm:py-3 bg-stone-100 text-stone-500 font-bold border-l border-stone-200 text-base sm:text-lg">°C</span>
+                          </div>
+                          <button type="button" (click)="saveTemperature(task, tempInput.value)" class="h-[48px] sm:h-[56px] w-[48px] sm:w-[56px] flex items-center justify-center bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors shadow-md active:scale-95 shrink-0" title="Salvar">
+                            <mat-icon class="text-[24px] sm:text-[28px] w-6 sm:w-7 h-6 sm:h-7">check</mat-icon>
+                          </button>
+                        </div>
+                      } @else {
+                        <div class="flex items-center justify-between bg-white border border-stone-200 rounded-xl p-3 shadow-sm transition-colors" [class.cursor-pointer]="canEditTasks()" [class.hover:border-stone-300]="canEditTasks()" (click)="canEditTasks() ? editTemperature(task.id) : null" (keydown.enter)="canEditTasks() ? editTemperature(task.id) : null" [attr.tabindex]="canEditTasks() ? 0 : -1" [attr.role]="canEditTasks() ? 'button' : null">
+                          <div class="flex items-center gap-2">
+                            <span class="font-black text-3xl" [class.text-rose-600]="task.status === 'nao_conforme'" [class.text-emerald-600]="task.status === 'conforme'">{{ task.value || '--' }}</span>
+                            <span class="text-stone-500 font-bold text-lg">°C</span>
+                          </div>
+                          @if (canEditTasks()) {
+                            <div class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-500">
+                              <mat-icon>edit</mat-icon>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+  
+                    <div class="mt-4 pt-4 border-t border-stone-200/50 flex justify-between items-center">
+                      <span class="text-xs font-medium text-stone-500 flex items-center gap-1">
+                        <mat-icon class="text-[14px] w-3.5 h-3.5">schedule</mat-icon>
+                        {{ task.updated_at ? (task.updated_at | date:'HH:mm') : 'Sem leitura' }}
+                      </span>
+                      @if (task.value) {
+                        <div 
+                          [class.bg-emerald-100]="task.status !== 'nao_conforme'"
+                          [class.text-emerald-800]="task.status !== 'nao_conforme'"
+                          [class.bg-rose-100]="task.status === 'nao_conforme'"
+                          [class.text-rose-800]="task.status === 'nao_conforme'"
+                          class="px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wide flex items-center gap-1">
+                          @if (task.status === 'nao_conforme') {
+                            <mat-icon class="text-[14px] w-3.5 h-3.5">warning</mat-icon>
+                            Perigo
+                          } @else {
+                            <mat-icon class="text-[14px] w-3.5 h-3.5">verified</mat-icon>
+                            Seguro
+                          }
+                        </div>
+                      }
+                    </div>
+                    
                     @if (task.status === 'nao_conforme') {
-                      <div class="mt-4 pt-4 border-t border-rose-200/50">
-                        <label [for]="'reason-chk-' + task.id" class="block text-xs font-bold text-rose-800 mb-2 uppercase tracking-wider flex items-center gap-1">
-                          <mat-icon class="text-[14px] w-3.5 h-3.5">photo_camera</mat-icon>
-                          Ação Corretiva / Evidência
+                      <div class="mt-4 pt-4 border-t border-rose-200">
+                        <label [for]="'reason-term-' + task.id" class="block text-xs font-bold text-rose-800 mb-2 uppercase tracking-wider flex items-center gap-1">
+                          <mat-icon class="text-[14px] w-3.5 h-3.5">build</mat-icon>
+                          Plano de Ação Imediato
                         </label>
                         <textarea 
-                          [id]="'reason-chk-' + task.id"
+                          [id]="'reason-term-' + task.id"
                           [(ngModel)]="task.reason"
                           [disabled]="!canEditTasks()"
                           (blur)="updateReason(task, $any($event.target).value)"
-                          class="w-full p-3 bg-white border border-rose-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none shadow-inner disabled:opacity-70 disabled:bg-stone-50" 
+                          class="w-full p-3 bg-white border-2 border-rose-300 rounded-xl text-sm focus:ring-4 focus:ring-rose-500/20 focus:border-rose-500 outline-none resize-none shadow-inner disabled:opacity-70 disabled:bg-stone-50" 
                           rows="2" 
-                          placeholder="Descreva o problema ou ação tomada..."></textarea>
+                          placeholder="O que foi feito para corrigir? (Ex: Ajustado termostato)"></textarea>
                       </div>
                     }
                   </div>
                 }
               </div>
             </div>
-
-          <!-- Termometria Section -->
-          <div>
-            <h2 class="text-xl font-bold text-stone-900 mb-4">Termometria de {{ activeTab() | titlecase }}</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-              @if (termometria().length === 0) {
-                <div class="col-span-full p-8 text-center text-stone-500 bg-white rounded-2xl border border-stone-200 border-dashed">
-                  Nenhum equipamento cadastrado para este momento.
-                </div>
-              }
-              @for (task of termometria(); track task.id) {
-                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-5 relative overflow-hidden group transition-all"
-                     [class.border-rose-300]="task.status === 'nao_conforme'"
-                     [class.bg-rose-50]="task.status === 'nao_conforme'"
-                     [class.border-emerald-200]="task.status === 'conforme'"
-                     [class.bg-emerald-50]="task.status === 'conforme'">
-                  
-                  @if (task.status === 'nao_conforme') {
-                    <div class="absolute top-0 left-0 w-full h-1.5 bg-rose-500"></div>
-                  } @else if (task.status === 'conforme') {
-                    <div class="absolute top-0 left-0 w-full h-1.5 bg-emerald-500"></div>
-                  }
-
-                  <div class="flex justify-between items-start mb-4 mt-1">
-                    <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 shadow-inner">
-                      <mat-icon class="text-[24px] w-6 h-6">ac_unit</mat-icon>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      @if (canManageTasks()) {
-                        <button type="button" (click)="deleteTask(task)" class="text-stone-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity p-2 bg-white rounded-full shadow-sm">
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      }
-                    </div>
-                  </div>
-                  
-                  <h3 class="text-lg font-bold text-stone-900 leading-tight">{{ task.title }}</h3>
-                  @if (task.target_value) {
-                    <div class="inline-flex items-center gap-1 px-2 py-1 bg-stone-100 rounded-md mt-2">
-                      <mat-icon class="text-[14px] w-3.5 h-3.5 text-stone-500">thermostat</mat-icon>
-                      <p class="text-xs font-bold text-stone-600">Meta: {{ task.target_value }}</p>
-                    </div>
-                  }
-                  
-                  <div class="mt-5">
-                    @if (editingTaskId() === task.id || (!task.value && canEditTasks())) {
-                      <div class="flex items-center gap-2">
-                        <div class="flex-1 flex items-center bg-white border-2 border-stone-300 rounded-xl overflow-hidden focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20 transition-all shadow-inner">
-                          <input 
-                            #tempInput
-                            type="number" 
-                            step="0.1"
-                            inputmode="decimal"
-                            [value]="task.value || ''" 
-                            (keyup.enter)="saveTemperature(task, tempInput.value)"
-                            class="w-full px-2 sm:px-4 py-2.5 sm:py-3 text-center font-black text-xl sm:text-2xl text-stone-900 focus:outline-none bg-transparent min-w-0" 
-                            placeholder="0.0">
-                          <span class="px-3 sm:px-4 py-2.5 sm:py-3 bg-stone-100 text-stone-500 font-bold border-l border-stone-200 text-base sm:text-lg">°C</span>
-                        </div>
-                        <button type="button" (click)="saveTemperature(task, tempInput.value)" class="h-[48px] sm:h-[56px] w-[48px] sm:w-[56px] flex items-center justify-center bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors shadow-md active:scale-95 shrink-0" title="Salvar">
-                          <mat-icon class="text-[24px] sm:text-[28px] w-6 sm:w-7 h-6 sm:h-7">check</mat-icon>
-                        </button>
-                      </div>
-                    } @else {
-                      <div class="flex items-center justify-between bg-white border border-stone-200 rounded-xl p-3 shadow-sm transition-colors" [class.cursor-pointer]="canEditTasks()" [class.hover:border-stone-300]="canEditTasks()" (click)="canEditTasks() ? editTemperature(task.id) : null" (keydown.enter)="canEditTasks() ? editTemperature(task.id) : null" [attr.tabindex]="canEditTasks() ? 0 : -1" [attr.role]="canEditTasks() ? 'button' : null">
-                        <div class="flex items-center gap-2">
-                          <span class="font-black text-3xl" [class.text-rose-600]="task.status === 'nao_conforme'" [class.text-emerald-600]="task.status === 'conforme'">{{ task.value || '--' }}</span>
-                          <span class="text-stone-500 font-bold text-lg">°C</span>
-                        </div>
-                        @if (canEditTasks()) {
-                          <div class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-500">
-                            <mat-icon>edit</mat-icon>
-                          </div>
-                        }
-                      </div>
-                    }
-                  </div>
-
-                  <div class="mt-4 pt-4 border-t border-stone-200/50 flex justify-between items-center">
-                    <span class="text-xs font-medium text-stone-500 flex items-center gap-1">
-                      <mat-icon class="text-[14px] w-3.5 h-3.5">schedule</mat-icon>
-                      {{ task.updated_at ? (task.updated_at | date:'HH:mm') : 'Sem leitura' }}
-                    </span>
-                    @if (task.value) {
-                      <div 
-                        [class.bg-emerald-100]="task.status !== 'nao_conforme'"
-                        [class.text-emerald-800]="task.status !== 'nao_conforme'"
-                        [class.bg-rose-100]="task.status === 'nao_conforme'"
-                        [class.text-rose-800]="task.status === 'nao_conforme'"
-                        class="px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wide flex items-center gap-1">
-                        @if (task.status === 'nao_conforme') {
-                          <mat-icon class="text-[14px] w-3.5 h-3.5">warning</mat-icon>
-                          Perigo
-                        } @else {
-                          <mat-icon class="text-[14px] w-3.5 h-3.5">verified</mat-icon>
-                          Seguro
-                        }
-                      </div>
-                    }
-                  </div>
-                  
-                  @if (task.status === 'nao_conforme') {
-                    <div class="mt-4 pt-4 border-t border-rose-200">
-                      <label [for]="'reason-term-' + task.id" class="block text-xs font-bold text-rose-800 mb-2 uppercase tracking-wider flex items-center gap-1">
-                        <mat-icon class="text-[14px] w-3.5 h-3.5">build</mat-icon>
-                        Plano de Ação Imediato
-                      </label>
-                      <textarea 
-                        [id]="'reason-term-' + task.id"
-                        [(ngModel)]="task.reason"
-                        [disabled]="!canEditTasks()"
-                        (blur)="updateReason(task, $any($event.target).value)"
-                        class="w-full p-3 bg-white border-2 border-rose-300 rounded-xl text-sm focus:ring-4 focus:ring-rose-500/20 focus:border-rose-500 outline-none resize-none shadow-inner disabled:opacity-70 disabled:bg-stone-50" 
-                        rows="2" 
-                        placeholder="O que foi feito para corrigir? (Ex: Ajustado termostato)"></textarea>
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-          </div>
+          }
 
           @if (activeTab() === 'fechamento') {
             <div class="mt-8">
@@ -435,6 +463,7 @@ export class LimpezaComponent implements OnInit {
   teamService = inject(TeamService);
 
   activeTab = signal<'abertura' | 'operacao' | 'fechamento'>('abertura');
+  viewMode = signal<'checklist' | 'termometria'>('checklist');
   showNewTaskForm = signal(false);
   shiftAnalysis = signal('');
   selectedDate = signal(new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()));

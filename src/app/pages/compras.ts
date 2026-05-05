@@ -61,7 +61,7 @@ import { AuthService } from '../services/auth.service';
                   id="itemId"
                   [(ngModel)]="selectedItemId" 
                   (ngModelChange)="onItemSelect()"
-                  class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                  class="w-full px-4 py-4 sm:py-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-lg sm:text-base font-medium transition-colors">
                   <option value="">Selecione um insumo...</option>
                   @for (item of allItems(); track item.id) {
                     <option [value]="item.id">{{ item.name }} ({{ item.unit }})</option>
@@ -92,12 +92,13 @@ import { AuthService } from '../services/auth.service';
                       <input 
                         id="qtdRcv"
                         type="number" 
+                        inputmode="decimal"
                         [(ngModel)]="entryQuantity"
                         min="0.01" 
                         step="0.01" 
                         (input)="calculateTotals()"
-                        class="w-full px-4 py-3 bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-lg">
-                      <div class="absolute right-4 top-1/2 -translate-y-1/2 text-stone-500 font-medium">{{ selectedItemDetails()?.unit }}</div>
+                        class="w-full px-4 py-4 sm:py-3 bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-black text-xl sm:text-lg transition-colors">
+                      <div class="absolute right-4 top-1/2 -translate-y-1/2 text-stone-500 font-bold">{{ selectedItemDetails()?.unit }}</div>
                     </div>
                   </div>
                   <div>
@@ -105,11 +106,12 @@ import { AuthService } from '../services/auth.service';
                     <input 
                       id="costTotal"
                       type="number" 
+                      inputmode="decimal"
                       [(ngModel)]="entryTotalCost" 
                       min="0.01" 
                       step="0.01"
                       (input)="calculateTotals()"
-                      class="w-full px-4 py-3 bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-lg">
+                      class="w-full px-4 py-4 sm:py-3 bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-black text-xl sm:text-lg transition-colors">
                   </div>
                 </div>
 

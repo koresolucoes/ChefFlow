@@ -162,40 +162,52 @@ Chart.register(...registerables);
           <div class="p-4 md:p-5 border-b border-stone-100 bg-stone-50">
             <h2 class="text-base md:text-lg font-bold text-stone-900">Módulos Operacionais</h2>
           </div>
-          <div class="p-4 grid grid-cols-2 gap-3">
+          <div class="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
             @if (authService.canManageTeam()) {
-              <a routerLink="/equipe" class="p-3 rounded-xl border border-stone-100 bg-stone-50 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-100 hover:text-indigo-700 transition-colors group">
-                <mat-icon class="text-stone-400 group-hover:text-indigo-600 transition-colors">badge</mat-icon>
-                <span class="text-xs font-bold text-stone-600 group-hover:text-indigo-700">Equipe</span>
+              <a routerLink="/equipe" class="p-4 rounded-xl border border-stone-100 bg-stone-50/50 flex flex-col items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-100 hover:text-indigo-700 transition-colors group">
+                <mat-icon class="text-stone-400 group-hover:text-indigo-600 transition-colors w-8 h-8 text-[32px] mb-1">badge</mat-icon>
+                <span class="text-xs font-bold text-stone-600 group-hover:text-indigo-700 text-center">Equipe</span>
               </a>
             }
             @if (!authService.isEstoque() && !authService.isAuditor()) {
-              <a routerLink="/escalas" class="p-3 rounded-xl border border-stone-100 bg-stone-50 flex flex-col items-center justify-center gap-2 hover:bg-emerald-50 hover:border-emerald-100 hover:text-emerald-700 transition-colors group">
-                <mat-icon class="text-stone-400 group-hover:text-emerald-600 transition-colors">groups</mat-icon>
-                <span class="text-xs font-bold text-stone-600 group-hover:text-emerald-700">Escalas</span>
+              <a routerLink="/escalas" class="p-4 rounded-xl border border-stone-100 bg-stone-50/50 flex flex-col items-center justify-center gap-2 hover:bg-emerald-50 hover:border-emerald-100 hover:text-emerald-700 transition-colors group">
+                <mat-icon class="text-stone-400 group-hover:text-emerald-600 transition-colors w-8 h-8 text-[32px] mb-1">groups</mat-icon>
+                <span class="text-xs font-bold text-stone-600 group-hover:text-emerald-700 text-center">Escalas</span>
               </a>
             }
             @if (!authService.isEstoque()) {
-              <a routerLink="/producao" class="p-3 rounded-xl border border-stone-100 bg-stone-50 flex flex-col items-center justify-center gap-2 hover:bg-amber-50 hover:border-amber-100 hover:text-amber-700 transition-colors group">
-                <mat-icon class="text-stone-400 group-hover:text-amber-600 transition-colors">receipt_long</mat-icon>
-                <span class="text-xs font-bold text-stone-600 group-hover:text-amber-700">Produção</span>
+              <a routerLink="/producao" class="p-4 rounded-xl border border-stone-100 bg-stone-50/50 flex flex-col items-center justify-center gap-2 hover:bg-amber-50 hover:border-amber-100 hover:text-amber-700 transition-colors group">
+                <mat-icon class="text-stone-400 group-hover:text-amber-600 transition-colors w-8 h-8 text-[32px] mb-1">receipt_long</mat-icon>
+                <span class="text-xs font-bold text-stone-600 group-hover:text-amber-700 text-center">Produção</span>
+              </a>
+              <a routerLink="/receitas" class="p-4 rounded-xl border border-stone-100 bg-stone-50/50 flex flex-col items-center justify-center gap-2 hover:bg-orange-50 hover:border-orange-100 hover:text-orange-700 transition-colors group">
+                <mat-icon class="text-stone-400 group-hover:text-orange-600 transition-colors w-8 h-8 text-[32px] mb-1">menu_book</mat-icon>
+                <span class="text-xs font-bold text-stone-600 group-hover:text-orange-700 text-center">Receitas</span>
               </a>
             }
             @if (!authService.isCook()) {
-              <a routerLink="/estoque" class="p-3 rounded-xl border border-stone-100 bg-stone-50 flex flex-col items-center justify-center gap-2 hover:bg-rose-50 hover:border-rose-100 hover:text-rose-700 transition-colors group">
-                <mat-icon class="text-stone-400 group-hover:text-rose-600 transition-colors">inventory_2</mat-icon>
-                <span class="text-xs font-bold text-stone-600 group-hover:text-rose-700">Estoque</span>
+              <a routerLink="/estoque" class="p-4 rounded-xl border border-stone-100 bg-stone-50/50 flex flex-col items-center justify-center gap-2 hover:bg-teal-50 hover:border-teal-100 hover:text-teal-700 transition-colors group">
+                <mat-icon class="text-stone-400 group-hover:text-teal-600 transition-colors w-8 h-8 text-[32px] mb-1">inventory_2</mat-icon>
+                <span class="text-xs font-bold text-stone-600 group-hover:text-teal-700 text-center">Estoque</span>
+              </a>
+              <a routerLink="/compras" class="p-4 rounded-xl border border-stone-100 bg-stone-50/50 flex flex-col items-center justify-center gap-2 hover:bg-cyan-50 hover:border-cyan-100 hover:text-cyan-700 transition-colors group">
+                <mat-icon class="text-stone-400 group-hover:text-cyan-600 transition-colors w-8 h-8 text-[32px] mb-1">local_shipping</mat-icon>
+                <span class="text-xs font-bold text-stone-600 group-hover:text-cyan-700 text-center">Compras</span>
               </a>
             }
             @if (!authService.isEstoque()) {
-              <a routerLink="/limpeza" class="p-3 rounded-xl border border-stone-100 bg-stone-50 flex flex-col items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-100 hover:text-blue-700 transition-colors group">
-                <mat-icon class="text-stone-400 group-hover:text-blue-600 transition-colors">cleaning_services</mat-icon>
-                <span class="text-xs font-bold text-stone-600 group-hover:text-blue-700">Checklists</span>
+              <a routerLink="/limpeza" class="p-4 rounded-xl border border-stone-100 bg-stone-50/50 flex flex-col items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-100 hover:text-blue-700 transition-colors group">
+                <mat-icon class="text-stone-400 group-hover:text-blue-600 transition-colors w-8 h-8 text-[32px] mb-1">cleaning_services</mat-icon>
+                <span class="text-xs font-bold text-stone-600 group-hover:text-blue-700 text-center">Checklists</span>
+              </a>
+              <a routerLink="/desperdicio" class="p-4 rounded-xl border border-stone-100 bg-stone-50/50 flex flex-col items-center justify-center gap-2 hover:bg-rose-50 hover:border-rose-100 hover:text-rose-700 transition-colors group">
+                <mat-icon class="text-stone-400 group-hover:text-rose-600 transition-colors w-8 h-8 text-[32px] mb-1">delete_sweep</mat-icon>
+                <span class="text-xs font-bold text-stone-600 group-hover:text-rose-700 text-center">Desperdício</span>
               </a>
             }
-            <a routerLink="/comunicacao" class="p-3 rounded-xl border border-stone-100 bg-stone-50 flex flex-col items-center justify-center gap-2 hover:bg-purple-50 hover:border-purple-100 hover:text-purple-700 transition-colors group">
-              <mat-icon class="text-stone-400 group-hover:text-purple-600 transition-colors">campaign</mat-icon>
-              <span class="text-xs font-bold text-stone-600 group-hover:text-purple-700">Avisos</span>
+            <a routerLink="/comunicacao" class="p-4 rounded-xl border border-stone-100 bg-stone-50/50 flex flex-col items-center justify-center gap-2 hover:bg-purple-50 hover:border-purple-100 hover:text-purple-700 transition-colors group">
+              <mat-icon class="text-stone-400 group-hover:text-purple-600 transition-colors w-8 h-8 text-[32px] mb-1">campaign</mat-icon>
+              <span class="text-xs font-bold text-stone-600 group-hover:text-purple-700 text-center">Avisos</span>
             </a>
           </div>
         </div>

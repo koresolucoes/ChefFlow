@@ -149,8 +149,8 @@ import { TeamService } from '../services/team.service';
         </div>
       }
 
-      <!-- Filtros e Busca -->
-      <div class="flex flex-col sm:flex-row gap-4 mb-2">
+      <!-- Filter and Search -->
+      <div class="flex flex-col sm:flex-row gap-4 mb-4">
         <div class="relative flex-1">
           <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">search</mat-icon>
           <input 
@@ -158,7 +158,7 @@ import { TeamService } from '../services/team.service';
             [ngModel]="searchQuery()" 
             (ngModelChange)="searchQuery.set($event)" 
             placeholder="Buscar itens..." 
-            class="w-full pl-10 pr-4 py-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors shadow-sm">
+            class="w-full pl-10 pr-4 py-3 sm:py-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors shadow-sm">
         </div>
         <div class="flex gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
           <button 
@@ -167,8 +167,8 @@ import { TeamService } from '../services/team.service';
             [class.text-white]="activeCategory() === 'Todas'"
             [class.bg-white]="activeCategory() !== 'Todas'"
             [class.text-stone-600]="activeCategory() !== 'Todas'"
-            class="px-4 py-2 rounded-full text-sm font-medium border border-stone-200 whitespace-nowrap transition-colors shadow-sm">
-            Todas as Categorias
+            class="px-4 py-2 rounded-xl text-sm font-bold border border-stone-200 whitespace-nowrap transition-colors shadow-sm">
+            Todas
           </button>
           @for (category of categories(); track category) {
             <button 
@@ -177,7 +177,7 @@ import { TeamService } from '../services/team.service';
               [class.text-white]="activeCategory() === category"
               [class.bg-white]="activeCategory() !== category"
               [class.text-stone-600]="activeCategory() !== category"
-              class="px-4 py-2 rounded-full text-sm font-medium border border-stone-200 whitespace-nowrap transition-colors shadow-sm">
+              class="px-4 py-2 rounded-xl text-sm font-bold border border-stone-200 whitespace-nowrap transition-colors shadow-sm">
               {{ category }}
             </button>
           }
@@ -185,9 +185,9 @@ import { TeamService } from '../services/team.service';
       </div>
 
       <!-- Inventory List -->
-      <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden relative" [class.opacity-60]="inventoryService.isLoading() && filteredItems().length > 0">
+      <div [class.opacity-60]="inventoryService.isLoading() && filteredItems().length > 0">
         <!-- Desktop Table View -->
-        <div class="hidden md:block overflow-x-auto">
+        <div class="hidden md:block bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden relative">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-stone-50 border-b border-stone-200 text-stone-500 text-xs uppercase tracking-wider">
@@ -268,63 +268,69 @@ import { TeamService } from '../services/team.service';
         </div>
 
         <!-- Mobile Card View -->
-        <div class="md:hidden divide-y divide-stone-200">
+        <div class="md:hidden flex flex-col gap-3 p-3">
           @if (inventoryService.isLoading() && filteredItems().length === 0) {
-            <div class="px-6 py-8 text-center text-stone-500">
-              <mat-icon class="animate-spin text-emerald-600 mb-2">refresh</mat-icon>
-              <p>Carregando estoque...</p>
+            <div class="px-6 py-8 text-center text-stone-500 bg-white rounded-2xl border border-stone-200">
+              <mat-icon class="animate-spin text-emerald-600 mb-2 text-3xl h-8 w-8">refresh</mat-icon>
+              <p class="font-medium mt-2">Carregando estoque...</p>
             </div>
           } @else if (filteredItems().length === 0) {
-            <div class="px-6 py-8 text-center text-stone-500">
-              <p>Nenhum item encontrado.</p>
+            <div class="px-6 py-12 text-center text-stone-500 bg-white rounded-2xl border border-stone-200">
+              <mat-icon class="text-4xl text-stone-300 mb-2">inventory_2</mat-icon>
+              <p class="font-medium text-stone-900">Nenhum item encontrado.</p>
             </div>
           } @else {
             @for (item of filteredItems(); track item.id) {
-              <div class="p-4 space-y-3">
+              <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-200 flex flex-col gap-3">
                 <div class="flex justify-between items-start">
                   <div>
-                    <div class="font-medium text-stone-900 text-base">{{ item.name }}</div>
-                    <span class="inline-block mt-1 px-2.5 py-0.5 bg-stone-100 text-stone-700 text-[10px] font-medium rounded-full uppercase tracking-wider">
+                    <div class="font-bold text-stone-900 text-lg">{{ item.name }}</div>
+                    <span class="inline-block mt-1 px-2.5 py-1 bg-stone-100 text-stone-700 text-[11px] font-bold rounded-lg uppercase tracking-wider">
                       {{ item.category }}
                     </span>
                   </div>
                   @if (item.quantity <= item.min_quantity) {
-                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 text-[10px] font-bold rounded-full uppercase tracking-wider">
-                      <mat-icon class="text-[12px] w-3 h-3">warning</mat-icon>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-red-100 text-red-800 text-[11px] font-bold rounded-xl uppercase tracking-wider">
+                      <mat-icon class="text-[14px] w-3.5 h-3.5">warning</mat-icon>
                       Baixo
                     </span>
                   } @else {
-                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full uppercase tracking-wider">
-                      <mat-icon class="text-[12px] w-3 h-3">check_circle</mat-icon>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-100 text-emerald-800 text-[11px] font-bold rounded-xl uppercase tracking-wider">
+                      <mat-icon class="text-[14px] w-3.5 h-3.5">check_circle</mat-icon>
                       OK
                     </span>
                   }
                 </div>
                 
-                <div class="flex items-center justify-between pt-2 border-t border-stone-100">
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-xs text-stone-500 uppercase tracking-wider font-medium">Qtd:</span>
-                    <span class="font-bold text-stone-900 text-lg">{{ item.quantity }}</span>
-                    <span class="text-stone-500 text-sm">{{ item.unit }}</span>
+                <div class="flex items-center justify-between pt-3 border-t border-stone-100 mt-1">
+                  <div class="flex flex-col">
+                    <span class="text-[10px] text-stone-500 uppercase tracking-wider font-bold mb-1">Qtd Atual</span>
+                    <div class="flex items-baseline gap-1.5">
+                      <span class="font-black text-stone-900 text-2xl leading-none">{{ item.quantity }}</span>
+                      <span class="text-stone-500 font-bold text-sm">{{ item.unit }}</span>
+                    </div>
                   </div>
                   
-                  <div class="flex items-center gap-1">
-                    <button (click)="updateQuantity(item, -1)" class="p-2 text-stone-500 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors" title="Diminuir">
-                      <mat-icon class="text-[20px] w-5 h-5">remove</mat-icon>
+                  <div class="flex items-center gap-2">
+                    <button type="button" (click)="updateQuantity(item, -1)" class="w-12 h-12 flex items-center justify-center bg-stone-100 hover:bg-stone-200 active:bg-stone-300 rounded-xl text-stone-700 transition-colors touch-manipulation">
+                      <mat-icon class="text-[24px]">remove</mat-icon>
                     </button>
-                    <button (click)="updateQuantity(item, 1)" class="p-2 text-stone-500 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors" title="Aumentar">
-                      <mat-icon class="text-[20px] w-5 h-5">add</mat-icon>
+                    <button type="button" (click)="updateQuantity(item, 1)" class="w-12 h-12 flex items-center justify-center bg-stone-100 hover:bg-stone-200 active:bg-stone-300 rounded-xl text-stone-700 transition-colors touch-manipulation">
+                      <mat-icon class="text-[24px]">add</mat-icon>
                     </button>
-                    @if (canManageInventory()) {
-                      <button (click)="editItem(item)" class="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors ml-1" title="Editar Item">
-                        <mat-icon class="text-[20px] w-5 h-5">edit</mat-icon>
-                      </button>
-                      <button (click)="removeItem(item.id)" class="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Remover Item">
-                        <mat-icon class="text-[20px] w-5 h-5">delete_outline</mat-icon>
-                      </button>
-                    }
                   </div>
                 </div>
+                
+                @if (canManageInventory()) {
+                  <div class="flex items-center gap-2 pt-3 border-t border-stone-100">
+                    <button (click)="editItem(item)" class="flex-1 py-2.5 flex items-center justify-center gap-2 text-stone-600 bg-stone-50 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl font-bold transition-colors">
+                      <mat-icon class="text-[18px] w-4.5 h-4.5">edit</mat-icon> Editar
+                    </button>
+                    <button (click)="removeItem(item.id)" class="flex-1 py-2.5 flex items-center justify-center gap-2 text-stone-600 bg-stone-50 hover:bg-rose-50 hover:text-rose-700 rounded-xl font-bold transition-colors">
+                      <mat-icon class="text-[18px] w-4.5 h-4.5">delete_outline</mat-icon> Excluir
+                    </button>
+                  </div>
+                }
               </div>
             }
           }
