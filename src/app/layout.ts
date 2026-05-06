@@ -131,15 +131,15 @@ import { AuthService } from './services/auth.service';
         </header>
 
         <!-- Content Area -->
-        <div class="flex-1 overflow-auto bg-stone-50 pb-[100px] md:pb-8 md:p-8">
-          <div class="max-w-7xl mx-auto h-full rounded-none md:rounded-3xl">
+        <div class="flex-1 overflow-y-auto bg-stone-50 md:p-8">
+          <div class="max-w-7xl mx-auto min-h-full pb-32 md:pb-0 rounded-none md:rounded-3xl">
             <router-outlet></router-outlet>
           </div>
         </div>
       </main>
 
       <!-- Bottom Navigation (Mobile Only) -->
-      <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-stone-200 flex items-center justify-around pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 px-2 z-[60] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] text-stone-900">
+      <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-stone-200 flex items-center justify-around pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 px-2 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] text-stone-900">
         <a routerLink="/dashboard" routerLinkActive="text-stone-900" [routerLinkActiveOptions]="{exact: true}" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
           <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform" [class.material-icons-outlined]="!isActive('/dashboard')">dashboard</mat-icon>
           <span class="text-[10px] sm:text-xs font-semibold">Início</span>
@@ -181,7 +181,7 @@ import { AuthService } from './services/auth.service';
       
       <!-- Mobile App Drawer Overlay -->
       @if (isSidebarOpen()) {
-        <div class="fixed inset-0 z-[70] bg-stone-50 flex flex-col md:hidden animate-in slide-in-from-bottom-full duration-300">
+        <div class="fixed inset-0 z-50 bg-stone-50 flex flex-col md:hidden animate-in slide-in-from-bottom-full duration-300">
           <div class="flex items-center justify-between p-4 bg-white border-b border-stone-200 shrink-0">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">
