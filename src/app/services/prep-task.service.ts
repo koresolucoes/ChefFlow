@@ -7,6 +7,7 @@ export interface PrepTask {
   id: string;
   name: string;
   description?: string;
+  notes?: string;
   status: 'pending' | 'in-progress' | 'completed';
   team_id?: string;
   assigned_to?: string;
@@ -25,13 +26,19 @@ export class PrepTaskService {
   tasks = signal<PrepTask[]>([]);
   isLoading = signal(false);
 
-  async loadTasks(teamId?: string) {
+  async loadTasks(teamId?: string, date?: string) {
     this.isLoading.set(true);
     try {
-      let url = `${environment.apiUrl}/prep-tasks`;
+      let url = `${environment.apiUrl}/prep-tasks?`;
+      const params = new URLSearchParams();
       if (teamId && teamId !== 'todas') {
-        url += `?team_id=${teamId}`;
+        params.append('team_id', teamId);
       }
+      if (date) {
+        params.append('date', date);
+      }
+      url += params.toString();
+      
       const tasks = await firstValueFrom(
         this.http.get<PrepTask[]>(url)
       );

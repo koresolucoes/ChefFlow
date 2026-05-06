@@ -79,4 +79,11 @@ ALTER TABLE recipes ADD COLUMN IF NOT EXISTS produced_item_id UUID REFERENCES in
 ALTER TABLE prep_tasks ADD COLUMN IF NOT EXISTS recipe_id UUID REFERENCES recipes(id) ON DELETE SET NULL;
 ALTER TABLE prep_tasks ADD COLUMN IF NOT EXISTS target_portions INTEGER;
 
+-- =========================================================================
+-- FASE 3: MELHORIAS NA PRODUÇÃO (MISE EN PLACE)
+-- =========================================================================
+
+ALTER TABLE prep_tasks ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE prep_tasks ADD COLUMN IF NOT EXISTS due_date DATE;
+
 ```

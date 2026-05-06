@@ -84,6 +84,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           query = query.eq('team_id', team_id);
         }
       }
+      
+      const { date } = req.query;
+      if (date) {
+        query = query.eq('due_date', date);
+      }
 
       const { data, error } = await query;
 
@@ -100,7 +105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(403).json({ error: 'Only admins and chefs can create tasks' });
       }
 
-      const { name, description, status, team_id, assigned_to, due_date, recipe_id, target_portions } = req.body;
+      const { name, description, notes, status, team_id, assigned_to, due_date, recipe_id, target_portions } = req.body;
 
       if (!name) {
         return res.status(400).json({ error: 'Name is required' });
@@ -117,6 +122,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           title: name,
           name: name,
           description,
+          notes: notes || null,
           status: status || 'pending',
           team_id: finalTeamId,
           assigned_to: assigned_to || null,
@@ -145,7 +151,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(403).json({ error: 'Permission denied to update tasks' });
       }
 
-      const { id, name, description, status, team_id, assigned_to, due_date, recipe_id, target_portions } = req.body;
+      const { id, name, description, notes, status, team_id, assigned_to, due_date, recipe_id, target_portions } = req.body;
 
       if (!id) {
         return res.status(400).json({ error: 'Task ID is required' });
@@ -162,6 +168,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         updateData.title = name;
       }
       if (description !== undefined) updateData.description = description;
+      if (notes !== undefined) updateData.notes = notes || null;
       if (team_id !== undefined) updateData.team_id = team_id || null;
       if (assigned_to !== undefined) updateData.assigned_to = assigned_to || null;
       if (due_date !== undefined) updateData.due_date = due_date || null;
