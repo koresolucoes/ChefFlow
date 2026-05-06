@@ -136,52 +136,52 @@ import { AuthService } from './services/auth.service';
             <router-outlet></router-outlet>
           </div>
         </div>
-
-        <!-- Bottom Navigation (Mobile Only) -->
-        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-stone-200/50 flex items-center justify-around pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 px-2 z-40">
-          <a routerLink="/dashboard" routerLinkActive="text-stone-900" [routerLinkActiveOptions]="{exact: true}" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
-            <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform" [class.material-icons-outlined]="!isActive('/dashboard')">dashboard</mat-icon>
-            <span class="text-[10px] sm:text-xs font-semibold">Início</span>
-          </a>
-
-          @if (!authService.isEstoque()) {
-            <a routerLink="/producao" routerLinkActive="text-stone-900" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
-              <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">receipt_long</mat-icon>
-              <span class="text-[10px] sm:text-xs font-semibold">Produção</span>
-            </a>
-          }
-
-          @if (authService.isCook() || authService.isChef() || authService.isAdmin()) {
-            <a routerLink="/contagem" routerLinkActive="text-stone-900" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
-              <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">fact_check</mat-icon>
-              <span class="text-[10px] sm:text-xs font-semibold">Contagem</span>
-            </a>
-          }
-
-          @if (authService.isEstoque()) {
-            <a routerLink="/estoque" routerLinkActive="text-stone-900" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
-              <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">inventory_2</mat-icon>
-              <span class="text-[10px] sm:text-xs font-semibold">Estoque</span>
-            </a>
-          }
-
-          @if (!authService.isEstoque()) {
-            <a routerLink="/limpeza" routerLinkActive="text-stone-900" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
-              <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">cleaning_services</mat-icon>
-              <span class="text-[10px] sm:text-xs font-semibold">Checklists</span>
-            </a>
-          }
-
-          <button (click)="toggleSidebar()" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group" [class.text-stone-900]="isSidebarOpen()">
-            <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">menu</mat-icon>
-            <span class="text-[10px] sm:text-xs font-semibold">Menu</span>
-          </button>
-        </nav>
       </main>
+
+      <!-- Bottom Navigation (Mobile Only) -->
+      <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-stone-200 flex items-center justify-around pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 px-2 z-[60] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] text-stone-900">
+        <a routerLink="/dashboard" routerLinkActive="text-stone-900" [routerLinkActiveOptions]="{exact: true}" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
+          <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform" [class.material-icons-outlined]="!isActive('/dashboard')">dashboard</mat-icon>
+          <span class="text-[10px] sm:text-xs font-semibold">Início</span>
+        </a>
+
+        @if (!authService.isEstoque()) {
+          <a routerLink="/producao" routerLinkActive="text-stone-900" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
+            <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">receipt_long</mat-icon>
+            <span class="text-[10px] sm:text-xs font-semibold">Produção</span>
+          </a>
+        }
+
+        @if (authService.isCook() || authService.isChef() || authService.isAdmin() || authService.isEstoque() || authService.isAuditor()) {
+          <a routerLink="/contagem" routerLinkActive="text-stone-900" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
+            <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">fact_check</mat-icon>
+            <span class="text-[10px] sm:text-xs font-semibold">Contagem</span>
+          </a>
+        }
+
+        @if (authService.isEstoque()) {
+          <a routerLink="/estoque" routerLinkActive="text-stone-900" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
+            <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">inventory_2</mat-icon>
+            <span class="text-[10px] sm:text-xs font-semibold">Estoque</span>
+          </a>
+        }
+
+        @if (!authService.isEstoque()) {
+          <a routerLink="/limpeza" routerLinkActive="text-stone-900" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
+            <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">cleaning_services</mat-icon>
+            <span class="text-[10px] sm:text-xs font-semibold">Checklists</span>
+          </a>
+        }
+
+        <button (click)="toggleSidebar()" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group" [class.text-stone-900]="isSidebarOpen()">
+          <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">menu</mat-icon>
+          <span class="text-[10px] sm:text-xs font-semibold">Menu</span>
+        </button>
+      </nav>
       
       <!-- Mobile App Drawer Overlay -->
       @if (isSidebarOpen()) {
-        <div class="fixed inset-0 z-50 bg-stone-50 flex flex-col md:hidden animate-in slide-in-from-bottom-full duration-300">
+        <div class="fixed inset-0 z-[70] bg-stone-50 flex flex-col md:hidden animate-in slide-in-from-bottom-full duration-300">
           <div class="flex items-center justify-between p-4 bg-white border-b border-stone-200 shrink-0">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">
