@@ -20,23 +20,17 @@ Chart.register(...registerables);
   standalone: true,
   imports: [MatIconModule, CommonModule, RouterModule],
   template: `
-    <div class="space-y-6 pb-12">
-      <header class="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+    <div class="px-4 py-8 md:p-8 max-w-5xl mx-auto space-y-6 md:space-y-8">
+      
+      <!-- Greeting Header (Mobile-Friendly) -->
+      <header class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">Painel de Controle</h1>
-          <p class="text-sm md:text-base text-stone-500 mt-1">Visão analítica e indicadores de performance do restaurante.</p>
+          <h1 class="text-[28px] md:text-3xl font-black tracking-tight text-stone-900 leading-tight">Olá, {{ firstName() }}</h1>
+          <p class="text-sm md:text-base text-stone-500 font-medium">O que vamos fazer hoje?</p>
         </div>
-        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div class="text-left md:text-right">
-            <p class="text-xs md:text-sm font-medium text-stone-500 uppercase tracking-wider">Data Base</p>
-            <p class="text-base md:text-lg font-semibold text-stone-900">{{ today | date:'dd MMM yyyy':'':'pt-BR' }}</p>
-          </div>
-          <button (click)="exportarVisaoGeral()" class="px-4 py-2 bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
-            <mat-icon>download</mat-icon>
-            <span class="hidden sm:inline">Exportar Relatório BI</span>
-            <span class="sm:hidden">Exportar</span>
-          </button>
-        </div>
+        <button (click)="authService.logout()" class="w-12 h-12 rounded-full bg-stone-100 text-stone-500 border border-stone-200 shadow-sm flex items-center justify-center overflow-hidden shrink-0 active:scale-95 transition-transform" title="Sair">
+          <mat-icon class="text-[24px]">logout</mat-icon>
+        </button>
       </header>
 
       <!-- KPI Cards (Top Row) -->
@@ -234,6 +228,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   today = new Date();
   todayStr = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(this.today);
+
+  firstName = computed(() => {
+    const name = this.authService.currentUser()?.name || '';
+    return name.split(' ')[0] || 'Chef';
+  });
 
   teamPresent = computed(() => {
     const schedules = this.scheduleService.schedules();

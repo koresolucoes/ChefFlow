@@ -9,103 +9,109 @@ import { AuthService } from './services/auth.service';
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, MatIconModule],
   template: `
-    <div class="min-h-screen bg-stone-50 flex">
-      <!-- Sidebar (Desktop Only) -->
-      <aside class="hidden md:flex w-64 bg-stone-900 text-stone-300 flex-col shrink-0">
-        <div class="p-6 flex items-center gap-3 text-white border-b border-stone-800">
-          <mat-icon class="text-emerald-500">restaurant_menu</mat-icon>
-          <span class="text-xl font-bold tracking-tight">ChefFlow</span>
+    <div class="h-[100dvh] flex bg-stone-50 text-stone-900 overflow-hidden font-sans w-full">
+      
+      <!-- Edge-to-Edge Sidebar (Desktop Mode) -->
+      <aside class="hidden md:flex flex-col w-[280px] bg-white border-r border-stone-200 h-full shrink-0 z-10 shadow-sm relative">
+        <div class="h-20 flex items-center gap-3 px-6 border-b border-stone-100">
+          <div class="w-10 h-10 bg-gradient-to-tr from-emerald-500 to-emerald-400 rounded-xl flex items-center justify-center shadow-sm">
+            <mat-icon class="text-white">restaurant_menu</mat-icon>
+          </div>
+          <div>
+            <span class="text-xl font-black tracking-tight text-stone-900 leading-none block">ChefFlow</span>
+            <span class="text-[10px] font-bold text-stone-400 tracking-widest uppercase">Sistema OS</span>
+          </div>
         </div>
         
-        <nav class="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
-          <a routerLink="/dashboard" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+        <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+          <a routerLink="/dashboard" routerLinkActive="bg-stone-50 text-emerald-700" [routerLinkActiveOptions]="{exact: true}" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-stone-50 text-stone-600 transition-colors font-bold text-sm">
             <mat-icon>dashboard</mat-icon>
-            <span class="font-medium">Painel de Controle</span>
+            Início
           </a>
           
-          <div class="pt-4 pb-2 px-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+          <div class="pt-4 pb-2 px-3 text-[10px] font-black text-stone-400 uppercase tracking-widest">
             Gestão
           </div>
           
           @if (authService.canManageTeam()) {
-            <a routerLink="/equipe" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+            <a routerLink="/equipe" routerLinkActive="bg-stone-50 text-indigo-700" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-stone-50 text-stone-600 transition-colors font-bold text-sm">
               <mat-icon>badge</mat-icon>
-              <span class="font-medium">Equipe & Praças</span>
+              Equipe & Praças
             </a>
           }
 
           @if (!authService.isEstoque() && !authService.isAuditor()) {
-            <a routerLink="/escalas" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+            <a routerLink="/escalas" routerLinkActive="bg-stone-50 text-emerald-700" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-stone-50 text-stone-600 transition-colors font-bold text-sm">
               <mat-icon>groups</mat-icon>
-              <span class="font-medium">Escalas & Pessoal</span>
+              Escalas & Pessoal
             </a>
           }
             
           @if (!authService.isEstoque()) {
-            <a routerLink="/producao" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+            <a routerLink="/producao" routerLinkActive="bg-stone-50 text-amber-700" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-stone-50 text-stone-600 transition-colors font-bold text-sm">
               <mat-icon>receipt_long</mat-icon>
-              <span class="font-medium">Produção (Prep)</span>
+              Produção (Prep)
             </a>
-            <a routerLink="/receitas" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+            <a routerLink="/receitas" routerLinkActive="bg-stone-50 text-orange-700" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-stone-50 text-stone-600 transition-colors font-bold text-sm">
               <mat-icon>menu_book</mat-icon>
-              <span class="font-medium">Fichas Técnicas</span>
+              Fichas Técnicas
             </a>
-            <a routerLink="/desperdicio" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+            <a routerLink="/desperdicio" routerLinkActive="bg-stone-50 text-rose-700" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-stone-50 text-stone-600 transition-colors font-bold text-sm">
               <mat-icon>delete_sweep</mat-icon>
-              <span class="font-medium">Desperdício</span>
+              Desperdício
             </a>
           }
           
           @if (!authService.isCook()) {
-            <a routerLink="/estoque" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+            <a routerLink="/estoque" routerLinkActive="bg-stone-50 text-teal-700" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-stone-50 text-stone-600 transition-colors font-bold text-sm">
               <mat-icon>inventory_2</mat-icon>
-              <span class="font-medium">Estoque Central</span>
+              Estoque Central
             </a>
-            <a routerLink="/compras" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+            <a routerLink="/compras" routerLinkActive="bg-stone-50 text-cyan-700" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-stone-50 text-stone-600 transition-colors font-bold text-sm">
               <mat-icon>local_shipping</mat-icon>
-              <span class="font-medium">Compras & Fornecedores</span>
+              Compras & Fornecedores
             </a>
           }
 
           @if (!authService.isAuditor()) {
-            <a routerLink="/requisicoes" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+            <a routerLink="/requisicoes" routerLinkActive="bg-stone-50 text-rose-700" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-stone-50 text-stone-600 transition-colors font-bold text-sm">
               <mat-icon>shopping_cart</mat-icon>
-              <span class="font-medium">Requisições</span>
+              Requisições
             </a>
           }
 
           @if (authService.isCook() || authService.isChef() || authService.isAdmin() || authService.isEstoque() || authService.isAuditor()) {
-            <a routerLink="/contagem" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+            <a routerLink="/contagem" routerLinkActive="bg-stone-50 text-teal-700" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-stone-50 text-stone-600 transition-colors font-bold text-sm">
               <mat-icon>fact_check</mat-icon>
-              <span class="font-medium">Contagem & Auditoria</span>
+              Contagem
             </a>
           }
           
           @if (!authService.isEstoque()) {
-            <a routerLink="/limpeza" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+            <a routerLink="/limpeza" routerLinkActive="bg-stone-50 text-blue-700" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-stone-50 text-stone-600 transition-colors font-bold text-sm">
               <mat-icon>checklist</mat-icon>
-              <span class="font-medium">Qualidade & Checklist</span>
+              Qualidade & Checklist
             </a>
           }
           
-          <a routerLink="/comunicacao" routerLinkActive="bg-stone-800 text-white" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-800 hover:text-white transition-colors">
+          <a routerLink="/comunicacao" routerLinkActive="bg-stone-50 text-purple-700" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-stone-50 text-stone-600 transition-colors font-bold text-sm">
             <mat-icon>campaign</mat-icon>
-            <span class="font-medium">Comunicação</span>
+            Comunicação
           </a>
         </nav>
         
-        <div class="p-4 border-t border-stone-800">
-          <div class="flex items-center justify-between px-3 py-2">
+        <div class="p-4 border-t border-stone-100 bg-stone-50/50">
+          <div class="flex items-center justify-between p-2">
             <div class="flex items-center gap-3 min-w-0">
-              <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+              <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm shrink-0 border border-emerald-200">
                 {{ authService.currentUser()?.name?.charAt(0) || 'U' }}
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-white truncate">{{ authService.currentUser()?.name || 'Usuário' }}</p>
-                <p class="text-xs text-stone-500 truncate capitalize">{{ authService.currentUser()?.role || 'Admin' }}</p>
+                <p class="text-sm font-bold text-stone-900 truncate">{{ authService.currentUser()?.name || 'Usuário' }}</p>
+                <p class="text-[10px] text-stone-500 truncate uppercase font-bold tracking-wider">{{ authService.currentUser()?.role || 'Admin' }}</p>
               </div>
             </div>
-            <button (click)="logout()" class="p-1.5 text-stone-400 hover:text-white hover:bg-stone-800 rounded-lg transition-colors" title="Sair">
+            <button (click)="logout()" class="p-2 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-xl transition-all" title="Sair">
               <mat-icon class="text-[20px] w-5 h-5">logout</mat-icon>
             </button>
           </div>
@@ -113,65 +119,62 @@ import { AuthService } from './services/auth.service';
       </aside>
 
       <!-- Main Content -->
-      <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <!-- Top Header (Mobile) -->
-        <header class="bg-white border-b border-stone-200 h-16 flex items-center justify-between px-4 md:hidden shrink-0">
+      <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-stone-50 md:bg-white text-stone-900">
+        <!-- Minimal Top App Bar (Mobile) -->
+        <header class="bg-stone-50/80 backdrop-blur-xl h-14 flex items-center justify-between px-4 md:hidden shrink-0 sticky top-0 z-30">
           <div class="flex items-center gap-2">
-            <mat-icon class="text-emerald-600">restaurant_menu</mat-icon>
-            <span class="text-lg font-bold text-stone-900">ChefFlow</span>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
-              {{ authService.currentUser()?.name?.charAt(0) || 'U' }}
+            <div class="w-8 h-8 bg-gradient-to-tr from-emerald-500 to-emerald-400 rounded-lg flex items-center justify-center shadow-sm">
+              <mat-icon class="text-white text-[18px]">restaurant_menu</mat-icon>
             </div>
+            <span class="text-lg font-black tracking-tight text-stone-900">ChefFlow</span>
           </div>
         </header>
 
         <!-- Content Area -->
-        <div class="flex-1 overflow-auto p-4 md:p-8 pb-32 md:pb-8">
-          <div class="max-w-7xl mx-auto">
+        <div class="flex-1 overflow-auto bg-stone-50 pb-[100px] md:pb-8 md:p-8">
+          <div class="max-w-7xl mx-auto h-full rounded-none md:rounded-3xl">
             <router-outlet></router-outlet>
           </div>
         </div>
 
         <!-- Bottom Navigation (Mobile Only) -->
-        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 flex items-center justify-around pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 px-1 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-          <a routerLink="/dashboard" routerLinkActive="text-emerald-600 font-bold" [routerLinkActiveOptions]="{exact: true}" class="flex flex-col items-center p-2 text-stone-500 hover:text-emerald-600 transition-colors flex-1 text-center">
-            <mat-icon class="text-[28px] w-7 h-7">dashboard</mat-icon>
-            <span class="text-[10px] sm:text-xs mt-1">Início</span>
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-stone-200/50 flex items-center justify-around pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 px-2 z-40">
+          <a routerLink="/dashboard" routerLinkActive="text-stone-900" [routerLinkActiveOptions]="{exact: true}" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
+            <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform" [class.material-icons-outlined]="!isActive('/dashboard')">dashboard</mat-icon>
+            <span class="text-[10px] sm:text-xs font-semibold">Início</span>
           </a>
 
           @if (!authService.isEstoque()) {
-            <a routerLink="/producao" routerLinkActive="text-emerald-600 font-bold" class="flex flex-col items-center p-2 text-stone-500 hover:text-emerald-600 transition-colors flex-1 text-center">
-              <mat-icon class="text-[28px] w-7 h-7">receipt_long</mat-icon>
-              <span class="text-[10px] sm:text-xs mt-1">Produção</span>
+            <a routerLink="/producao" routerLinkActive="text-stone-900" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
+              <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">receipt_long</mat-icon>
+              <span class="text-[10px] sm:text-xs font-semibold">Produção</span>
             </a>
           }
 
           @if (authService.isCook() || authService.isChef() || authService.isAdmin()) {
-            <a routerLink="/contagem" routerLinkActive="text-emerald-600 font-bold" class="flex flex-col items-center p-2 text-stone-500 hover:text-emerald-600 transition-colors flex-1 text-center">
-              <mat-icon class="text-[28px] w-7 h-7">fact_check</mat-icon>
-              <span class="text-[10px] sm:text-xs mt-1">Contagem</span>
+            <a routerLink="/contagem" routerLinkActive="text-stone-900" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
+              <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">fact_check</mat-icon>
+              <span class="text-[10px] sm:text-xs font-semibold">Contagem</span>
             </a>
           }
 
           @if (authService.isEstoque()) {
-            <a routerLink="/estoque" routerLinkActive="text-emerald-600 font-bold" class="flex flex-col items-center p-2 text-stone-500 hover:text-emerald-600 transition-colors flex-1 text-center">
-              <mat-icon class="text-[28px] w-7 h-7">inventory_2</mat-icon>
-              <span class="text-[10px] sm:text-xs mt-1">Estoque</span>
+            <a routerLink="/estoque" routerLinkActive="text-stone-900" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
+              <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">inventory_2</mat-icon>
+              <span class="text-[10px] sm:text-xs font-semibold">Estoque</span>
             </a>
           }
 
           @if (!authService.isEstoque()) {
-            <a routerLink="/limpeza" routerLinkActive="text-emerald-600 font-bold" class="flex flex-col items-center p-2 text-stone-500 hover:text-emerald-600 transition-colors flex-1 text-center">
-              <mat-icon class="text-[28px] w-7 h-7">checklist</mat-icon>
-              <span class="text-[10px] sm:text-xs mt-1">Checklist</span>
+            <a routerLink="/limpeza" routerLinkActive="text-stone-900" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group">
+              <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">cleaning_services</mat-icon>
+              <span class="text-[10px] sm:text-xs font-semibold">Checklists</span>
             </a>
           }
 
-          <button (click)="toggleSidebar()" class="flex flex-col items-center p-2 text-stone-500 hover:text-emerald-600 transition-colors flex-1 text-center" [class.text-emerald-600]="isSidebarOpen()">
-            <mat-icon class="text-[28px] w-7 h-7">menu</mat-icon>
-            <span class="text-[10px] sm:text-xs mt-1">Menu</span>
+          <button (click)="toggleSidebar()" class="flex flex-col items-center p-2 text-stone-400 hover:text-stone-900 transition-colors flex-1 text-center group" [class.text-stone-900]="isSidebarOpen()">
+            <mat-icon class="text-[26px] w-6 h-6 mb-1 group-active:scale-90 transition-transform">menu</mat-icon>
+            <span class="text-[10px] sm:text-xs font-semibold">Menu</span>
           </button>
         </nav>
       </main>
@@ -292,6 +295,10 @@ export class LayoutComponent {
         this.router.navigate(['/login']);
       }
     });
+  }
+
+  isActive(route: string): boolean {
+    return this.router.url === route;
   }
 
   toggleSidebar() {
