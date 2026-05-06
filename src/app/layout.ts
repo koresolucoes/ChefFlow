@@ -32,6 +32,18 @@ import { AuthService } from './services/auth.service';
           <div class="pt-4 pb-2 px-3 text-[10px] font-black text-stone-400 uppercase tracking-widest">
             Gestão
           </div>
+
+          @if (authService.isCook() || authService.isChef()) {
+            <div class="px-2 pb-2">
+              <a routerLink="/servico" class="flex items-center justify-between gap-3 px-3 py-3 rounded-2xl bg-stone-900 hover:bg-stone-800 text-white transition-transform active:scale-95 font-bold text-sm shadow-md border border-stone-800">
+                <div class="flex items-center gap-3">
+                  <mat-icon class="text-orange-500">local_fire_department</mat-icon>
+                  Modo Serviço
+                </div>
+                <mat-icon class="text-stone-500 text-sm">arrow_forward_ios</mat-icon>
+              </a>
+            </div>
+          }
           
           @if (authService.canManageTeam()) {
             <a routerLink="/equipe" routerLinkActive="bg-stone-50 text-indigo-700" class="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-stone-50 text-stone-600 transition-colors font-bold text-sm">
@@ -200,6 +212,18 @@ import { AuthService } from './services/auth.service';
           <div class="flex-1 overflow-y-auto p-4">
             <h2 class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4 px-2">Menu Principal</h2>
             <div class="grid grid-cols-2 gap-3">
+              @if (authService.isCook() || authService.isChef()) {
+                <a routerLink="/servico" (click)="toggleSidebar()" class="col-span-2 flex items-center justify-between gap-3 p-4 bg-stone-900 rounded-2xl shadow-md border border-stone-800 active:scale-95 transition-all mb-2">
+                  <div class="flex items-center gap-3">
+                     <div class="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center text-white">
+                        <mat-icon>local_fire_department</mat-icon>
+                     </div>
+                     <span class="font-black text-white uppercase tracking-wider">Modo Serviço</span>
+                  </div>
+                  <mat-icon class="text-stone-500">arrow_forward_ios</mat-icon>
+                </a>
+              }
+              
               <a routerLink="/dashboard" (click)="toggleSidebar()" routerLinkActive="ring-2 ring-emerald-500 bg-emerald-50/50" [routerLinkActiveOptions]="{exact: true}" class="flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-2xl shadow-sm border border-stone-200 active:scale-95 transition-all">
                 <mat-icon class="text-[32px] w-8 h-8 text-emerald-600">dashboard</mat-icon>
                 <span class="font-bold text-stone-900 text-sm">Painel de Controle</span>

@@ -86,4 +86,31 @@ ALTER TABLE prep_tasks ADD COLUMN IF NOT EXISTS target_portions INTEGER;
 ALTER TABLE prep_tasks ADD COLUMN IF NOT EXISTS notes TEXT;
 ALTER TABLE prep_tasks ADD COLUMN IF NOT EXISTS due_date DATE;
 
+-- =========================================================================
+-- FASE 4: MELHORIAS NAS RECEITAS E ARMAZENAMENTO DE IMAGENS
+-- =========================================================================
+
+ALTER TABLE recipes ADD COLUMN IF NOT EXISTS category TEXT;
+
+-- Criação do Bucket de Storage para Imagens das Fichas Técnicas
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('images', 'images', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Políticas de Segurança para o Bucket 'images'
+CREATE POLICY "Imagens públicas para visualização" 
+ON storage.objects FOR SELECT 
+USING (bucket_id = 'images');
+
+CREATE POLICY "Upload apenas para usuários autenticados" 
+ON storage.objects FOR INSERT 
+WITH CHECK (bucket_id = 'images' AND auth.role() = 'authenticated');
+
+CREATE POLICY "Edição apenas para usuários autenticados" 
+ON storage.objects FOR UPDATE 
+USING (bucket_id = 'images' AND auth.role() = 'authenticated');
+
+CREATE POLICY "Deleção apenas para usuários autenticados" 
+ON storage.objects FOR DELETE 
+USING (bucket_id = 'images' AND auth.role() = 'authenticated');
 ```

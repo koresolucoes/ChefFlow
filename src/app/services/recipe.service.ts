@@ -21,6 +21,7 @@ export interface Recipe {
   base_portions: number;
   image_url?: string;
   method?: string;
+  category?: string;
   equipment?: string;
   produced_item_id?: string;
   recipe_ingredients?: RecipeIngredient[];
@@ -71,6 +72,23 @@ export class RecipeService {
       return true;
     } catch (error) {
       console.error('Erro ao adicionar receita', error);
+      return false;
+    }
+  }
+
+  async updateRecipe(id: string, recipe: Partial<Recipe>, ingredients: RecipeIngredient[]) {
+    try {
+      const updatedRecipe = await firstValueFrom(
+        this.http.put<Recipe>(`${environment.apiUrl}/recipes`, {
+          id,
+          ...recipe,
+          ingredients
+        })
+      );
+      this.recipes.update(r => r.map(x => x.id === id ? updatedRecipe : x));
+      return true;
+    } catch (error) {
+      console.error('Erro ao atualizar receita', error);
       return false;
     }
   }
